@@ -1,4 +1,4 @@
-export default function TopBanner() {
+export default function TopBanner({invoice}) {
   return (
     <div className="absolute top-0 right-0 w-[48%] h-40">
       <svg
@@ -38,7 +38,7 @@ export default function TopBanner() {
         </h1>
 
         <p className="mt-2 text-sm tracking-widest">
-          # DV-25-21109-9
+          # DV-{invoice.invoiceNumber}
         </p>
       </div>
     </div>

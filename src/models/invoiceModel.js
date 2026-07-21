@@ -1,11 +1,12 @@
 export const invoiceModel = {
   invoiceNumber: "1001",
+  invoiceCounter: 1001,
 
   customer: "",
   customerEmail: "",
   billingAddress: "",
 
-  terms: "",
+  // terms: "",
   invoiceDate: "",
   dueDate: "",
 

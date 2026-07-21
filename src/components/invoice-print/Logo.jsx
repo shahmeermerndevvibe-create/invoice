@@ -39,7 +39,7 @@ export default function Logo() {
       </svg>
 
       <p className="mt-3 text-sm font-semibold tracking-wide text-slate-800">
-        ABN: <span className="font-medium text-slate-600">89 671 210 446</span>
+        ABN: <span className="font-medium text-slate-600">60733547866</span>
       </p>
     </div>
   );

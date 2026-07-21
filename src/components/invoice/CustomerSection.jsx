@@ -53,7 +53,7 @@ export default function CustomerSection() {
           <div className="flex flex-wrap gap-4">
             <div className="w-full md:w-72">
               <Label className="mb-2 block">
-                Customer <span className="text-red-500">**</span>
+                Customer <span className="text-red-500">*</span>
               </Label>
               <Input
                 placeholder="Customer Name"
@@ -93,7 +93,7 @@ export default function CustomerSection() {
           {/* Terms & Dates */}
 
           <div className="flex flex-wrap gap-4">
-            <div className="w-full md:w-56">
+            {/* <div className="w-full md:w-56">
               <Label className="mb-2 block">Terms</Label>
 
               <Select
@@ -118,12 +118,12 @@ export default function CustomerSection() {
               {errors.terms && (
                 <p className="mt-1 text-sm text-red-500">{errors.terms}</p>
               )}
-            </div>
+            </div> */}
 
             <div className="w-full md:w-52">
               <Label className="mb-2 block">
                 Invoice Date
-                <span className="text-red-500 pl-1">**</span>
+                <span className="text-red-500 pl-1">*</span>
               </Label>
 
               <Input
@@ -150,7 +150,7 @@ export default function CustomerSection() {
 
             <div className="w-full md:w-52">
               <Label className="mb-2 block">
-                Phone Number <span className="text-red-500">**</span>
+                Phone Number <span className="text-red-500"></span>
               </Label>
 
               <Input

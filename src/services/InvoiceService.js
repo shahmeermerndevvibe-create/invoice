@@ -87,10 +87,10 @@ export const invoiceService = {
     await this.deleteInvoice(invoiceId);
   },
 
-  async getLatestInvoiceNumber() {
+  async getLatestInvoiceCounter() {
     const q = query(
       invoiceCollection,
-      orderBy("invoiceNumber", "desc"),
+      orderBy("invoiceCounter", "desc"),
       limit(1),
     );
 
@@ -101,8 +101,8 @@ export const invoiceService = {
     }
 
     const latestInvoice = snapshot.docs[0].data();
-
-    return Number(latestInvoice.invoiceNumber);
+    console.log(latestInvoice);
+    return Number(latestInvoice.invoiceCounter);
   },
 
   async getAllInvoiceNumbers() {

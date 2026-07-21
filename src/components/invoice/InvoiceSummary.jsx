@@ -22,65 +22,69 @@ import { toast } from "react-hot-toast";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { validateInvoice } from "@/vaidations/invoiceValidation";
+import { loadNextInvoiceNumber } from "../../utils/InvoiceCounter"
 
 export default function InvoiceSummary({ onPrint }) {
   const invoice = useInvoiceStore((state) => state.invoice);
-  console.log("InvoiceSummary - invoice:", invoice);
+  
   const items = useInvoiceStore((state) => state.items);
   const updateInvoice = useInvoiceStore((state) => state.updateInvoice);
   const resetInvoice = useInvoiceStore((state) => state.resetInvoice);
-  const incrementInvoiceNumber = useInvoiceStore(
-    (state) => state.incrementInvoiceNumber,
-  );
+  // const incrementInvoiceNumber = useInvoiceStore(
+  //   (state) => state.incrementInvoiceNumber,
+  // );
   const setErrors = useInvoiceStore((state) => state.setErrors);
 
   const [loading, setLoading] = useState(false);
-  const [showDepositInput, setShowDepositInput] = useState(false);
+  // const [showDepositInput, setShowDepositInput] = useState(false);
 
   const { subtotal, total, balanceDue } = useInvoiceTotals();
 
-  const handlePrintInvoice = async () => {
-    try {
-      console.log("Starting invoice save process...");
-      setLoading(true);
-      const invoiceToSave = {
-        ...invoice,
-        subtotal,
-        total,
-        balanceDue,
-      };
-  
-      const { isValid, errors } = validateInvoice(invoice, items);
+ const handlePrintInvoice = async () => {
+  try {
+    setLoading(true);
 
-      if (!isValid) {
-        toast.error("Please fix the errors in the invoice.");
-        console.log("Validation errors:", errors);
-        setErrors(errors); // Set the errors in the store
-        return {
-          success: false,
-          errors,
-        };
-      }
+    const invoiceToSave = {
+      ...invoice,
+      subtotal,
+      total,
+      balanceDue,
+    };
 
-      const result = await saveInvoice(invoiceToSave, items);
-      if (!result.success) {
-        toast.error("Failed to save invoice. Please check the errors.");
-        return;
-      }
-      toast.success("Invoice saved successfully!");
+    const { isValid, errors } = validateInvoice(invoice, items);
 
-      await onPrint(); 
-
-      incrementInvoiceNumber();
-      resetInvoice();
-      setErrors({});
-    } catch (error) {
-      console.error(error);
-      toast.error("An error occurred while saving the invoice.");
-    } finally {
-      setLoading(false);
+    if (!isValid) {
+      setErrors(errors);
+      toast.error("Please fix the errors in the invoice.");
+      return;
     }
-  };
+
+    const result = await saveInvoice(invoiceToSave, items);
+
+    if (!result.success) {
+      toast.error("Failed to save invoice.");
+      return;
+    }
+
+    toast.success("Invoice saved successfully!");
+
+    await onPrint();
+
+    // Load next invoice number
+    const nextInvoice = await loadNextInvoiceNumber();
+
+    updateInvoice("invoiceCounter", nextInvoice.invoiceCounter);
+    updateInvoice("invoiceNumber", nextInvoice.invoiceNumber);
+
+    resetInvoice();
+    setErrors({});
+  } catch (error) {
+    console.error(error);
+    toast.error("An error occurred while saving the invoice.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <Card className="sticky top-6 w-full max-w-md">
@@ -179,7 +183,7 @@ export default function InvoiceSummary({ onPrint }) {
 
         {/* Deposit */}
 
-        <button
+        {/* <button
           className="text-sm cursor-pointer p-2 rounded bg-black/50
           text-white flex items-center gap-2
            hover:bg-black/70 transition-colors duration-200"
@@ -187,9 +191,9 @@ export default function InvoiceSummary({ onPrint }) {
         >
           {showDepositInput ? "Hide Deposit" : "Add Deposit"}
           {showDepositInput ? <ChevronDown /> : <ChevronUp />}
-        </button>
+        </button> */}
 
-        {showDepositInput && (
+        {/* {showDepositInput && (
           <div className="space-y-2">
             <Label>Deposit</Label>
 
@@ -205,13 +209,13 @@ export default function InvoiceSummary({ onPrint }) {
               }
             />
           </div>
-        )}
+        )} */}
 
-        <Separator />
+        {/* <Separator /> */}
 
         {/* Balance Due */}
 
-        {showDepositInput && (
+        {/* {showDepositInput && (
           <div className="flex justify-between text-xl font-bold text-gray-600">
             <span>Balance Due</span>
 
@@ -219,7 +223,7 @@ export default function InvoiceSummary({ onPrint }) {
               {invoice.currency.symbol} {formatCurrency(balanceDue)}
             </span>
           </div>
-        )}
+        )} */}
         <Button className="w-full" size="lg" onClick={handlePrintInvoice}>
           {loading ? (
             <>

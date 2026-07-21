@@ -11,7 +11,9 @@ const InvoicePrint = ({ invoice, items, subtotal, total, balanceDue, taxAmount }
      <header className="print-header relative">
         <div className="relative flex items-start justify-between border-b border-slate-900 px-12 pt-8 pb-8">
           <Logo />
-          <TopBanner />
+          <TopBanner 
+          invoice={invoice}
+          />
         </div>
 
         <div className="border-b border-slate-900" />

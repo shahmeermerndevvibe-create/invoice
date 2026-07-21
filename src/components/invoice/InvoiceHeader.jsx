@@ -3,12 +3,14 @@ import { RefreshCcw, Settings, CircleHelp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FaClockRotateLeft } from "react-icons/fa6";
 import { useInvoiceStore } from "@/store/invoiceStore";
-import { getLatestInvoiceNumber } from "@/actions/invoiceActions";
+import { getLatestInvoiceCounter } from "@/actions/invoiceActions";
 import { checkInvoiceNumberExists } from "@/actions/invoiceActions";
+import { loadNextInvoiceNumber } from "../../utils/InvoiceCounter"
 import toast from "react-hot-toast";
 
 export default function InvoiceHeader() {
   const invoiceNo = useInvoiceStore((state) => state.invoice.invoiceNumber);
+ 
 
   const updateInvoice = useInvoiceStore((state) => state.updateInvoice);
 
@@ -16,18 +18,23 @@ export default function InvoiceHeader() {
   const [tempInvoiceNo, setTempInvoiceNo] = useState(invoiceNo);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    setLoading(true);
-    const loadInvoiceNumber = async () => {
-      const latestInvoiceNumber = await getLatestInvoiceNumber();
-      const nextInvoiceNumber = String(latestInvoiceNumber + 1);
-      setTempInvoiceNo(nextInvoiceNumber);
-      updateInvoice("invoiceNumber", nextInvoiceNumber);
-    };
+useEffect(() => {
+  const load = async () => {
+    try {
+      setLoading(true);
 
-    loadInvoiceNumber();
-    setLoading(false);
-  }, []);
+      const nextInvoice = await loadNextInvoiceNumber();
+
+      updateInvoice("invoiceCounter", nextInvoice.invoiceCounter);
+      updateInvoice("invoiceNumber", nextInvoice.invoiceNumber);
+      setTempInvoiceNo(nextInvoice.invoiceNumber);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  load();
+}, []);
 
   const handleSave = async () => {
     const newInvoiceNo = tempInvoiceNo.trim();
@@ -67,7 +74,7 @@ export default function InvoiceHeader() {
                 setEditing(false);
               }
             }}
-            className="ml-1 w-20 rounded border border-blue-500 px-1 py-0 text-2xl font-normal outline-none"
+            className="ml-1 w-25 rounded border border-blue-500 px-1 py-0 text-2xl font-normal outline-none"
           />
         ) : (
           <span

@@ -38,10 +38,10 @@ export const saveInvoice = async (invoice, items) => {
   };
 };
 
-export const getLatestInvoiceNumber = async () => {
-  const latestInvoiceNumber = await invoiceService.getLatestInvoiceNumber();
-  console.log("Latest Invoice Number:", latestInvoiceNumber);
-  return latestInvoiceNumber;
+export const getLatestInvoiceCounter = async () => {
+  const latestInvoiceCounter = await invoiceService.getLatestInvoiceCounter();
+  console.log("Latest Invoice Number:", latestInvoiceCounter);
+  return latestInvoiceCounter;
 }
 
 export const checkInvoiceNumberExists = async (invoiceNumber) => {

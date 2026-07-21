@@ -64,14 +64,15 @@ export const useInvoiceStore = create(
           return {
             errors: newErrors,
           };
-        })
+        });
       },
 
       resetInvoice() {
         set((state) => ({
           invoice: {
             ...invoiceModel,
-            invoiceNumber: state.invoice.invoiceNumber, // Preserve the current invoice number
+            invoiceCounter: state.invoice.invoiceCounter,
+            invoiceNumber: state.invoice.invoiceNumber,
           },
           items: [
             {
@@ -106,19 +107,18 @@ export const useInvoiceStore = create(
         }));
       },
 
-      incrementInvoiceNumber: () =>
-        set((state) => ({
-          invoice: {
-            ...state.invoice,
-            invoiceNumber: String(Number(state.invoice.invoiceNumber) + 1),
-          },
-        })),
+      // incrementInvoiceCounter: () =>
+      //   set((state) => {
+      //     const nextCounter = state.invoice.invoiceCounter + 1;
 
-      deleteItem(index) {
-        set((state) => ({
-          items: state.items.filter((_, i) => i !== index),
-        }));
-      },
+      //     return {
+      //       invoice: {
+      //         ...state.invoice,
+      //         invoiceCounter: nextCounter,
+      //         invoiceNumber: String(nextCounter),
+      //       },
+      //     };
+      //   }),
 
       clearItems() {
         set({

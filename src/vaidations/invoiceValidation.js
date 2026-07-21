@@ -38,16 +38,16 @@ export const validateInvoice = (invoice = {}, items = []) => {
   //     "Due date cannot be before invoice date.";
   // }
 
-  if (!invoice.terms?.trim()) {
-    errors.terms = "Payment terms are required.";
-  }
+  // if (!invoice.terms?.trim()) {
+  //   errors.terms = "Payment terms are required.";
+  // }
 
   if (!invoice.currency?.code) {
     errors.currency = "Currency is required.";
   }
 
   if(!invoice.phoneNo?.trim()) {
-    errors.phoneNo = "Phone number is required.";
+    // errors.phoneNo = "Phone number is required.";
   } else {
     const phoneRegex = /^03\d{2}\d{7}$/
 
@@ -144,9 +144,9 @@ if (!filledItems.length) {
   current.product = "Product is required.";
 }
 
-if (!item.serviceDate) {
-  current.serviceDate = "Service date is required.";
-}
+// if (!item.serviceDate) {
+//   // current.serviceDate = "Service date is required.";
+// }
 
 if (item.qty === "") {
   current.qty = "Quantity is required.";
