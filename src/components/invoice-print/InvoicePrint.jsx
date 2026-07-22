@@ -1,39 +1,56 @@
-import Logo from "./Logo";
-import TopBanner from "./TopBanner";
-import BillingInfo from "./BillingInfo";
-import BillingTable from "./BillingTable";
-import BillingSummary from "./BillingSummary";
-import BillingFooter from "./BillingFooter";
+import InvoicePrintPage from "./InvoicePrintPage";
 
-const InvoicePrint = ({ invoice, items, subtotal, total, balanceDue, taxAmount }) => {
+const ITEMS_PER_PAGE = 10;
+const FIRST_PAGE_ITEMS = 7;
+
+function buildPages(items) {
+  if (items.length === 0) return [[]];
+
+  const pages = [];
+  let idx = 0;
+
+  const firstCount = Math.min(FIRST_PAGE_ITEMS, items.length);
+  pages.push(items.slice(idx, idx + firstCount));
+  idx += firstCount;
+
+  while (idx < items.length) {
+    const count = Math.min(ITEMS_PER_PAGE, items.length - idx);
+    pages.push(items.slice(idx, idx + count));
+    idx += count;
+  }
+
+  return pages;
+}
+
+const InvoicePrint = ({
+  invoice,
+  items,
+  subtotal,
+  total,
+  balanceDue,
+  taxAmount,
+}) => {
+  const pageChunks = buildPages(items);
+
   return (
-    <div className="invoice bg-white flex flex-col" style={{ width: '210mm', height: '296mm', margin: '0 auto', overflow: 'hidden', position: 'relative' }}>
-     <header className="print-header relative">
-        <div className="relative flex items-start justify-between border-b border-slate-900 px-12 pt-8 pb-8">
-          <Logo />
-          <TopBanner 
-          invoice={invoice}
+    <div>
+      {pageChunks.map((chunk, index) => (
+        <div
+          key={index}
+          style={index > 0 ? { pageBreakBefore: "always" } : undefined}
+        >
+          <InvoicePrintPage
+            invoice={invoice}
+            items={chunk}
+            isFirstPage={index === 0}
+            isLastPage={index === pageChunks.length - 1}
+            subtotal={subtotal}
+            total={total}
+            balanceDue={balanceDue}
+            taxAmount={taxAmount}
           />
         </div>
-
-        <div className="border-b border-slate-900" />
-      </header>
-
-      <BillingInfo invoice={invoice} />
-
-      <BillingTable items={items} />
-
-      <BillingSummary 
-        invoice={invoice} 
-        subtotal={subtotal} 
-        total={total} 
-        balanceDue={balanceDue} 
-        taxAmount={taxAmount}
-      />
-
-       <div className="absolute bottom-0 left-0 w-full">
-        <BillingFooter />
-      </div>
+      ))}
     </div>
   );
 };

@@ -5,6 +5,7 @@ import InvoiceHeader from "@/components/invoice/InvoiceHeader";
 import CustomerSection from "@/components/invoice/CustomerSection";
 import InvoiceItemsTable from "@/components/invoice/InvoiceItemsTable";
 import InvoicePrint from "@/components/invoice-print/InvoicePrint";
+import InvoiceHistoryPanel from "@/components/history/InvoiceHistoryPanel";
 import { useInvoiceStore } from "@/store/invoiceStore";
 import { useInvoiceTotals } from "@/hooks/useInvoiceTotals";
 
@@ -41,6 +42,8 @@ const { subtotal, total, balanceDue, taxAmount } = useInvoiceTotals();
           />
         </div>
       </div>
+
+      <InvoiceHistoryPanel />
     </>
   );
 };

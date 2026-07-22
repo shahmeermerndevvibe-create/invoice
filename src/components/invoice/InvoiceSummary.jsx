@@ -22,11 +22,11 @@ import { toast } from "react-hot-toast";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { validateInvoice } from "@/vaidations/invoiceValidation";
-import { loadNextInvoiceNumber } from "../../utils/InvoiceCounter"
+import { loadNextInvoiceNumber } from "../../utils/InvoiceCounter";
 
 export default function InvoiceSummary({ onPrint }) {
   const invoice = useInvoiceStore((state) => state.invoice);
-  
+
   const items = useInvoiceStore((state) => state.items);
   const updateInvoice = useInvoiceStore((state) => state.updateInvoice);
   const resetInvoice = useInvoiceStore((state) => state.resetInvoice);
@@ -38,53 +38,54 @@ export default function InvoiceSummary({ onPrint }) {
   const [loading, setLoading] = useState(false);
   // const [showDepositInput, setShowDepositInput] = useState(false);
 
-  const { subtotal, total, balanceDue } = useInvoiceTotals();
+  const { subtotal, discountAmount, taxAmount, total, balanceDue } =
+    useInvoiceTotals();
 
- const handlePrintInvoice = async () => {
-  try {
-    setLoading(true);
+  const handlePrintInvoice = async () => {
+    try {
+      setLoading(true);
 
-    const invoiceToSave = {
-      ...invoice,
-      subtotal,
-      total,
-      balanceDue,
-    };
+      const invoiceToSave = {
+        ...invoice,
+        subtotal,
+        total,
+        balanceDue,
+      };
 
-    const { isValid, errors } = validateInvoice(invoice, items);
+      const { isValid, errors } = validateInvoice(invoice, items, subtotal);
 
-    if (!isValid) {
-      setErrors(errors);
-      toast.error("Please fix the errors in the invoice.");
-      return;
+      if (!isValid) {
+        setErrors(errors);
+        toast.error("Please fix the errors in the invoice.");
+        return;
+      }
+
+      const result = await saveInvoice(invoiceToSave, items);
+      console.log("Invoice save result:", result);
+      if (!result.success) {
+        toast.error("Failed to save invoice.");
+        return;
+      }
+
+      toast.success("Invoice saved successfully!");
+
+      await onPrint();
+
+      // Load next invoice number
+      const nextInvoice = await loadNextInvoiceNumber();
+
+      updateInvoice("invoiceCounter", nextInvoice.invoiceCounter);
+      updateInvoice("invoiceNumber", nextInvoice.invoiceNumber);
+
+      resetInvoice();
+      setErrors({});
+    } catch (error) {
+      console.error(error);
+      toast.error("An error occurred while saving the invoice.");
+    } finally {
+      setLoading(false);
     }
-
-    const result = await saveInvoice(invoiceToSave, items);
-
-    if (!result.success) {
-      toast.error("Failed to save invoice.");
-      return;
-    }
-
-    toast.success("Invoice saved successfully!");
-
-    await onPrint();
-
-    // Load next invoice number
-    const nextInvoice = await loadNextInvoiceNumber();
-
-    updateInvoice("invoiceCounter", nextInvoice.invoiceCounter);
-    updateInvoice("invoiceNumber", nextInvoice.invoiceNumber);
-
-    resetInvoice();
-    setErrors({});
-  } catch (error) {
-    console.error(error);
-    toast.error("An error occurred while saving the invoice.");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <Card className="sticky top-6 w-full max-w-md">
@@ -101,6 +102,69 @@ export default function InvoiceSummary({ onPrint }) {
           </span>
         </div>
 
+        {/* Calculation Breakdown */}
+        {(Number(invoice.discount) > 0 || Number(invoice.tax) > 0) && (
+          <div className="space-y-3 rounded-lg border bg-slate-50 p-4">
+            {Number(invoice.discount) > 0 && (
+              <>
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-slate-700">Discount</span>
+
+                    <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-600">
+                      {invoice.discountType === "percent"
+                        ? `${invoice.discount}%`
+                        : `${invoice.currency.symbol} ${formatCurrency(invoice.discount)}`}
+                    </span>
+                  </div>
+
+                  <span className="font-semibold text-red-600">
+                    − {invoice.currency.symbol} {formatCurrency(discountAmount)}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between border-b pb-3 text-sm text-slate-600">
+                  <span>After Discount</span>
+
+                  <span className="font-semibold text-slate-900">
+                    {invoice.currency.symbol}{" "}
+                    {formatCurrency(subtotal - discountAmount)}
+                  </span>
+                </div>
+              </>
+            )}
+
+            {Number(invoice.tax) > 0 && (
+              <>
+                <div className="flex items-center justify-between pt-1 text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-slate-700">Tax</span>
+
+                    <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
+                      {invoice.taxType === "percent"
+                        ? `${invoice.tax}%`
+                        : `${invoice.currency.symbol} ${formatCurrency(invoice.tax)}`}
+                    </span>
+                  </div>
+
+                  <span className="font-semibold text-green-700">
+                    + {invoice.currency.symbol} {formatCurrency(taxAmount)}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between text-sm text-slate-600">
+                  <span>After Tax</span>
+
+                  <span className="font-semibold text-slate-900">
+                    {invoice.currency.symbol}{" "}
+                    {formatCurrency(subtotal - discountAmount + taxAmount)}
+                  </span>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
         <Separator />
 
         {/* Discount */}
@@ -112,18 +176,37 @@ export default function InvoiceSummary({ onPrint }) {
             <Input
               type="number"
               placeholder="0"
+              min={0}
+              max={invoice.discountType === "percent" ? 100 : subtotal}
               value={invoice.discount === 0 ? "" : invoice.discount}
-              onChange={(e) =>
-                updateInvoice(
-                  "discount",
-                  e.target.value === "" ? 0 : Number(e.target.value),
-                )
-              }
+              onChange={(e) => {
+                const value = e.target.value;
+
+                if (value === "") {
+                  updateInvoice("discount", 0);
+                  return;
+                }
+
+                let num = Number(value);
+
+                if (num < 0) num = 0;
+
+                if (invoice.discountType === "percent") {
+                  num = Math.min(num, 100);
+                } else {
+                  num = Math.min(num, subtotal);
+                }
+
+                updateInvoice("discount", num);
+              }}
             />
 
             <Select
               value={invoice.discountType}
-              onValueChange={(value) => updateInvoice("discountType", value)}
+              onValueChange={(value) => {
+                updateInvoice("discountType", value);
+                updateInvoice("discount", 0);
+              }}
             >
               <SelectTrigger className="w-28">
                 <SelectValue />
@@ -137,25 +220,44 @@ export default function InvoiceSummary({ onPrint }) {
           </div>
         </div>
 
-         <div className="space-y-2">
+        <div className="space-y-2">
           <Label>Tax</Label>
 
           <div className="flex gap-2">
             <Input
               type="number"
               placeholder="0"
+              min={0}
+              max={invoice.taxType === "percent" ? 100 : subtotal}
               value={invoice.tax === 0 ? "" : invoice.tax}
-              onChange={(e) =>
-                updateInvoice(
-                  "tax",
-                  e.target.value === "" ? 0 : Number(e.target.value),
-                )
-              }
+              onChange={(e) => {
+                const value = e.target.value;
+
+                if (value === "") {
+                  updateInvoice("tax", 0);
+                  return;
+                }
+
+                let num = Number(value);
+
+                if (num < 0) num = 0;
+
+                if (invoice.taxType === "percent") {
+                  num = Math.min(num, 100);
+                } else {
+                  num = Math.min(num, subtotal);
+                }
+
+                updateInvoice("tax", num);
+              }}
             />
 
             <Select
               value={invoice.taxType}
-              onValueChange={(value) => updateInvoice("taxType", value)}
+              onValueChange={(value) => {
+                updateInvoice("taxType", value);
+                updateInvoice("tax", 0);
+              }}
             >
               <SelectTrigger className="w-28">
                 <SelectValue />

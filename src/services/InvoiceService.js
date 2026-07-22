@@ -11,6 +11,7 @@ import {
   where,
   orderBy,
   limit,
+  startAfter,
 } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
 
@@ -52,19 +53,31 @@ export const invoiceService = {
     }));
   },
 
-  async getInvoiceWithItems(invoiceId) {
-    const [invoice, items] = await Promise.all([
-      this.getInvoice(invoiceId),
-      invoiceItemService.getItems(invoiceId),
-    ]);
+ async getInvoiceWithItems(invoiceId) {
+  const [invoice, items] = await Promise.all([
+    this.getInvoice(invoiceId),
+    invoiceItemService.getItems(invoiceId),
+  ]);
 
-    if (!invoice) return null;
-
+  if (!invoice) {
     return {
-      ...invoice,
-      items,
+      success: false,
     };
-  },
+  }
+
+  return {
+    success: true,
+    invoice,
+    items,
+    totals: {
+      subtotal: invoice.subtotal,
+      total: invoice.total,
+      balanceDue: invoice.balanceDue,
+      taxAmount: invoice.taxAmount ?? 0,
+      discountAmount: invoice.discountAmount ?? 0,
+    },
+  };
+},
 
   async updateInvoice(id, data) {
     await updateDoc(doc(invoiceCollection, id), {
@@ -109,6 +122,35 @@ export const invoiceService = {
     const snapshot = await getDocs(invoiceCollection);
 
     return snapshot.docs.map((doc) => doc.data().invoiceNumber);
+  },
+
+  async getInvoicesPaginated({
+    pageSize = 10,
+    startAfterDoc = null,
+    dateFrom = null,
+    dateTo = null,
+  }) {
+    const constraints = [];
+
+    if (dateFrom) constraints.push(where("createdAt", ">=", dateFrom));
+    if (dateTo) constraints.push(where("createdAt", "<=", dateTo));
+
+    constraints.push(orderBy("createdAt", "desc"));
+    constraints.push(limit(pageSize));
+
+    if (startAfterDoc) constraints.push(startAfter(startAfterDoc));
+
+    const q = query(invoiceCollection, ...constraints);
+    const snapshot = await getDocs(q);
+
+    return {
+      invoices: snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })),
+      lastDoc: snapshot.docs[snapshot.docs.length - 1] || null,
+      hasMore: snapshot.docs.length === pageSize,
+    };
   },
 };
 

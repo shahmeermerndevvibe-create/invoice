@@ -26,4 +26,5 @@ export const invoiceModel = {
   notes: "",
   phoneNo: "",
   createdAt: new Date().toISOString(),
+  payment: ""
 };

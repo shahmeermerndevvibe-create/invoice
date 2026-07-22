@@ -16,13 +16,23 @@ import { formatCurrency } from "@/utils/invoiceUtils";
 export default function CustomerSection() {
   const invoice = useInvoiceStore((state) => state.invoice);
   const errors = useInvoiceStore((state) => state.errors);
-  const clearInvoiceSectionError = useInvoiceStore((state) => state.clearInvoiceSectionError);
+  const clearInvoiceSectionError = useInvoiceStore(
+    (state) => state.clearInvoiceSectionError,
+  );
   console.log("Errors in CustomerSection:", errors);
 
   const updateInvoice = useInvoiceStore((state) => state.updateInvoice);
 
   const { balanceDue } = useInvoiceTotals();
 
+  const formattedBalance = formatCurrency(balanceDue);
+
+  const balanceClass =
+    formattedBalance.length > 15
+      ? "text-2xl lg:text-3xl"
+      : formattedBalance.length > 10
+        ? "text-3xl lg:text-4xl"
+        : "text-4xl lg:text-5xl";
 
   const handleChange = (field, value) => {
     updateInvoice(field, value);
@@ -133,7 +143,9 @@ export default function CustomerSection() {
                 onChange={(e) => handleChange("invoiceDate", e.target.value)}
               />
               {errors.invoiceDate && (
-                <p className="mt-1 text-sm text-red-500">{errors.invoiceDate}</p>
+                <p className="mt-1 text-sm text-red-500">
+                  {errors.invoiceDate}
+                </p>
               )}
             </div>
 
@@ -144,6 +156,7 @@ export default function CustomerSection() {
                 type="date"
                 value={invoice.dueDate}
                 min={invoice.invoiceDate || undefined}
+                disabled={!invoice.invoiceDate}
                 onChange={(e) => handleChange("dueDate", e.target.value)}
               />
             </div>
@@ -193,8 +206,9 @@ export default function CustomerSection() {
               Balance Due
             </p>
 
-            <h2 className="mt-3 text-4xl font-bold tracking-tight lg:text-5xl">
-              {invoice.currency.symbol} {formatCurrency(balanceDue)}
+            <h2 className={`mt-3 font-bold tracking-tight ${balanceClass}`}>
+              {invoice.currency.symbol} {formattedBalance}
+            
             </h2>
           </div>
         </div>

@@ -1,11 +1,11 @@
 import { Globe, MapPin, Phone } from "lucide-react";
 import BottomBanner from "./BottomBanner";
 
-export default function BillingFooter() {
+export default function BillingFooter({ hideContact }) {
   return (
     <footer className="print-footer relative">
       <div className="px-8 pb-16 pt-4 md:px-14 relative bottom-15 z-10">
-        {/* Contact & Signature Row */}
+        {!hideContact && (
         <div className="flex items-center justify-between text-xs mb-8">
           {/* Contact Items */}
           <div className="flex items-center gap-6">
@@ -45,10 +45,11 @@ export default function BillingFooter() {
             </div>
           </div>
         </div>
+        )}
 
         {/* Thank You Text */}
-        <div className="absolute bottom-0 left-55 -translate-x-1/2 z-20">
-          <h2 className="text-2xl font-black uppercase whitespace-nowrap">
+        <div className="absolute bottom-0 left-50 -translate-x-1/2 z-20">
+          <h2 className="text-xl font-black uppercase whitespace-nowrap">
             <span className="text-slate-900 pr-2">THANK YOU FOR</span>
             <span className="text-[#3DA9F5]">YOUR PAYMENT</span>
           </h2>

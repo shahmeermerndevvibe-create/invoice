@@ -19,6 +19,17 @@ export const useInvoiceStore = create(
 
       errors: {},
 
+      payment: "",
+
+      isInvoiceHistoryOpen: false,
+
+      openInvoiceHistory: () => set({ isInvoiceHistoryOpen: true }),
+
+      closeInvoiceHistory: () => set({ isInvoiceHistoryOpen: false }),
+
+      toggleInvoiceHistory: () =>
+        set((state) => ({ isInvoiceHistoryOpen: !state.isInvoiceHistoryOpen })),
+
       // Invoice actions
       updateInvoice(field, value) {
         set((state) => ({

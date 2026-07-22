@@ -42,34 +42,41 @@ const BillingTable = ({ items = [] }) => {
             {items.map((item, index) => (
               <TableRow key={item.id || index} className="hover:bg-transparent">
                 <TableCell className="py-3 align-top">
-                  <p className="mb-2 text-xl font-bold text-[#0A4A95]">
+                  <p className="mb-2 text-xl font-bold text-[#0A4A95] break-words">
                     {item.product}
                   </p>
 
-                  <p className="text-black">
+                  <p
+                    className="
+      whitespace-pre-wrap
+      break-words
+      break-all
+      leading-6
+      text-black
+    "
+                  >
                     {item.description}
                   </p>
                 </TableCell>
 
-                <TableCell className="bg-slate-50 text-center">
+                <TableCell className="bg-slate-50 align-top text-center py-4">
                   {formatCurrency(item.rate)}
                 </TableCell>
 
-                <TableCell className="text-center">
+                <TableCell className="align-top text-center py-4">
                   {item.qty}
                 </TableCell>
 
-                <TableCell className="bg-slate-50 text-center font-bold text-[#0A4A95]">
-                  {formatCurrency(Number(item.qty || 0) * Number(item.rate || 0))}
+                <TableCell className="bg-slate-50 align-top text-center py-4 font-bold text-[#0A4A95]">
+                  {formatCurrency(
+                    Number(item.qty || 0) * Number(item.rate || 0),
+                  )}
                 </TableCell>
               </TableRow>
             ))}
 
             {Array.from({ length: emptyRows }).map((_, index) => (
-              <TableRow
-                key={`empty-${index}`}
-                className="hover:bg-transparent"
-              >
+              <TableRow key={`empty-${index}`} className="hover:bg-transparent">
                 <TableCell className="h-16"></TableCell>
                 <TableCell className="bg-slate-50"></TableCell>
                 <TableCell></TableCell>

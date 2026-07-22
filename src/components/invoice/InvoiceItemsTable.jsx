@@ -5,6 +5,7 @@ import NoteEditor from "@/components/invoice/NoteEditor";
 import { useState } from "react";
 
 import { useInvoiceStore } from "@/store/invoiceStore";
+import PaymentEditior from "./paymentEditior";
 
 export default function InvoiceItemsTable({ onPrint }) {
   const [html, setHtml] = useState("<p>Enter your notes here...</p>");
@@ -23,12 +24,11 @@ export default function InvoiceItemsTable({ onPrint }) {
           <tr>
             <th className={thClass}></th>
             <th className={`${thClass} w-10 text-right`}>#</th>
-            <th className={thClass}>Service Date</th>
-            <th className={thClass}>Product / Service</th>
-            <th className={`${thClass} w-64`}>Description</th>
-            <th className={`${thClass} text-right`}>Qty</th>
-            <th className={`${thClass} text-right`}>Rate</th>
-            <th className={`${thClass} text-right`}>Amount</th>
+            <th className={`${thClass} w-50`}>Product / Service</th>
+            <th className={`${thClass} w-84`}>Description</th>
+            <th className={`${thClass} w-30 text-right`}>Qty</th>
+            <th className={`${thClass} w-30 text-right`}>Rate</th>
+            <th className={`${thClass} text-right w-50`}>Amount</th>
             <th className={thClass}></th>
           </tr>
         </thead>
@@ -50,6 +50,13 @@ export default function InvoiceItemsTable({ onPrint }) {
             Message on Invoice
           </h3>
           <NoteEditor />
+        </div>
+
+         <div className="flex-1">
+          <h3 className="mb-3 text-lg font-semibold text-gray-800">
+            Payment
+          </h3>
+          <PaymentEditior />
         </div>
 
         <InvoiceSummary onPrint={onPrint} />

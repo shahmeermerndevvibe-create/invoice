@@ -152,6 +152,24 @@
     -webkit-print-color-adjust: exact;
   }
 
+  .invoice-page {
+    width: 100%;
+    max-width: 210mm;
+    margin: 0 auto;
+    box-shadow: none;
+    border-radius: 0;
+    overflow: hidden;
+    page-break-after: always;
+    break-after: page;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .invoice-page:last-child {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
   .print-header,
   .print-footer,
   .totals {
@@ -198,4 +216,13 @@
 .rsw-ce ol {
   list-style: decimal;
   padding-left: 1.5rem;
+}
+
+.rsw-editor {
+  min-height: 250px;
+}
+
+.rsw-ce {
+  min-height: 250px;
+  padding: 12px;
 }

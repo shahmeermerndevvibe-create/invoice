@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { RefreshCcw, Settings, CircleHelp, X } from "lucide-react";
+import { RefreshCcw, Settings, CircleHelp, X, Clock, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FaClockRotateLeft } from "react-icons/fa6";
 import { useInvoiceStore } from "@/store/invoiceStore";
@@ -10,7 +10,7 @@ import toast from "react-hot-toast";
 
 export default function InvoiceHeader() {
   const invoiceNo = useInvoiceStore((state) => state.invoice.invoiceNumber);
- 
+  const openInvoiceHistory = useInvoiceStore((state) => state.openInvoiceHistory);
 
   const updateInvoice = useInvoiceStore((state) => state.updateInvoice);
 
@@ -94,6 +94,18 @@ useEffect(() => {
       </h1>
 
       <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-14 w-14 p-0"
+          onClick={openInvoiceHistory}
+          title="Invoice History"
+        >
+          <Clock className="size-8 text-gray-600" />
+        </Button>
+        {/* <Button variant="ghost" size="icon" className="h-14 w-14 p-0">
+          <User className="size-8 text-gray-600" />
+        </Button> */}
         <Button variant="ghost" size="icon" className="h-14 w-14 p-0">
           <Settings className="size-8 text-gray-600" />
         </Button>

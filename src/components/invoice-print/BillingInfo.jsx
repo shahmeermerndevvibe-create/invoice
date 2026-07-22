@@ -1,10 +1,6 @@
-export default function BillingInfo({
-  invoice = {},
-  // payment = {
-  //   title: "Payoneer Payment Link",
-  //   description: "Payment via secure Payoneer transfer",
-  // },
-}) {
+import { formatFirestoreDate } from "@/utils/dateUtils";
+
+export default function BillingInfo({ invoice = {} }) {
   return (
     <section className="px-8 py-6 md:px-14">
       <div className="flex justify-between items-start">
@@ -32,17 +28,33 @@ export default function BillingInfo({
           <h3 className="text-sm font-bold uppercase tracking-widest text-slate-800">
             Date:
             <span className="ml-2 font-medium normal-case">
-              {invoice.createdAt ? new Date(invoice.createdAt).toLocaleDateString() : null}
+              {formatFirestoreDate(invoice.createdAt)}
             </span>
           </h3>
 
-          {/* <div className="mt-12">
-            <h4 className="mb-3 text-lg font-bold text-slate-900">
-              {payment.title}
-            </h4>
-
-            <p className="text-sm text-slate-500">{payment.description}</p>
-          </div> */}
+          {invoice.payment ? (
+            <div className="mt-6">
+              <h4 className="mb-2 text-xs font-bold uppercase tracking-widest text-slate-700">
+                Payment Information
+              </h4>
+              {invoice.payment.startsWith("http://") ||
+              invoice.payment.startsWith("https://") ? (
+                <a
+                  href={invoice.payment}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-medium text-blue-600 underline hover:text-blue-800"
+                >
+                  {invoice.payment}
+                </a>
+              ) : (
+                <div
+                  className="text-sm text-slate-500 [&_br]:block [&_br]:content-['']"
+                  dangerouslySetInnerHTML={{ __html: invoice.payment }}
+                />
+              )}
+            </div>
+          ) : null}
         </div>
       </div>
     </section>

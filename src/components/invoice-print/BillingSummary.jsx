@@ -6,31 +6,41 @@ export default function BillingSummary({
   total,
   balanceDue,
   taxAmount,
+  notesPosition = "inline",
 }) {
   return (
-    <section className="totals px-8 py-6 md:px-14">
+    <section className="totals px-8 py-3 md:px-14">
       <div className="flex justify-between gap-10">
-        {/* Notes */}
-        <div className="md:col-span-7 pt-16">
-          <h3 className="mb-4 text-2xl font-bold text-[#0A4A95]">Note:</h3>
+        {notesPosition === "inline" && (
+          <div className="md:col-span-7 pt-4">
+            <h3 className="mb-4 text-sm font-bold text-[#0A4A95]">Note:</h3>
 
-          <div
-            className="
-             text-slate-700
-             [&_ul]:list-disc
-              [&_ul]:pl-6
-               [&_ol]:list-decimal
-                [&_ol]:pl-6
-                  [&_li]:mb-2
-            "
-            dangerouslySetInnerHTML={{
-              __html: invoice.notes || "<p>No notes available.</p>",
-            }}
-          />
-        </div>
+            <div
+              className="
+    text-slate-700 text-xs
+    ![&_p]:text-xs
+    ![&_span]:text-xs
+    ![&_li]:text-xs
+    ![&_div]:text-xs
+    ![&_ul]:list-disc
+    [&_ul]:pl-6
+    [&_ol]:list-decimal
+    [&_ol]:pl-6
+    [&_li]:mb-2
+  "
+              dangerouslySetInnerHTML={{
+                __html: invoice.notes || "<p>No notes available.</p>",
+              }}
+            />
+          </div>
+        )}
 
         {/* Totals */}
-        <div className="md:col-span-5">
+        <div
+          className={
+            "md:col-span-5" + (notesPosition !== "inline" ? " ml-auto" : "")
+          }
+        >
           <div className="ml-auto max-w-[280px] space-y-3">
             <div className="flex justify-between text-base font-semibold">
               <span className="font-bold">Sub Total:</span>
@@ -83,11 +93,14 @@ export default function BillingSummary({
                 Total Cost:
               </div>
 
-              <div className="flex items-center justify-center px-6 text-xl font-bold text-white">
-                <span className="ml-1 text-sm font-normal pr-2 font-extrabold">
+              <div className="flex items-center justify-center whitespace-nowrap px-4 font-bold text-white">
+                <span className="mr-2 shrink-0 text-sm font-extrabold">
                   {invoice.currency.symbol}
                 </span>
-                {formatCurrency(total) || 0.0}
+
+                <span className="min-w-0 truncate text-base sm:text-lg md:text-xl">
+                  {formatCurrency(total)}
+                </span>
               </div>
             </div>
           </div>
