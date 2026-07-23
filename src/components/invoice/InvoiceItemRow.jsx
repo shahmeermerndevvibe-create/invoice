@@ -168,7 +168,7 @@ export default function InvoiceItemRow({ index, item }) {
           <Input
             type="number"
             min={0}
-            max={item.discountType === "percent" ? 100 : lineTotal}
+            max={lineTotal === 0 ? 0 : item.discountType === "percent" ? 100 : lineTotal}
             placeholder="0"
             value={item.discount === 0 ? "" : item.discount}
             onChange={(e) => {
@@ -183,7 +183,9 @@ export default function InvoiceItemRow({ index, item }) {
 
               if (num < 0) num = 0;
 
-              if (item.discountType === "percent") {
+              if (lineTotal === 0) {
+                num = 0;
+              } else if (item.discountType === "percent") {
                 num = Math.min(num, 100);
               } else {
                 num = Math.min(num, lineTotal);

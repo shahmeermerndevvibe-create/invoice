@@ -297,7 +297,7 @@ export default function InvoiceSummary({ onPrint }) {
               type="number"
               placeholder="0"
               min={0}
-              max={invoice.discountType === "percent" ? 100 : subtotal}
+              max={subtotal === 0 ? 0 : invoice.discountType === "percent" ? 100 : subtotal}
               value={invoice.discount === 0 ? "" : invoice.discount}
               onChange={(e) => {
                 const value = e.target.value;
@@ -307,7 +307,9 @@ export default function InvoiceSummary({ onPrint }) {
                 }
                 let num = Number(value);
                 if (num < 0) num = 0;
-                if (invoice.discountType === "percent") {
+                if (subtotal === 0) {
+                  num = 0;
+                } else if (invoice.discountType === "percent") {
                   num = Math.min(num, 100);
                 } else {
                   num = Math.min(num, subtotal);
@@ -341,7 +343,7 @@ export default function InvoiceSummary({ onPrint }) {
               type="number"
               placeholder="0"
               min={0}
-              max={invoice.taxType === "percent" ? 100 : subtotal}
+              max={subtotal === 0 ? 0 : invoice.taxType === "percent" ? 100 : subtotal}
               value={invoice.tax === 0 ? "" : invoice.tax}
               onChange={(e) => {
                 const value = e.target.value;
@@ -351,7 +353,9 @@ export default function InvoiceSummary({ onPrint }) {
                 }
                 let num = Number(value);
                 if (num < 0) num = 0;
-                if (invoice.taxType === "percent") {
+                if (subtotal === 0) {
+                  num = 0;
+                } else if (invoice.taxType === "percent") {
                   num = Math.min(num, 100);
                 } else {
                   num = Math.min(num, subtotal);
