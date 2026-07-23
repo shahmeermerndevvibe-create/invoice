@@ -10,7 +10,7 @@ export default function BillingInfo({ invoice = {} }) {
           </h4>
 
           <h2 className="mb-2 text-4xl font-bold text-slate-900">
-            {invoice.customer}. 
+            {invoice.customer}.
           </h2>
 
           <p className="mb-2 text-black font-bold">
@@ -33,7 +33,7 @@ export default function BillingInfo({ invoice = {} }) {
           </h3>
 
           {invoice.payment ? (
-            <div className="mt-6">
+            <div className="mt-6 max-w-[380px]">
               <h4 className="mb-2 text-xs font-bold uppercase tracking-widest text-slate-700">
                 Payment Information
               </h4>
@@ -49,8 +49,28 @@ export default function BillingInfo({ invoice = {} }) {
                 </a>
               ) : (
                 <div
-                  className="text-sm text-slate-500 [&_br]:block [&_br]:content-['']"
-                  dangerouslySetInnerHTML={{ __html: invoice.payment }}
+                  className="
+    text-sm
+    text-slate-600
+    // leading-6
+
+    [&_p]:m-0
+    [&_p]:mb-1
+    [&_p]:break-words
+
+    [&_strong]:font-semibold
+    [&_a]:text-blue-600
+    [&_a]:underline
+
+    [&_ul]:list-disc
+    [&_ul]:pl-5
+    [&_ol]:list-decimal
+    [&_ol]:pl-5
+    [&_li]:mb-1
+  "
+                  dangerouslySetInnerHTML={{
+                    __html: invoice.payment,
+                  }}
                 />
               )}
             </div>

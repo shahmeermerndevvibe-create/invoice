@@ -7,7 +7,7 @@ import {
 } from "react-simple-wysiwyg";
 import { useInvoiceStore } from "@/store/invoiceStore";
 
-export default function () {
+export default function PaymentEditior() {
   const payment = useInvoiceStore((state) => state.invoice.payment);
   const updateInvoice = useInvoiceStore((state) => state.updateInvoice);
 

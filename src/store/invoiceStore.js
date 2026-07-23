@@ -105,6 +105,12 @@ export const useInvoiceStore = create(
         }));
       },
 
+      deleteItem(index) {
+        set((state) => ({
+          items: state.items.filter((_, i) => i !== index),
+        }));
+      },
+
       updateItem(index, field, value) {
         set((state) => ({
           items: state.items.map((item, i) =>

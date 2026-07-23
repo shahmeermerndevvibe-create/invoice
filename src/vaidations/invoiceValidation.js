@@ -55,7 +55,7 @@ export const validateInvoice = (invoice = {}, items = [], subtotal = 0) => {
     // }
   }
 
-  if (invoice.notes?.length > 500) {
+  if (invoice.notes?.length > 700) {
     errors.notes = "Notes cannot exceed 500 characters.";
   }
 
@@ -94,10 +94,11 @@ export const validateInvoice = (invoice = {}, items = [], subtotal = 0) => {
   if (!Number.isFinite(payment)) {
     errors.payment = "Payment must be a valid number.";
   }
-  const plainText = payment
-  // .replace(/<[^>]*>/g, "")
-  // .replace(/\s+/g, " ")
-  // .trim();
+  const plainText = String(invoice.payment || "")
+  .replace(/<div><br><\/div>/g, "<br>")
+  .replace(/<\/div>\s*<div>/g, "<br>")
+  .replace(/<div>/g, "")
+  .replace(/<\/div>/g, "");
 
 if (plainText.length > 1000) {
   errors.payment = "Payment instructions cannot exceed 1000 characters.";

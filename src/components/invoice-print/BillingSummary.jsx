@@ -4,8 +4,8 @@ export default function BillingSummary({
   invoice,
   subtotal,
   total,
-  balanceDue,
-  taxAmount,
+  // balanceDue,
+  // taxAmount,
   notesPosition = "inline",
 }) {
   return (

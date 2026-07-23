@@ -33,7 +33,7 @@ function InvoiceHistoryRow({ invoice, onPrint, onReview }) {
             {invoice.currency?.code || ""}
           </span>
         </div>
-        <p className="mt-0.5 truncate text-sm font-medium text-gray-800">
+        <p className="mt-0.5 truncate text-sm font-medium text-gray-800 italic">
           {invoice.customer || "—"}
         </p>
         <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">

@@ -11,8 +11,8 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Printer } from "lucide-react";
-import { ChevronDown } from "lucide-react";
-import { ChevronUp } from "lucide-react";
+// import { ChevronDown } from "lucide-react";
+// import { ChevronUp } from "lucide-react";
 
 import { useInvoiceStore } from "@/store/invoiceStore";
 import { useInvoiceTotals } from "@/hooks/useInvoiceTotals";

@@ -1,22 +1,72 @@
 import InvoicePrintPage from "./InvoicePrintPage";
 
-const ITEMS_PER_PAGE = 10;
-const FIRST_PAGE_ITEMS = 7;
+const PAGE_HEIGHT_MM = 297;
+const HEADER_MM = 42;
+const BILLING_INFO_MM = 48;
+const TOTALS_MM = 55;
+const NOTES_MM = 30;
+const FOOTER_MM = 55;
+
+const CHARS_PER_LINE = 38;
+const BASE_ROW_MM = 17;
+const DESC_LINE_MM = 6.5;
+
+function estimateRowHeight(item) {
+  const desc = item.description || "";
+  const descLines = Math.ceil(desc.length / CHARS_PER_LINE);
+  return BASE_ROW_MM + descLines * DESC_LINE_MM;
+}
+
+function estimateRowsHeight(items) {
+  return items.reduce((sum, item) => sum + estimateRowHeight(item), 0);
+}
 
 function buildPages(items) {
   if (items.length === 0) return [[]];
 
+  const singleBudget =
+    PAGE_HEIGHT_MM - HEADER_MM - BILLING_INFO_MM - TOTALS_MM - NOTES_MM - FOOTER_MM;
+  const firstBudget = PAGE_HEIGHT_MM - HEADER_MM - BILLING_INFO_MM - FOOTER_MM;
+  const interiorBudget = PAGE_HEIGHT_MM - HEADER_MM - FOOTER_MM;
+  const lastBudget = PAGE_HEIGHT_MM - HEADER_MM - TOTALS_MM - NOTES_MM - FOOTER_MM;
+
   const pages = [];
-  let idx = 0;
+  let i = 0;
 
-  const firstCount = Math.min(FIRST_PAGE_ITEMS, items.length);
-  pages.push(items.slice(idx, idx + firstCount));
-  idx += firstCount;
+  while (i < items.length) {
+    const pageIndex = pages.length;
+    const isFirst = pageIndex === 0;
 
-  while (idx < items.length) {
-    const count = Math.min(ITEMS_PER_PAGE, items.length - idx);
-    pages.push(items.slice(idx, idx + count));
-    idx += count;
+    const remaining = items.slice(i);
+    const remainingHeight = estimateRowsHeight(remaining);
+    const fitsOnLastPage = remainingHeight <= lastBudget;
+
+    let budget;
+
+    if (isFirst && fitsOnLastPage && remainingHeight <= singleBudget) {
+      return [remaining];
+    } else if (fitsOnLastPage) {
+      budget = isFirst ? singleBudget : lastBudget;
+    } else if (isFirst) {
+      budget = firstBudget;
+    } else {
+      budget = interiorBudget;
+    }
+
+    const pageItems = [];
+    let used = 0;
+
+    while (i < items.length) {
+      const h = estimateRowHeight(items[i]);
+
+      if (used + h > budget && pageItems.length > 0) break;
+
+      pageItems.push(items[i]);
+      used += h;
+      i++;
+    }
+
+    pages.push(pageItems);
   }
 
   return pages;

@@ -5,7 +5,7 @@ import NoteEditor from "@/components/invoice/NoteEditor";
 import { useState } from "react";
 
 import { useInvoiceStore } from "@/store/invoiceStore";
-import PaymentEditior from "./paymentEditior";
+import PaymentEditior from "./PaymentEditior";
 
 export default function InvoiceItemsTable({ onPrint }) {
   const [html, setHtml] = useState("<p>Enter your notes here...</p>");
