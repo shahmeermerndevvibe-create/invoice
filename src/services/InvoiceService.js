@@ -16,14 +16,10 @@ import {
 import { db } from "@/firebase/firebase";
 
 const invoiceCollection = collection(db, "invoices");
-const invoiceItemCollection = collection(db, "invoiceItems");
-
-// =====================
-// Invoice Service
-// =====================
+const documentItemCollection = collection(db, "invoiceItems");
 
 export const invoiceService = {
-  async createInvoice(data) {
+  async createDocument(data) {
     const docRef = await addDoc(invoiceCollection, {
       ...data,
       createdAt: serverTimestamp(),
@@ -33,7 +29,7 @@ export const invoiceService = {
     return docRef.id;
   },
 
-  async getInvoice(id) {
+  async getDocument(id) {
     const snapshot = await getDoc(doc(invoiceCollection, id));
 
     if (!snapshot.exists()) return null;
@@ -44,7 +40,7 @@ export const invoiceService = {
     };
   },
 
-  async getInvoices() {
+  async getDocuments() {
     const snapshot = await getDocs(invoiceCollection);
 
     return snapshot.docs.map((doc) => ({
@@ -53,57 +49,58 @@ export const invoiceService = {
     }));
   },
 
- async getInvoiceWithItems(invoiceId) {
-  const [invoice, items] = await Promise.all([
-    this.getInvoice(invoiceId),
-    invoiceItemService.getItems(invoiceId),
-  ]);
+  async getDocumentWithItems(documentId) {
+    const [document, items] = await Promise.all([
+      this.getDocument(documentId),
+      documentItemService.getItems(documentId),
+    ]);
 
-  if (!invoice) {
+    if (!document) {
+      return {
+        success: false,
+      };
+    }
+
     return {
-      success: false,
+      success: true,
+      invoice: document,
+      items,
+      totals: {
+        subtotal: document.subtotal,
+        total: document.total,
+        balanceDue: document.balanceDue,
+        taxAmount: document.taxAmount ?? 0,
+        discountAmount: document.discountAmount ?? 0,
+      },
     };
-  }
+  },
 
-  return {
-    success: true,
-    invoice,
-    items,
-    totals: {
-      subtotal: invoice.subtotal,
-      total: invoice.total,
-      balanceDue: invoice.balanceDue,
-      taxAmount: invoice.taxAmount ?? 0,
-      discountAmount: invoice.discountAmount ?? 0,
-    },
-  };
-},
-
-  async updateInvoice(id, data) {
+  async updateDocument(id, data) {
     await updateDoc(doc(invoiceCollection, id), {
       ...data,
       updatedAt: serverTimestamp(),
     });
   },
 
-  async deleteInvoice(id) {
+  async deleteDocument(id) {
     await deleteDoc(doc(invoiceCollection, id));
   },
 
-  async deleteInvoiceWithItems(invoiceId) {
-    const items = await invoiceItemService.getItems(invoiceId);
+  async deleteDocumentWithItems(documentId) {
+    const items = await documentItemService.getItems(documentId);
 
     await Promise.all(
-      items.map((item) => invoiceItemService.deleteItem(item.id)),
+      items.map((item) => documentItemService.deleteItem(item.id)),
     );
 
-    await this.deleteInvoice(invoiceId);
+    await this.deleteDocument(documentId);
   },
 
-  async getLatestInvoiceCounter() {
+  async getLatestDocumentCounter(type) {
     const q = query(
       invoiceCollection,
-      orderBy("invoiceCounter", "desc"),
+      where("documentType", "==", type),
+      orderBy("documentCounter", "desc"),
       limit(1),
     );
 
@@ -113,27 +110,35 @@ export const invoiceService = {
       return 1000;
     }
 
-    const latestInvoice = snapshot.docs[0].data();
-    console.log(latestInvoice);
-    return Number(latestInvoice.invoiceCounter);
+    const latest = snapshot.docs[0].data();
+    return Number(latest.documentCounter);
   },
 
-  async getAllInvoiceNumbers() {
-    const snapshot = await getDocs(invoiceCollection);
+  async checkDocumentNumberExists(documentNumber, type) {
+    const q = query(
+      invoiceCollection,
+      where("documentType", "==", type),
+      where("documentNumber", "==", documentNumber),
+      limit(1),
+    );
 
-    return snapshot.docs.map((doc) => doc.data().invoiceNumber);
+    const snapshot = await getDocs(q);
+
+    return !snapshot.empty;
   },
 
-  async getInvoicesPaginated({
+  async getDocumentsPaginated({
     pageSize = 10,
     startAfterDoc = null,
     dateFrom = null,
     dateTo = null,
+    documentType = null,
   }) {
     const constraints = [];
 
     if (dateFrom) constraints.push(where("createdAt", ">=", dateFrom));
     if (dateTo) constraints.push(where("createdAt", "<=", dateTo));
+    if (documentType) constraints.push(where("documentType", "==", documentType));
 
     constraints.push(orderBy("createdAt", "desc"));
     constraints.push(limit(pageSize));
@@ -154,13 +159,9 @@ export const invoiceService = {
   },
 };
 
-// =====================
-// Invoice Item Service
-// =====================
-
-export const invoiceItemService = {
+export const documentItemService = {
   async createItem(data) {
-    const docRef = await addDoc(invoiceItemCollection, {
+    const docRef = await addDoc(documentItemCollection, {
       ...data,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
@@ -169,19 +170,19 @@ export const invoiceItemService = {
     return docRef.id;
   },
 
-  async createItems(invoiceId, items) {
+  async createItems(documentId, items) {
     return Promise.all(
       items.map((item) =>
         this.createItem({
           ...item,
-          invoiceId,
+          documentId,
         }),
       ),
     );
   },
 
   async getItem(id) {
-    const snapshot = await getDoc(doc(invoiceItemCollection, id));
+    const snapshot = await getDoc(doc(documentItemCollection, id));
 
     if (!snapshot.exists()) return null;
 
@@ -191,8 +192,8 @@ export const invoiceItemService = {
     };
   },
 
-  async getItems(invoiceId) {
-    const q = query(invoiceItemCollection, where("invoiceId", "==", invoiceId));
+  async getItems(documentId) {
+    const q = query(documentItemCollection, where("documentId", "==", documentId));
 
     const snapshot = await getDocs(q);
 
@@ -203,13 +204,13 @@ export const invoiceItemService = {
   },
 
   async updateItem(id, data) {
-    await updateDoc(doc(invoiceItemCollection, id), {
+    await updateDoc(doc(documentItemCollection, id), {
       ...data,
       updatedAt: serverTimestamp(),
     });
   },
 
   async deleteItem(id) {
-    await deleteDoc(doc(invoiceItemCollection, id));
+    await deleteDoc(doc(documentItemCollection, id));
   },
 };

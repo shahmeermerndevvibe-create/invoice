@@ -13,6 +13,7 @@ export default function InvoiceItemsTable({ onPrint }) {
   const items = useInvoiceStore((state) => state.items);
   const addItem = useInvoiceStore((state) => state.addItem);
   const clearItems = useInvoiceStore((state) => state.clearItems);
+  const invoice = useInvoiceStore((state) => state.invoice);
 
   const thClass =
     "border border-gray-200 bg-gray-50 px-3 py-3 text-left text-sm font-semibold whitespace-nowrap";
@@ -24,18 +25,22 @@ export default function InvoiceItemsTable({ onPrint }) {
           <tr>
             <th className={thClass}></th>
             <th className={`${thClass} w-10 text-right`}>#</th>
-            <th className={`${thClass} w-50`}>Product / Service</th>
+            <th className={`${thClass} w-45`}>Title</th>
             <th className={`${thClass} w-84`}>Description</th>
-            <th className={`${thClass} w-30 text-right`}>Qty</th>
-            <th className={`${thClass} w-30 text-right`}>Rate</th>
-            <th className={`${thClass} text-right w-50`}>Amount</th>
+            <th className={`${thClass} w-30 text-right`}>Unit Price</th>
+            <th className={`${thClass} w-30 text-right`}>Quantity</th>
+            <th className={`${thClass} text-right w-36`}>Service Discount</th>
+            {invoice.contractType === "Milestones" && (
+              <th className={`${thClass} w-36 text-center`}>Status</th>
+            )}
+            <th className={`${thClass} text-right w-45`}>Total</th>
             <th className={thClass}></th>
           </tr>
         </thead>
 
         <tbody>
           {items.map((item, index) => (
-            <InvoiceItemRow key={index} index={index} item={item} />
+            <InvoiceItemRow key={`${index}-${invoice.contractType}`} index={index} item={item} />
           ))}
         </tbody>
       </table>

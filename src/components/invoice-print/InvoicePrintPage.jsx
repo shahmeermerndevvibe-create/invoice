@@ -8,12 +8,14 @@ import BillingFooter from "./BillingFooter";
 const InvoicePrintPage = ({
   invoice,
   items,
+  allItems,
   isFirstPage,
   isLastPage,
   subtotal,
   total,
   balanceDue,
   taxAmount,
+  discountAmount,
 }) => {
   return (
     <div
@@ -30,7 +32,7 @@ const InvoicePrintPage = ({
     >
       <header className="print-header relative shrink-0">
         <div className="relative flex items-start justify-between border-b border-slate-900 px-12 pt-8 pb-8">
-          <Logo />
+          <Logo invoice={invoice} />
           <TopBanner invoice={invoice} />
         </div>
         <div className="border-b border-slate-900" />
@@ -39,7 +41,7 @@ const InvoicePrintPage = ({
       {isFirstPage && <div className="shrink-0"><BillingInfo invoice={invoice} /></div>}
 
       <div className={"shrink-0" + (isFirstPage ? "" : " pt-8")}>
-        <BillingTable items={items} />
+        <BillingTable items={items} invoice={invoice} />
       </div>
 
       {isLastPage && (
@@ -47,10 +49,12 @@ const InvoicePrintPage = ({
           <div className="shrink-0">
             <BillingSummary
               invoice={invoice}
+              items={allItems || items}
               subtotal={subtotal}
               total={total}
               balanceDue={balanceDue}
               taxAmount={taxAmount}
+              discountAmount={discountAmount}
               notesPosition="bottom"
             />
           </div>

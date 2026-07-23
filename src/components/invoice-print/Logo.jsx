@@ -1,4 +1,20 @@
-export default function Logo() {
+const businessLabel = {
+  Australia: "ABN",
+  Pakistan: "SECP",
+  USA: "Business #",
+};
+
+const businessDefault = {
+  Australia: "60733547866",
+  Pakistan: "123456789X",
+  USA: "12-3456789",
+};
+
+export default function Logo({ invoice }) {
+  const country = invoice?.country || "Australia";
+  const label = businessLabel[country] || "ABN";
+  const number = invoice?.businessNumber || businessDefault[country] || "";
+
   return (
     <div className="flex flex-col">
       <svg
@@ -7,7 +23,6 @@ export default function Logo() {
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        {/* D */}
         <path
           d="M12 10H48C72 10 86 23 86 40C86 57 72 70 48 70H12V10Z"
           fill="url(#logoGradient)"
@@ -18,7 +33,6 @@ export default function Logo() {
           fill="white"
         />
 
-        {/* V */}
         <path
           d="M82 10H103L119 55L136 10H158L128 72H108L82 10Z"
           fill="url(#logoGradient)"
@@ -38,8 +52,8 @@ export default function Logo() {
         </defs>
       </svg>
 
-      <p className="mt-3 text-sm font-semibold tracking-wide text-slate-800">
-        ABN: <span className="font-medium text-slate-600">60733547866</span>
+      <p className="mt-3 text-sm font-semibold tracking-wide text-black">
+        {label}: <span className="font-medium text-slate-600">{number}</span>
       </p>
     </div>
   );

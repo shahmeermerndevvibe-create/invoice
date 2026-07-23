@@ -1,25 +1,12 @@
-import { invoiceService, invoiceItemService } from "@/services/InvoiceService";
+import { invoiceService, documentItemService } from "@/services/InvoiceService";
 
-// import { validateInvoice } from "@/vaidations/invoiceValidation";
 import { calculateInvoiceTotals } from "@/utils/invoiceUtils";
-import toast from "react-hot-toast";
 
-export const saveInvoice = async (invoice, items) => {
-  // const { isValid, errors } = validateInvoice(invoice, items);
+export const saveDocument = async (document, items) => {
+  const totals = calculateInvoiceTotals(items, document);
 
-  // if (!isValid){
-  //   toast.error("Please fix the errors in the invoice.");
-  //   console.log("Validation errors:", errors);
-  //   return {
-  //     success: false,
-  //     errors,
-  //   };  
-  // }
-
-  const totals = calculateInvoiceTotals(items, invoice);
-
-  const invoiceData = {
-    ...invoice,
+  const documentData = {
+    ...document,
     ...totals,
   };
 
@@ -28,56 +15,52 @@ export const saveInvoice = async (invoice, items) => {
     amount: (Number(item.qty) || 0) * (Number(item.rate) || 0),
   }));
 
-  const invoiceId = await invoiceService.createInvoice(invoiceData);
+  const documentId = await invoiceService.createDocument(documentData);
 
-  await invoiceItemService.createItems(invoiceId, itemData);
+  await documentItemService.createItems(documentId, itemData);
 
   return {
     success: true,
-    invoiceId,
+    documentId,
   };
 };
 
-export const getLatestInvoiceCounter = async () => {
-  const latestInvoiceCounter = await invoiceService.getLatestInvoiceCounter();
-  console.log("Latest Invoice Number:", latestInvoiceCounter);
-  return latestInvoiceCounter;
-}
-
-export const checkInvoiceNumberExists = async (invoiceNumber) => {
-  const invoiceNumbers = await invoiceService.getAllInvoiceNumbers();
-
-  return invoiceNumbers.includes(invoiceNumber);
+export const getLatestDocumentCounter = async (type) => {
+  const counter = await invoiceService.getLatestDocumentCounter(type);
+  return counter;
 };
 
-export const fetchInvoiceHistory = async ({
+export const checkDocumentNumberExists = async (documentNumber, type) => {
+  return invoiceService.checkDocumentNumberExists(documentNumber, type);
+};
+
+export const fetchDocumentHistory = async ({
   pageSize = 10,
   startAfterDoc = null,
   dateFrom = null,
   dateTo = null,
   searchQuery = "",
+  documentType = null,
 }) => {
   try {
-    const result = await invoiceService.getInvoicesPaginated({
+    const result = await invoiceService.getDocumentsPaginated({
       pageSize,
       startAfterDoc,
       dateFrom,
       dateTo,
+      documentType,
     });
 
     let { invoices } = result;
 
-    // Firestore does not support native full-text search across multiple fields.
-    // Client-side filtering is used for search on invoiceNumber, customer, and
-    // customerEmail. For large datasets, consider Algolia, Typesense, or Meilisearch.
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase();
       invoices = invoices.filter((inv) => {
-        const invoiceNumber = (inv.invoiceNumber || "").toLowerCase();
+        const docNumber = (inv.documentNumber || "").toLowerCase();
         const customer = (inv.customer || "").toLowerCase();
         const email = (inv.customerEmail || "").toLowerCase();
         return (
-          invoiceNumber.includes(q) ||
+          docNumber.includes(q) ||
           customer.includes(q) ||
           email.includes(q)
         );
@@ -91,7 +74,7 @@ export const fetchInvoiceHistory = async ({
       hasMore: result.hasMore,
     };
   } catch (error) {
-    console.error("Failed to fetch invoice history:", error);
+    console.error("Failed to fetch document history:", error);
     return {
       success: false,
       invoices: [],
@@ -101,9 +84,9 @@ export const fetchInvoiceHistory = async ({
   }
 };
 
-export const fetchInvoiceForPrint = async (invoiceId) => {
+export const fetchDocumentForPrint = async (documentId) => {
   try {
-    const data = await invoiceService.getInvoiceWithItems(invoiceId);
+    const data = await invoiceService.getDocumentWithItems(documentId);
     if (!data) return { success: false };
 
     const { invoice, items } = data;
@@ -111,11 +94,7 @@ export const fetchInvoiceForPrint = async (invoiceId) => {
 
     return { success: true, invoice, items, totals };
   } catch (error) {
-    console.error("Failed to fetch invoice for print:", error);
+    console.error("Failed to fetch document for print:", error);
     return { success: false };
   }
-};
-
-export const fetchInvoiceForReview = async (invoiceId) => {
-  return await invoiceService.getInvoiceWithItems(invoiceId);
 };

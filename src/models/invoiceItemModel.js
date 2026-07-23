@@ -1,5 +1,5 @@
 export const invoiceItemModel = {
-  invoiceId: "",
+  documentId: "",
 
   serviceDate: "",
   product: "",
@@ -8,4 +8,9 @@ export const invoiceItemModel = {
   qty: "",
   rate: "",
   amount: 0,
+
+  discount: "",
+  discountType: "percent",
+
+  status: "Pending",
 };

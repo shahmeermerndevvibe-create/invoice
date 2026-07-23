@@ -1,6 +1,14 @@
+const DOCUMENT_PREFIX = {
+  Invoice: "INV-",
+  Quotation: "QT-",
+};
+
 export default function TopBanner({invoice}) {
+  const title = (invoice?.documentType || "Invoice").toUpperCase();
+  const prefix = DOCUMENT_PREFIX[invoice?.documentType] || "INV-";
+
   return (
-    <div className="absolute top-0 right-0 w-[48%] h-40">
+    <div className="absolute top-0 right-0 w-[48%] h-39">
       <svg
         viewBox="0 0 500 180"
         className="absolute top-3 inset-0 w-full h-full"
@@ -34,11 +42,15 @@ export default function TopBanner({invoice}) {
 
       <div className="relative z-10 flex h-full flex-col items-end justify-center pr-12 text-white">
         <h1 className="text-3xl font-bold tracking-wider">
-          INVOICE
+          {title}
         </h1>
 
         <p className="mt-2 text-sm tracking-widest">
-          # DV-{invoice.invoiceNumber}
+          # {prefix}{invoice?.documentNumber}
+        </p>
+
+        <p>
+          Contract Type: <span className="font-medium">{invoice?.contractType || "Fixed"}</span>
         </p>
       </div>
     </div>

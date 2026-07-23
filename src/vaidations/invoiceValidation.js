@@ -177,6 +177,22 @@ if (plainText.length > 1000) {
         current.rate = "Rate must be greater than 0.";
       }
 
+      const lineTotal =
+        (Number(item.qty) || 0) * (Number(item.rate) || 0);
+      const itemDiscount = Number(item.discount) || 0;
+
+      if (item.discount !== "" && item.discount !== 0) {
+        if (!Number.isFinite(itemDiscount)) {
+          current.discount = "Service discount must be a valid number.";
+        } else if (itemDiscount < 0) {
+          current.discount = "Service discount cannot be negative.";
+        } else if (item.discountType === "percent" && itemDiscount > 100) {
+          current.discount = "Service discount cannot exceed 100%.";
+        } else if (item.discountType === "fixed" && itemDiscount > lineTotal) {
+          current.discount = "Service discount cannot exceed the line total.";
+        }
+      }
+
       itemErrors[index] = current;
     });
 

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useReactToPrint } from "react-to-print";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useInvoiceStore } from "@/store/invoiceStore";
-import { fetchInvoiceHistory, fetchInvoiceForPrint } from "@/actions/invoiceActions";
+import { fetchDocumentHistory, fetchDocumentForPrint } from "@/actions/invoiceActions";
 import { getDateRange } from "@/utils/historyUtils";
 import InvoicePrint from "@/components/invoice-print/InvoicePrint";
 import InvoiceHistoryFilters from "./InvoiceHistoryFilters";
@@ -23,6 +23,7 @@ export default function InvoiceHistoryPanel() {
   const [preset, setPreset] = useState("");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
+  const [documentType, setDocumentType] = useState("");
   const [printData, setPrintData] = useState(null);
   const [reviewData, setReviewData] = useState(null);
 
@@ -33,7 +34,7 @@ export default function InvoiceHistoryPanel() {
 
   const handlePrintAction = useReactToPrint({
     contentRef: printRef,
-    documentTitle: "Invoice",
+    documentTitle: printData?.invoice?.documentType === "Quotation" ? "Quotation" : "Invoice",
   });
 
   const fetchData = useCallback(async () => {
@@ -44,14 +45,15 @@ export default function InvoiceHistoryPanel() {
     try {
       const cursor = cursors.current[page.current] ?? null;
       const range = getDateRange(preset, customFrom, customTo);
-      const result = await fetchInvoiceHistory({
+      const result = await fetchDocumentHistory({
         startAfterDoc: cursor, pageSize: 10,
         dateFrom: range.dateFrom, dateTo: range.dateTo,
         searchQuery: search,
+        documentType: documentType || null,
       });
 
       if (id !== version.current) return;
-      if (!result.success) throw new Error("Failed to fetch invoices");
+      if (!result.success) throw new Error("Failed to fetch documents");
 
       setInvoices(result.invoices);
       setHasMore(result.hasMore);
@@ -59,13 +61,13 @@ export default function InvoiceHistoryPanel() {
       cursors.current[page.current + 1] = result.lastDoc;
     } catch (err) {
       if (id !== version.current) return;
-      console.error("Failed to load invoice history:", err);
-      toast.error("Failed to load invoice history");
-      setError("Failed to load invoices. Please try again.");
+      console.error("Failed to load history:", err);
+      toast.error("Failed to load history");
+      setError("Failed to load documents. Please try again.");
     } finally {
       if (id === version.current) setLoading(false);
     }
-  }, [preset, customFrom, customTo, search]);
+  }, [preset, customFrom, customTo, search, documentType]);
 
   const resetAndFetch = useCallback(() => {
     page.current = 0;
@@ -96,7 +98,7 @@ export default function InvoiceHistoryPanel() {
     queueMicrotask(() => {
       setInvoices([]); setSearch(""); setPreset("");
       setCustomFrom(""); setCustomTo(""); setError(null);
-      setHasMore(false); setCanGoPrev(false);
+      setHasMore(false); setCanGoPrev(false); setDocumentType("");
     });
     cursors.current = [null]; page.current = 0;
   }, [isOpen]);
@@ -125,25 +127,30 @@ export default function InvoiceHistoryPanel() {
     resetAndFetch();
   };
 
-  const handlePrintClick = useCallback(async (invoiceId) => {
+  const handleTypeChange = (e) => {
+    setDocumentType(e.target.value);
+    resetAndFetch();
+  };
+
+  const handlePrintClick = useCallback(async (documentId) => {
     try {
-      const result = await fetchInvoiceForPrint(invoiceId);
-      if (!result.success) throw new Error("Failed to fetch invoice data");
+      const result = await fetchDocumentForPrint(documentId);
+      if (!result.success) throw new Error("Failed to fetch document data");
       setPrintData(result);
     } catch (err) {
       console.error("Print error:", err);
-      toast.error("Failed to print invoice");
+      toast.error("Failed to print document");
     }
   }, []);
 
-  const handleReviewClick = useCallback(async (invoiceId) => {
+  const handleReviewClick = useCallback(async (documentId) => {
     try {
-      const result = await fetchInvoiceForPrint(invoiceId);
-      if (!result.success) throw new Error("Failed to fetch invoice data");
+      const result = await fetchDocumentForPrint(documentId);
+      if (!result.success) throw new Error("Failed to fetch document data");
       setReviewData(result);
     } catch (err) {
       console.error("Review error:", err);
-      toast.error("Failed to load invoice details");
+      toast.error("Failed to load document details");
     }
   }, []);
 
@@ -166,7 +173,7 @@ export default function InvoiceHistoryPanel() {
           className="mx-2 flex h-[85vh] w-full max-w-4xl flex-col rounded-xl bg-white shadow-2xl sm:mx-4"
         >
           <div className="flex items-center justify-between border-b px-4 py-4 sm:px-6">
-            <h2 className="text-lg font-semibold text-gray-900">Invoice History</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Document History</h2>
             <button onClick={close} className="rounded-lg p-1.5 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700">
               <X className="h-5 w-5" />
             </button>
@@ -177,9 +184,11 @@ export default function InvoiceHistoryPanel() {
             preset={preset}
             customFrom={customFrom}
             customTo={customTo}
+            documentType={documentType}
             onSearchChange={handleSearchChange}
             onPresetChange={handlePresetChange}
             onCustomDateChange={handleCustomDateChange}
+            onTypeChange={handleTypeChange}
           />
 
           <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
@@ -194,7 +203,7 @@ export default function InvoiceHistoryPanel() {
 
           <div className="flex items-center justify-between border-t px-4 py-3 sm:px-6">
             <span className="text-sm text-gray-500">
-              {invoices.length > 0 && `${invoices.length} invoice${invoices.length > 1 ? "s" : ""}`}
+              {invoices.length > 0 && `${invoices.length} document${invoices.length > 1 ? "s" : ""}`}
             </span>
             <div className="flex items-center gap-2">
               <button
@@ -222,10 +231,12 @@ export default function InvoiceHistoryPanel() {
             <InvoicePrint
               invoice={printData.invoice}
               items={printData.items}
+              allItems={printData.items}
               subtotal={printData.totals.subtotal}
               total={printData.totals.total}
               balanceDue={printData.totals.balanceDue}
               taxAmount={printData.totals.taxAmount}
+              discountAmount={printData.totals.discountAmount}
             />
           </div>
         </div>

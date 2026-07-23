@@ -1,11 +1,17 @@
-import { getLatestInvoiceCounter } from "../actions/invoiceActions"
+import { getLatestDocumentCounter } from "../actions/invoiceActions"
 
-// invoiceActions.js
-export const loadNextInvoiceNumber = async () => {
-  const latestCounter = await getLatestInvoiceCounter();
+export const loadNextDocumentNumber = async (type) => {
+  const latestCounter = await getLatestDocumentCounter(type);
+
+  if (latestCounter === 0) {
+    return {
+      documentCounter: 1001,
+      documentNumber: "1001",
+    };
+  }
 
   return {
-    invoiceCounter: latestCounter + 1,
-    invoiceNumber: String(latestCounter + 1),
+    documentCounter: latestCounter + 1,
+    documentNumber: String(latestCounter + 1),
   };
 };

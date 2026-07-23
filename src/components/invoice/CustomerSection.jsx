@@ -55,10 +55,68 @@ export default function CustomerSection() {
   };
 
   return (
-    <section className="py-8">
+    <section className="py-5">
       <div className="flex flex-col gap-6 rounded-xl p-6 lg:flex-row lg:items-start">
         {/* Left */}
         <div className="flex flex-1 flex-col gap-5">
+          {/* Document Type & Country */}
+          <div className="flex flex-wrap gap-4">
+            <div className="w-full md:w-52">
+              <Label className="mb-2 block">Type</Label>
+
+              <Select
+                value={invoice.documentType}
+                onValueChange={(value) => handleChange("documentType", value)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Invoice" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="Invoice">Invoice</SelectItem>
+                  <SelectItem value="Quotation">Quotation</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="w-full md:w-52">
+              <Label className="mb-2 block">Contract</Label>
+
+              <Select
+                value={invoice.contractType}
+                onValueChange={(value) => handleChange("contractType", value)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Fixed" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="Fixed">Fixed</SelectItem>
+                  <SelectItem value="Milestones">Milestone</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="w-full md:w-52">
+              <Label className="mb-2 block">Country</Label>
+
+              <Select
+                value={invoice.country}
+                onValueChange={(value) => handleChange("country", value)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select Country" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="Australia">Australia</SelectItem>
+                  <SelectItem value="Pakistan">Pakistan</SelectItem>
+                  <SelectItem value="USA">USA</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           {/* Customer & Email */}
           <div className="flex flex-wrap gap-4">
             <div className="w-full md:w-72">
@@ -208,7 +266,6 @@ export default function CustomerSection() {
 
             <h2 className={`mt-3 font-bold tracking-tight ${balanceClass}`}>
               {invoice.currency.symbol} {formattedBalance}
-            
             </h2>
           </div>
         </div>

@@ -82,8 +82,9 @@ export const useInvoiceStore = create(
         set((state) => ({
           invoice: {
             ...invoiceModel,
-            invoiceCounter: state.invoice.invoiceCounter,
-            invoiceNumber: state.invoice.invoiceNumber,
+            documentCounter: state.invoice.documentCounter,
+            documentNumber: state.invoice.documentNumber,
+            documentType: state.invoice.documentType,
           },
           items: [
             {
@@ -124,18 +125,6 @@ export const useInvoiceStore = create(
         }));
       },
 
-      // incrementInvoiceCounter: () =>
-      //   set((state) => {
-      //     const nextCounter = state.invoice.invoiceCounter + 1;
-
-      //     return {
-      //       invoice: {
-      //         ...state.invoice,
-      //         invoiceCounter: nextCounter,
-      //         invoiceNumber: String(nextCounter),
-      //       },
-      //     };
-      //   }),
 
       clearItems() {
         set({
@@ -148,11 +137,26 @@ export const useInvoiceStore = create(
       },
     }),
     {
-      name: "invoice-storage", // unique name
+      name: "invoice-storage",
       partialize: (state) => ({
         invoice: state.invoice,
         items: state.items,
       }),
+      merge: (persisted, current) => {
+        const old = persisted.invoice || {};
+
+        return {
+          ...current,
+          ...persisted,
+          invoice: {
+            ...current.invoice,
+            ...old,
+            documentCounter: old.documentCounter ?? old.invoiceCounter ?? current.invoice.documentCounter,
+            documentNumber: old.documentNumber ?? (String(old.invoiceNumber ?? "") || current.invoice.documentNumber),
+          },
+          items: persisted.items || current.items,
+        };
+      },
     },
   ),
 );

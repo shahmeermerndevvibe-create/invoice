@@ -1,9 +1,3 @@
-const calculateSubtotal = (items = []) => {
-  return items.reduce((sum, item) => {
-    return sum + (Number(item.qty) || 0) * (Number(item.rate) || 0);
-  }, 0);
-};
-
 const calculateDiscount = (subtotal, invoice) => {
   const discount = Number(invoice.discount) || 0;
 
@@ -46,11 +40,29 @@ export const formatCurrency = (value = 0) => {
   }).format(Number(value) || 0);
 };
 
+export const calculateItemRow = (item = {}) => {
+  const qty = Number(item.qty) || 0;
+  const rate = Number(item.rate) || 0;
+  const lineTotal = qty * rate;
+
+  const discount = Number(item.discount) || 0;
+  const discountAmount = item.discountType === "percent"
+    ? (lineTotal * Math.min(discount, 100)) / 100
+    : Math.min(discount, lineTotal);
+
+  return {
+    lineTotal,
+    discountAmount,
+    netTotal: lineTotal - discountAmount,
+  };
+};
+
 export const calculateInvoiceTotals = (
   items = [],
   invoice = {}
 ) => {
-  const subtotal = calculateSubtotal(items);
+  const itemRows = items.map(item => calculateItemRow(item));
+  const subtotal = itemRows.reduce((sum, row) => sum + row.netTotal, 0);
 
   const discountAmount = calculateDiscount(
     subtotal,

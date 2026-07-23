@@ -27,7 +27,7 @@ function InvoiceHistoryRow({ invoice, onPrint, onReview }) {
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-black">
-          Invoice Number: {invoice.invoiceNumber || "-"}
+            {invoice.documentType || "Invoice"}: {invoice.documentType === "Quotation" ? "QT-" : "INV-"}{invoice.documentNumber || "-"}
           </span>
           <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-500">
             {invoice.currency?.code || ""}
@@ -37,7 +37,7 @@ function InvoiceHistoryRow({ invoice, onPrint, onReview }) {
           {invoice.customer || "—"}
         </p>
         <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
-          <span>Invoice: {formatInvoiceDate(invoice.invoiceDate)}</span>
+          <span>Date: {formatInvoiceDate(invoice.invoiceDate)}</span>
           <span>Created: {formatInvoiceDate(invoice.createdAt)}</span>
         </div>
       </div>

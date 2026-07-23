@@ -75,10 +75,12 @@ function buildPages(items) {
 const InvoicePrint = ({
   invoice,
   items,
+  allItems,
   subtotal,
   total,
   balanceDue,
   taxAmount,
+  discountAmount,
 }) => {
   const pageChunks = buildPages(items);
 
@@ -92,12 +94,14 @@ const InvoicePrint = ({
           <InvoicePrintPage
             invoice={invoice}
             items={chunk}
+            allItems={allItems || items}
             isFirstPage={index === 0}
             isLastPage={index === pageChunks.length - 1}
             subtotal={subtotal}
             total={total}
             balanceDue={balanceDue}
             taxAmount={taxAmount}
+            discountAmount={discountAmount}
           />
         </div>
       ))}

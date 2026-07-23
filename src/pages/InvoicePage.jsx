@@ -12,14 +12,16 @@ import { useInvoiceTotals } from "@/hooks/useInvoiceTotals";
 const InvoicePage = () => {
   const printRef = useRef(null);
 
+  const invoice = useInvoiceStore((state) => state.invoice);
+const items = useInvoiceStore((state) => state.items);
+const { subtotal, total, balanceDue, taxAmount, discountAmount } = useInvoiceTotals();
+
+  const printTitle = invoice.documentType === "Quotation" ? "Quotation" : "Invoice";
+
   const handlePrint = useReactToPrint({
     contentRef: printRef,
-    documentTitle: "Invoice",
+    documentTitle: printTitle,
   }); 
-
-const invoice = useInvoiceStore((state) => state.invoice);
-const items = useInvoiceStore((state) => state.items);
-const { subtotal, total, balanceDue, taxAmount } = useInvoiceTotals();
 
 
   return (
@@ -39,6 +41,7 @@ const { subtotal, total, balanceDue, taxAmount } = useInvoiceTotals();
           total={total}
           balanceDue={balanceDue}
           taxAmount={taxAmount}
+          discountAmount={discountAmount}
           />
         </div>
       </div>

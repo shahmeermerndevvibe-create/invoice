@@ -1,76 +1,83 @@
-import { useState, useEffect } from "react";
-import { RefreshCcw, Settings, CircleHelp, X, Clock, User } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { RefreshCcw, Settings, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FaClockRotateLeft } from "react-icons/fa6";
 import { useInvoiceStore } from "@/store/invoiceStore";
-import { getLatestInvoiceCounter } from "@/actions/invoiceActions";
-import { checkInvoiceNumberExists } from "@/actions/invoiceActions";
-import { loadNextInvoiceNumber } from "../../utils/InvoiceCounter"
+import { checkDocumentNumberExists } from "@/actions/invoiceActions";
+import { loadNextDocumentNumber } from "../../utils/InvoiceCounter"
 import toast from "react-hot-toast";
 
-export default function InvoiceHeader() {
-  const invoiceNo = useInvoiceStore((state) => state.invoice.invoiceNumber);
-  const openInvoiceHistory = useInvoiceStore((state) => state.openInvoiceHistory);
+const DOCUMENT_PREFIX = {
+  Invoice: "INV-",
+  Quotation: "QT-",
+};
 
+export default function InvoiceHeader() {
+  const documentNumber = useInvoiceStore((state) => state.invoice.documentNumber);
+  const documentType = useInvoiceStore((state) => state.invoice.documentType);
+  const openInvoiceHistory = useInvoiceStore((state) => state.openInvoiceHistory);
   const updateInvoice = useInvoiceStore((state) => state.updateInvoice);
 
   const [editing, setEditing] = useState(false);
-  const [tempInvoiceNo, setTempInvoiceNo] = useState(invoiceNo);
+  const [tempDocumentNo, setTempDocumentNo] = useState(documentNumber);
   const [loading, setLoading] = useState(false);
 
-useEffect(() => {
-  const load = async () => {
+  const loadCounter = useCallback(async () => {
     try {
       setLoading(true);
 
-      const nextInvoice = await loadNextInvoiceNumber();
+      const next = await loadNextDocumentNumber(documentType);
 
-      updateInvoice("invoiceCounter", nextInvoice.invoiceCounter);
-      updateInvoice("invoiceNumber", nextInvoice.invoiceNumber);
-      setTempInvoiceNo(nextInvoice.invoiceNumber);
+      updateInvoice("documentCounter", next.documentCounter);
+      updateInvoice("documentNumber", next.documentNumber);
+      setTempDocumentNo(next.documentNumber);
     } finally {
       setLoading(false);
     }
-  };
+  }, [documentType, updateInvoice]);
 
-  load();
-}, []);
+  useEffect(() => {
+    loadCounter();
+  }, [loadCounter]);
 
   const handleSave = async () => {
-    const newInvoiceNo = tempInvoiceNo.trim();
-    if (!newInvoiceNo) {
+    const newNo = tempDocumentNo.trim();
+    if (!newNo) {
       setEditing(false);
       return;
     }
-    const exists = await checkInvoiceNumberExists(newInvoiceNo);
+    const exists = await checkDocumentNumberExists(newNo, documentType);
     if (exists) {
-      toast.error("Invoice number already exists.");
+      toast.error(`${documentType} number already exists.`);
       return;
     }
-    updateInvoice("invoiceNumber", newInvoiceNo);
+    updateInvoice("documentNumber", newNo);
     setEditing(false);
   };
+ 
+  console.log("Rendering InvoiceHeader with documentNumber:", documentNumber, "and documentType:", documentType);
+  const prefix = DOCUMENT_PREFIX[documentType] || "";
 
   return (
     <div className="flex items-center justify-between border-b bg-white px-6 py-4">
       <h1 className="flex items-center text-2xl font-bold text-gray-800">
         <FaClockRotateLeft className="mr-2 size-6 text-gray-600" />
 
-        <span>Invoice</span>
+        <span>{documentType}</span>
 
         <span className="ml-2 font-normal text-gray-600">no.</span>
 
         {editing ? (
           <input
             autoFocus
-            value={tempInvoiceNo}
-            onChange={(e) => setTempInvoiceNo(e.target.value)}
+            value={tempDocumentNo}
+            onChange={(e) => setTempDocumentNo(e.target.value)}
             onBlur={handleSave}
             onKeyDown={(e) => {
               if (e.key === "Enter") handleSave();
 
               if (e.key === "Escape") {
-                setTempInvoiceNo(invoiceNo);
+                setTempDocumentNo(documentNumber);
                 setEditing(false);
               }
             }}
@@ -79,7 +86,7 @@ useEffect(() => {
         ) : (
           <span
             onClick={() => {
-              setTempInvoiceNo(invoiceNo);
+              setTempDocumentNo(documentNumber);
               setEditing(true);
             }}
             className="ml-1 cursor-pointer rounded px-1 font-normal transition hover:bg-gray-100 hover:ring-1 hover:ring-gray-300"
@@ -87,7 +94,7 @@ useEffect(() => {
             {loading ? (
               <RefreshCcw className="mr-2 h-4 w-4 animate-spin" />
             ) : (
-              <>{invoiceNo}</>
+              <>{prefix}{documentNumber}</>
             )}
           </span>
         )}
@@ -99,13 +106,10 @@ useEffect(() => {
           size="icon"
           className="h-14 w-14 p-0"
           onClick={openInvoiceHistory}
-          title="Invoice History"
+          title="Document History"
         >
           <Clock className="size-8 text-gray-600" />
         </Button>
-        {/* <Button variant="ghost" size="icon" className="h-14 w-14 p-0">
-          <User className="size-8 text-gray-600" />
-        </Button> */}
         <Button variant="ghost" size="icon" className="h-14 w-14 p-0">
           <Settings className="size-8 text-gray-600" />
         </Button>

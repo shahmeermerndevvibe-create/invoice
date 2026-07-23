@@ -1,12 +1,12 @@
 export const invoiceModel = {
-  invoiceNumber: "1001",
-  invoiceCounter: 1001,
+  documentNumber: "1001",
+  documentCounter: 1001,
+  documentType: "Invoice",
 
   customer: "",
   customerEmail: "",
   billingAddress: "",
 
-  // terms: "",
   invoiceDate: "",
   dueDate: "",
 
@@ -15,16 +15,20 @@ export const invoiceModel = {
     symbol: "Rs",
   },
 
+  country: "Australia",
+  businessNumber: "",
+
   subtotal: 0,
   discountType: "percent",
   discount: "",
   taxType: "percent",
   tax: "",
-  // deposit: "",
   total: 0,
   balanceDue: 0,
   notes: "",
   phoneNo: "",
   createdAt: new Date().toISOString(),
-  payment: ""
+  payment: "",
+  contractType: "Fixed",
+  milestoneNumber: 1,
 };
