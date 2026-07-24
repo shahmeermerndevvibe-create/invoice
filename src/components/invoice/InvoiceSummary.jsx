@@ -424,7 +424,7 @@ export default function InvoiceSummary({ onPrint }) {
             </span>
           </div>
         )} */}
-        <Button className="w-full" size="lg" onClick={handlePrintInvoice}>
+        <Button className="w-full h-12" size="lg" onClick={handlePrintInvoice}>
           {loading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

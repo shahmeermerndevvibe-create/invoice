@@ -9,6 +9,14 @@ import {
 } from "@/components/ui/select";
 import { useInvoiceStore } from "@/store/invoiceStore";
 import { formatCurrency, calculateItemRow } from "@/utils/invoiceUtils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+import { ChevronDown, Circle } from "lucide-react";
 
 export default function InvoiceItemRow({ index, item }) {
   const updateItem = useInvoiceStore((state) => state.updateItem);
@@ -31,10 +39,22 @@ export default function InvoiceItemRow({ index, item }) {
   const tdClass = "border border-gray-200 p-2 align-top";
   const lineTotal = (Number(item.qty) || 0) * (Number(item.rate) || 0);
 
-  const statusStyles = {
-    Pending: "bg-amber-100 text-amber-700",
-    Current: "bg-blue-100 text-blue-700",
-    Completed: "bg-emerald-100 text-emerald-700",
+  const statuses = {
+    Pending: {
+      color: "text-amber-500",
+      bg: "bg-amber-50",
+      border: "border-amber-200",
+    },
+    Current: {
+      color: "text-blue-500",
+      bg: "bg-blue-50",
+      border: "border-blue-200",
+    },
+    Completed: {
+      color: "text-emerald-500",
+      bg: "bg-emerald-50",
+      border: "border-emerald-200",
+    },
   };
 
   return (
@@ -124,9 +144,13 @@ export default function InvoiceItemRow({ index, item }) {
               value === "" ? 0 : Math.min(9999999, Number(value)),
             );
           }}
-          className={`border-0 text-right shadow-none focus-visible:ring-0 ${
-            itemErrors.rate ? "ring-1 ring-red-500" : ""
-          }`}
+          className={`h-9 rounded-md border bg-white text-right shadow-sm transition-colors
+  focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/20
+  ${
+    itemErrors.rate
+      ? "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20"
+      : "border-gray-200 hover:border-gray-300"
+  }`}
         />
 
         {itemErrors.rate && (
@@ -151,9 +175,13 @@ export default function InvoiceItemRow({ index, item }) {
               value === "" ? 0 : Math.min(9999999, Number(value)),
             );
           }}
-          className={`border-0 text-right shadow-none focus-visible:ring-0 ${
-            itemErrors.qty ? "ring-1 ring-red-500" : ""
-          }`}
+          className={`h-9 rounded-md border bg-white text-right shadow-sm transition-colors
+  focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/20
+  ${
+    itemErrors.qty
+      ? "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20"
+      : "border-gray-200 hover:border-gray-300"
+  }`}
         />
 
         {itemErrors.qty && (
@@ -168,7 +196,13 @@ export default function InvoiceItemRow({ index, item }) {
           <Input
             type="number"
             min={0}
-            max={lineTotal === 0 ? 0 : item.discountType === "percent" ? 100 : lineTotal}
+            max={
+              lineTotal === 0
+                ? 0
+                : item.discountType === "percent"
+                  ? 100
+                  : lineTotal
+            }
             placeholder="0"
             value={item.discount === 0 ? "" : item.discount}
             onChange={(e) => {
@@ -234,52 +268,52 @@ export default function InvoiceItemRow({ index, item }) {
           </div>
         </div>
       </td>
+
       {/* Status — only for Milestones */}
       {invoice.contractType === "Milestones" && (
-        <td className={`${tdClass} min-w-[160px] align-middle`}>
-          <Select
-            value={item.status || "Pending"}
-            onValueChange={(value) => handleChange("status", value)}
-          >
-            <SelectTrigger className="h-10 w-full border-0 bg-transparent shadow-none">
-              <div
-                className={`flex w-full items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${
-                  statusStyles[item.status || "Pending"]
-                }`}
+        <td className={`${tdClass} min-w-[180px]`}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className={`flex h-10 w-full items-center justify-between rounded-lg border px-3 transition hover:shadow-sm
+        ${statuses[item.status].bg}
+        ${statuses[item.status].border}`}
               >
-                <SelectValue />
-              </div>
-            </SelectTrigger>
+                <div className="flex items-center gap-2">
+                  <Circle
+                    className={`h-3 w-3 fill-current ${statuses[item.status].color}`}
+                  />
 
-            <SelectContent>
-              <SelectItem value="Pending">
-                <span className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-amber-500" />
-                  Pending
-                </span>
-              </SelectItem>
+                  <span className="font-medium">{item.status}</span>
+                </div>
 
-              <SelectItem value="In Progress">
-                <span className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-blue-500" />
-                  In Progress
-                </span>
-              </SelectItem>
+                <ChevronDown className="h-4 w-4 opacity-60" />
+              </button>
+            </DropdownMenuTrigger>
 
-              <SelectItem value="Completed">
-                <span className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                  Completed
-                </span>
-              </SelectItem>
-            </SelectContent>
-          </Select>
+            <DropdownMenuContent className="w-[180px]">
+              {Object.keys(statuses).map((status) => (
+                <DropdownMenuItem
+                  key={status}
+                  onClick={() => handleChange("status", status)}
+                >
+                  <Circle
+                    className={`mr-2 h-3 w-3 fill-current ${statuses[status].color}`}
+                  />
+
+                  {status}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </td>
       )}
 
       {/* Total */}
-      <td className={`${tdClass} min-w-[170px] text-right font-medium`}>
-        {formatCurrency(netTotal)}
+      <td className={`${tdClass} min-w-[170px]`}>
+        <div className="flex h-9 items-center justify-end rounded-md border border-gray-200 bg-gray-50 px-3 font-semibold text-gray-900 shadow-sm">
+          {formatCurrency(netTotal)}
+        </div>
       </td>
 
       {/* Delete */}
