@@ -72,7 +72,8 @@ export default function ReviewModal({ data, onClose }) {
             </p>
             {invoice.contractType === "Milestones" && (
               <span className="mt-2 inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800">
-                Milestone #{invoice.milestoneNumber}
+                {/* Milestone #{invoice.milestoneNumber} */}
+                Milestone
               </span>
             )}
           </div>
@@ -161,7 +162,7 @@ export default function ReviewModal({ data, onClose }) {
                 </div>
 
                 {invoice.discount ? (
-                  <div className="flex justify-between text-red-600">
+                  <div className="flex justify-between text-black">
                     <span>Discount ({discountLabel})</span>
                     <span className="tabular-nums">
                       −<span className="text-xs mr-0.5">{symbol}</span>
@@ -171,7 +172,7 @@ export default function ReviewModal({ data, onClose }) {
                 ) : null}
 
                 {invoice.tax ? (
-                  <div className="flex justify-between text-green-700">
+                  <div className="flex justify-between text-black">
                     <span>Tax ({taxLabel})</span>
                     <span className="tabular-nums">
                       +<span className="text-xs mr-0.5">{symbol}</span>
@@ -208,7 +209,7 @@ export default function ReviewModal({ data, onClose }) {
                 </div>
 
                 {invoice.discount ? (
-                  <div className="flex justify-between text-red-600">
+                  <div className="flex justify-between text-black">
                     <span>Discount ({discountLabel})</span>
                     <span className="tabular-nums">
                       −<span className="text-xs mr-0.5">{symbol}</span>
@@ -218,7 +219,7 @@ export default function ReviewModal({ data, onClose }) {
                 ) : null}
 
                 {invoice.tax ? (
-                  <div className="flex justify-between text-green-700">
+                  <div className="flex justify-between text-black">
                     <span>Tax ({taxLabel})</span>
                     <span className="tabular-nums">
                       +<span className="text-xs mr-0.5">{symbol}</span>
@@ -252,7 +253,7 @@ export default function ReviewModal({ data, onClose }) {
                   </span>
                 </div>
                 {invoice.discount ? (
-                  <div className="flex justify-between text-red-600">
+                  <div className="flex justify-between text-black">
                     <span>
                       Discount (
                       {invoice.discountType === "percent"
@@ -266,7 +267,7 @@ export default function ReviewModal({ data, onClose }) {
                   </div>
                 ) : null}
                 {invoice.tax ? (
-                  <div className="flex justify-between text-amber-600">
+                  <div className="flex justify-between text-black">
                     <span>
                       Tax (
                       {invoice.taxType === "percent"

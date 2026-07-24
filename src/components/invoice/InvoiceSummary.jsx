@@ -140,7 +140,7 @@ export default function InvoiceSummary({ onPrint }) {
             </div>
 
             {Number(invoice.discount) > 0 && (
-              <div className="flex justify-between text-red-600">
+              <div className="flex justify-between text-black">
                 <span>Discount ({discountLabel})</span>
                 <span className="tabular-nums">
                   −<span className="text-xs mr-0.5">{invoice.currency.symbol}</span>
@@ -150,7 +150,7 @@ export default function InvoiceSummary({ onPrint }) {
             )}
 
             {Number(invoice.tax) > 0 && (
-              <div className="flex justify-between text-green-700">
+              <div className="flex justify-between text-black">
                 <span>Tax ({taxLabel})</span>
                 <span className="tabular-nums">
                   +<span className="text-xs mr-0.5">{invoice.currency.symbol}</span>
@@ -187,7 +187,7 @@ export default function InvoiceSummary({ onPrint }) {
             </div>
 
             {Number(invoice.discount) > 0 && (
-              <div className="flex justify-between text-red-600">
+              <div className="flex justify-between text-black">
                 <span>Discount ({discountLabel})</span>
                 <span className="tabular-nums">
                   −<span className="text-xs mr-0.5">{invoice.currency.symbol}</span>
@@ -197,7 +197,7 @@ export default function InvoiceSummary({ onPrint }) {
             )}
 
             {Number(invoice.tax) > 0 && (
-              <div className="flex justify-between text-green-700">
+              <div className="flex justify-between text-black">
                 <span>Tax ({taxLabel})</span>
                 <span className="tabular-nums">
                   +<span className="text-xs mr-0.5">{invoice.currency.symbol}</span>
@@ -238,11 +238,11 @@ export default function InvoiceSummary({ onPrint }) {
                     <div className="flex items-center justify-between text-sm">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-slate-700">Discount</span>
-                        <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-600">
+                        <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-black">
                           {discountLabel}
                         </span>
                       </div>
-                      <span className="font-semibold text-red-600">
+                      <span className="font-semibold text-black">
                         − {invoice.currency.symbol} {formatCurrency(discountAmount)}
                       </span>
                     </div>
@@ -259,11 +259,11 @@ export default function InvoiceSummary({ onPrint }) {
                     <div className="flex items-center justify-between pt-1 text-sm">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-slate-700">Tax</span>
-                        <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
+                        <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-black">
                           {taxLabel}
                         </span>
                       </div>
-                      <span className="font-semibold text-green-700">
+                      <span className="font-semibold text-black">
                         + {invoice.currency.symbol} {formatCurrency(taxAmount)}
                       </span>
                     </div>

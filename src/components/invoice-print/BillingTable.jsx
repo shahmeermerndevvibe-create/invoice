@@ -71,7 +71,7 @@ const BillingTable = ({ items = [], invoice = {} }) => {
                     {item.qty}
                   </TableCell>
 
-                  <TableCell className="bg-slate-50 align-top text-center py-4 text-red-600">
+                  <TableCell className="bg-slate-50 align-top text-center py-4 text-black">
                     {discountAmount > 0 ? `-${formatCurrency(discountAmount)}` : "-"}
                   </TableCell>
 

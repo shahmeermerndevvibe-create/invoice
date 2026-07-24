@@ -20,18 +20,41 @@ function InvoiceHistoryRow({ invoice, onPrint, onReview }) {
     setAction(null);
   };
 
-  const isLoading = (type) => action?.type === type && action?.id === invoice.id;
+  const isLoading = (type) =>
+    action?.type === type && action?.id === invoice.id;
 
   return (
     <div className="flex items-center gap-3 rounded-lg border bg-white p-3 transition hover:border-blue-200 hover:shadow-sm sm:gap-4 sm:p-4">
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-black">
-            {invoice.documentType || "Invoice"}: {invoice.documentType === "Quotation" ? "QT-" : "INV-"}{invoice.documentNumber || "-"}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Document Number */}
+          <span
+            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
+              invoice.documentType === "Quotation"
+                ? "bg-blue-100 text-blue-700"
+                : "bg-emerald-100 text-emerald-700"
+            }`}
+          >
+            {invoice.documentType === "Quotation" ? "Quotation" : "Invoice"}
+            <span className="ml-1 font-bold">
+              {invoice.documentType === "Quotation" ? "QT-" : "INV-"}
+              {invoice.documentNumber || "-"}
+            </span>
           </span>
-          <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-500">
-            {invoice.currency?.code || ""}
-          </span>
+
+          {/* Currency */}
+          {invoice.currency?.code && (
+            <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
+              💱 {invoice.currency.code}
+            </span>
+          )}
+
+          {/* Contract Type */}
+          {invoice.contractType && (
+            <span className="inline-flex items-center rounded-full bg-violet-100 px-3 py-1 text-xs font-medium text-violet-700">
+              📄 {invoice.contractType}
+            </span>
+          )}
         </div>
         <p className="mt-0.5 truncate text-sm font-medium text-gray-800 italic">
           {invoice.customer || "—"}

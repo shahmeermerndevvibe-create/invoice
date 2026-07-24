@@ -94,7 +94,7 @@ export default function BillingSummary({
               </div>
 
               {Number(invoice.discount) > 0 && (
-                <div className="flex justify-between text-red-700">
+                <div className="flex justify-between text-black">
                   <span>Discount ({discountLabel})</span>
                   <span className="tabular-nums">
                     −
@@ -119,7 +119,7 @@ export default function BillingSummary({
               )} */}
 
               {Number(invoice.tax) > 0 && (
-                <div className="flex justify-between text-green-700">
+                <div className="flex justify-between text-black">
                   <span>Tax ({taxLabel})</span>
                   <span className="tabular-nums">
                     +
@@ -155,7 +155,7 @@ export default function BillingSummary({
               </div>
 
               {Number(invoice.discount) > 0 && (
-                <div className="flex justify-between text-red-700">
+                <div className="flex justify-between text-black">
                   <span>Discount ({discountLabel})</span>
                   <span className="tabular-nums">
                     −
@@ -180,7 +180,7 @@ export default function BillingSummary({
               )} */}
 
               {Number(invoice.tax) > 0 && (
-                <div className="flex justify-between text-green-700">
+                <div className="flex justify-between text-black">
                   <span>Tax ({taxLabel})</span>
                   <span className="tabular-nums">
                     +
