@@ -57,7 +57,7 @@ const BillingTable = ({ items = [], invoice = {} }) => {
                       {item.product}
                     </p>
                     {item.description && (
-                      <p className="mt-1 whitespace-pre-wrap break-words break-all leading-6 text-black text-sm">
+                      <p className="mt-1 whitespace-pre-wrap break-normal leading-6 text-black text-sm">
                         {item.description}
                       </p>
                     )}
