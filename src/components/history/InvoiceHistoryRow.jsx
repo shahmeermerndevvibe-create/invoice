@@ -5,6 +5,7 @@ import { formatInvoiceDate } from "@/utils/historyUtils";
 
 function InvoiceHistoryRow({ invoice, onPrint, onReview }) {
   const [action, setAction] = useState(null);
+  console.log(invoice);
 
   const handlePrint = async (e) => {
     e.stopPropagation();
