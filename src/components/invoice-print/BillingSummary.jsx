@@ -180,7 +180,7 @@ export default function BillingSummary({
                 </span>
               </div>
 
-                <div className="flex justify-between text-base font-semibold">
+              <div className="flex justify-between text-base font-semibold">
                 <span className="font-bold">Tax:</span>
                 <span className="flex items-center gap-1">
                   {invoice.taxType === "fixed" && (

@@ -1,75 +1,153 @@
-import InvoicePrintPage from "./InvoicePrintPage";
+import { useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import Logo from "./Logo";
+import TopBanner from "./TopBanner";
+import BillingInfo from "./BillingInfo";
+import BillingTable from "./BillingTable";
+import BillingSummary from "./BillingSummary";
+import BillingFooter from "./BillingFooter";
 
-const PAGE_HEIGHT_MM = 297;
-const HEADER_MM = 42;
-const BILLING_INFO_MM = 48;
-const TOTALS_MM = 55;
-const NOTES_MM = 30;
-const FOOTER_MM = 55;
+const MM_PX = 96 / 25.4;
+const PAGE_H = Math.round(297 * MM_PX);
+const FOOTER_H = Math.round(60 * MM_PX);
+const SAFE_PX = 8;
 
-const CHARS_PER_LINE = 38;
-const BASE_ROW_MM = 17;
-const DESC_LINE_MM = 6.5;
-
-function estimateRowHeight(item) {
-  const desc = item.description || "";
-  const descLines = Math.ceil(desc.length / CHARS_PER_LINE);
-  return BASE_ROW_MM + descLines * DESC_LINE_MM;
-}
-
-function estimateRowsHeight(items) {
-  return items.reduce((sum, item) => sum + estimateRowHeight(item), 0);
-}
-
-function buildPages(items) {
+function buildPagesFromMeasurements(items, contentHeight, headerHeight, billingInfoHeight, rowHeights, tableOverhead, summaryHeight, notesHeight) {
   if (items.length === 0) return [[]];
 
-  const singleBudget =
-    PAGE_HEIGHT_MM - HEADER_MM - BILLING_INFO_MM - TOTALS_MM - NOTES_MM - FOOTER_MM;
-  const firstBudget = PAGE_HEIGHT_MM - HEADER_MM - BILLING_INFO_MM - FOOTER_MM;
-  const interiorBudget = PAGE_HEIGHT_MM - HEADER_MM - FOOTER_MM;
-  const lastBudget = PAGE_HEIGHT_MM - HEADER_MM - TOTALS_MM - NOTES_MM - FOOTER_MM;
+  const totalItemHeight = rowHeights.reduce((a, b) => a + b, 0);
+  const allOnOne = headerHeight + billingInfoHeight + totalItemHeight + tableOverhead + summaryHeight + notesHeight;
+  if (allOnOne <= contentHeight) return [items];
+
+  // For interior/last pages, the table has `pt-8` (32px) which is not in the first page measurement
+  const interiorTableOverhead = tableOverhead + 32;
+
+  const firstBudget = contentHeight - headerHeight - billingInfoHeight - tableOverhead;
+  const interiorBudget = contentHeight - headerHeight - interiorTableOverhead;
+
+  const firstLastBudget = firstBudget - summaryHeight - notesHeight;
+  const interiorLastBudget = interiorBudget - summaryHeight - notesHeight;
 
   const pages = [];
-  let i = 0;
+  let start = 0;
 
-  while (i < items.length) {
-    const pageIndex = pages.length;
-    const isFirst = pageIndex === 0;
+  while (start < items.length) {
+    const isFirstPage = pages.length === 0;
+    const currentBudget = isFirstPage ? firstBudget : interiorBudget;
+    const currentLastBudget = isFirstPage ? firstLastBudget : interiorLastBudget;
 
-    const remaining = items.slice(i);
-    const remainingHeight = estimateRowsHeight(remaining);
-    const fitsOnLastPage = remainingHeight <= lastBudget;
+    const remainingItems = items.slice(start);
+    const remainingH = rowHeights.slice(start).reduce((a, b) => a + b, 0);
 
-    let budget;
-
-    if (isFirst && fitsOnLastPage && remainingHeight <= singleBudget) {
-      return [remaining];
-    } else if (fitsOnLastPage) {
-      budget = isFirst ? singleBudget : lastBudget;
-    } else if (isFirst) {
-      budget = firstBudget;
-    } else {
-      budget = interiorBudget;
+    // 1. Can ALL remaining items fit on this page ALONG with summary and notes?
+    if (remainingH <= currentLastBudget) {
+      pages.push(remainingItems);
+      break;
     }
 
-    const pageItems = [];
+    // 2. We cannot fit all items + summary + notes on this page.
+    // So this page CANNOT be the last page. We fill it up to `currentBudget`.
+    const page = [];
     let used = 0;
 
-    while (i < items.length) {
-      const h = estimateRowHeight(items[i]);
-
-      if (used + h > budget && pageItems.length > 0) break;
-
-      pageItems.push(items[i]);
+    while (start < items.length) {
+      const h = rowHeights[start];
+      
+      // Check if adding this item exceeds the page budget
+      if (used + h > currentBudget && page.length > 0) {
+        break;
+      }
+      
+      // If this is the absolute last item, and taking it would mean this page becomes the last page...
+      // We already know `remainingH > currentLastBudget`, so taking ALL items means this page WILL overflow summary/notes.
+      // We MUST leave it for the next page, UNLESS putting it on the next page would overflow the next page's last budget anyway.
+      if (start === items.length - 1 && page.length > 0) {
+        if (h <= interiorLastBudget) {
+          break; // Leave for next page
+        }
+      }
+      
+      page.push(items[start]);
       used += h;
-      i++;
+      start++;
     }
+    
+    // Fallback if a single item is larger than the entire page
+    if (page.length === 0) {
+      page.push(items[start]);
+      start++;
+    }
+    
+    pages.push(page);
+  }
 
-    pages.push(pageItems);
+  // If the loop finished but the last page cannot actually fit summary/notes,
+  // we must append an empty page specifically for them.
+  const lastPage = pages[pages.length - 1];
+  const lastPageIsFirst = pages.length === 1;
+  const actualLastBudget = lastPageIsFirst ? firstLastBudget : interiorLastBudget;
+  const lastPageH = rowHeights.slice(items.length - lastPage.length).reduce((a, b) => a + b, 0);
+
+  if (lastPageH > actualLastBudget) {
+    pages.push([]);
   }
 
   return pages;
+}
+
+function measureHeights(container) {
+  const header = container.querySelector("[data-meas-header]");
+  const billingInfo = container.querySelector("[data-meas-billing]");
+  const itemsSection = container.querySelector("[data-meas-items]");
+  const summary = container.querySelector("[data-meas-summary]");
+  const notes = container.querySelector("[data-meas-notes]");
+
+  const headerHeight = header?.offsetHeight || 0;
+  const billingInfoHeight = billingInfo?.offsetHeight || 0;
+  const totalItemsHeight = itemsSection?.offsetHeight || 0;
+  const table = itemsSection?.querySelector("table") || itemsSection?.querySelector("[role='table']");
+  const tbody = table?.querySelector("tbody") || table?.querySelector("[role='rowgroup']");
+  const rowElements = tbody?.querySelectorAll(":scope > tr, :scope > [role='row']") || [];
+  const rowHeights = Array.from(rowElements).map((el) => el.offsetHeight);
+  const rowSum = rowHeights.reduce((a, b) => a + b, 0);
+  const tableOverheadH = totalItemsHeight - rowSum;
+  const summaryHeight = summary?.offsetHeight || 0;
+  const notesHeight = notes?.offsetHeight || 0;
+
+  return { headerHeight, billingInfoHeight, rowHeights, tableOverheadH: Math.max(0, tableOverheadH), summaryHeight, notesHeight };
+}
+
+function renderMeasureNodes(invoice, items, allItems, subtotal, total, balanceDue, taxAmount, discountAmount) {
+  return (
+    <div style={{ position: "fixed", left: 0, top: 0, width: Math.round(210 * MM_PX) + "px", zIndex: -1, opacity: 0.01, pointerEvents: "none" }}>
+      <div data-meas-header>
+        <div className="print-header relative shrink-0">
+          <div className="relative flex items-start justify-between border-b border-slate-900 px-12 pt-8 pb-8">
+            <Logo invoice={invoice} />
+            <TopBanner invoice={invoice} />
+          </div>
+          <div className="border-b border-slate-900" />
+        </div>
+      </div>
+      <div data-meas-billing>
+        <BillingInfo invoice={invoice} />
+      </div>
+      <div data-meas-items>
+        <section className="px-8 md:px-14">
+          <BillingTable items={items} invoice={invoice} />
+        </section>
+      </div>
+      <div data-meas-summary>
+        <BillingSummary invoice={invoice} items={allItems || items} subtotal={subtotal} total={total} balanceDue={balanceDue} taxAmount={taxAmount} discountAmount={discountAmount} notesPosition="bottom" />
+      </div>
+      <div data-meas-notes>
+        <div className="px-8 pb-4 md:px-14">
+          <h3 className="mb-2 text-sm font-bold text-[#0A4A95]">Note:</h3>
+          <div className="text-slate-700 text-xs [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:mb-2" dangerouslySetInnerHTML={{ __html: invoice.notes || "<p>No notes available.</p>" }} />
+        </div>
+      </div>
+    </div>
+  );
 }
 
 const InvoicePrint = ({
@@ -82,7 +160,49 @@ const InvoicePrint = ({
   taxAmount,
   discountAmount,
 }) => {
-  const pageChunks = buildPages(items);
+  const [pageChunks, setPageChunks] = useState(null);
+  const measRef = useRef(null);
+  const prevItemsRef = useRef(items);
+
+  useLayoutEffect(() => {
+    if (!measRef.current) {
+      if (pageChunks !== null && prevItemsRef.current !== items) {
+        prevItemsRef.current = items;
+        setPageChunks(null);
+      }
+      return;
+    }
+    prevItemsRef.current = items;
+
+    const root = measRef.current;
+    const m = measureHeights(root);
+    const contentHeight = PAGE_H - FOOTER_H - SAFE_PX;
+
+    console.log("=== MEASUREMENT DEBUG ===");
+    console.log("contentHeight:", contentHeight);
+    console.log("header:", m.headerHeight, "billingInfo:", m.billingInfoHeight);
+    console.log("rowHeights:", m.rowHeights, "tableOverhead:", m.tableOverheadH);
+    console.log("summary:", m.summaryHeight, "notes:", m.notesHeight);
+
+    const chunks = buildPagesFromMeasurements(
+      items, contentHeight,
+      m.headerHeight, m.billingInfoHeight,
+      m.rowHeights, m.tableOverheadH,
+      m.summaryHeight, m.notesHeight,
+    );
+
+    console.log("chunks:", chunks.map(c => c.length + " items"));
+    setPageChunks(chunks);
+  });
+
+  if (!pageChunks) {
+    return createPortal(
+      <div ref={measRef}>
+        {renderMeasureNodes(invoice, items, allItems, subtotal, total, balanceDue, taxAmount, discountAmount)}
+      </div>,
+      document.body
+    );
+  }
 
   return (
     <div>
@@ -91,7 +211,7 @@ const InvoicePrint = ({
           key={index}
           style={index > 0 ? { pageBreakBefore: "always" } : undefined}
         >
-          <InvoicePrintPage
+          <BillingTableSection
             invoice={invoice}
             items={chunk}
             allItems={allItems || items}
@@ -107,6 +227,92 @@ const InvoicePrint = ({
           />
         </div>
       ))}
+    </div>
+  );
+};
+
+const BillingTableSection = ({
+  invoice,
+  items,
+  allItems,
+  isFirstPage,
+  isLastPage,
+  pageNumber,
+  totalPages,
+  subtotal,
+  total,
+  balanceDue,
+  taxAmount,
+  discountAmount,
+}) => {
+  return (
+    <div
+      className="invoice-page bg-white flex flex-col"
+      style={{
+        width: "210mm",
+        height: "297mm",
+        margin: "0 auto",
+        background: "white",
+        overflow: "hidden",
+        position: "relative",
+        paddingBottom: "60mm",
+      }}
+    >
+      <header className="print-header relative shrink-0">
+        <div className="relative flex items-start justify-between border-b border-slate-900 px-12 pt-8 pb-8">
+          <Logo invoice={invoice} />
+          <TopBanner invoice={invoice} />
+        </div>
+        <div className="border-b border-slate-900" />
+      </header>
+
+      {isFirstPage && (
+        <div className="shrink-0">
+          <BillingInfo invoice={invoice} />
+        </div>
+      )}
+
+      <div className={"shrink-0" + (isFirstPage ? "" : " pt-8")}>
+        <BillingTable items={items} invoice={invoice} />
+      </div>
+
+      {isLastPage && (
+        <>
+          <div className="shrink-0">
+            <BillingSummary
+              invoice={invoice}
+              items={allItems || items}
+              subtotal={subtotal}
+              total={total}
+              balanceDue={balanceDue}
+              taxAmount={taxAmount}
+              discountAmount={discountAmount}
+              notesPosition="bottom"
+            />
+          </div>
+          <div className="min-h-0 flex-1" />
+          <div className="shrink-0 px-8 pb-4 md:px-14">
+            <h3 className="mb-2 text-sm font-bold text-[#0A4A95]">Note:</h3>
+            <div
+              className="text-slate-700 text-xs [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:mb-2"
+              dangerouslySetInnerHTML={{
+                __html: invoice.notes || "<p>No notes available.</p>",
+              }}
+            />
+          </div>
+        </>
+      )}
+
+      {totalPages > 1 && (
+        <div className="absolute -bottom-7 left-9 pb-16 z-30">
+          <span className="text-xs text-black font-semibold">
+            Page {pageNumber} of {totalPages}
+          </span>
+        </div>
+      )}
+      <div className="absolute bottom-0 left-0 w-full">
+        <BillingFooter hideContact={isFirstPage && !isLastPage} />
+      </div>
     </div>
   );
 };
