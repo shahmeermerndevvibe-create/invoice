@@ -1,5 +1,4 @@
 import { Globe, MapPin, Phone } from "lucide-react";
-import BottomBanner from "./BottomBanner";
 import { useSettingsStore } from "@/store/settingsStore";
 
 export default function BillingFooter({ hideContact }) {
@@ -61,7 +60,7 @@ export default function BillingFooter({ hideContact }) {
         </div>
       </div>
 
-      <BottomBanner />
+      <img src="/InvoiceFooter.svg" alt="" className="absolute bottom-0 left-1 w-full h-auto max-h-[120px] object-contain" />
     </footer>
   );
 }
