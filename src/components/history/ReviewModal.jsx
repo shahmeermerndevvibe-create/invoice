@@ -1,6 +1,4 @@
-import { X } from "lucide-react";
 import { formatCurrency, calculateItemRow } from "@/utils/invoiceUtils";
-import { formatInvoiceDate } from "@/utils/historyUtils";
 import { useMemo } from "react";
 import {
   Table,
@@ -10,13 +8,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import ReviewModalHeader from "./ReviewModalHeader";
+import ReviewCustomerInfo from "./ReviewCustomerInfo";
 
 export default function ReviewModal({ data, onClose }) {
   const { invoice, items, totals } = data;
 
   const symbol = invoice.currency?.symbol || "";
 
-  const { totalContractValue, completedMilestoneValue } = useMemo(() => {
+  const {
+    totalContractValue,
+    completedMilestoneValue,
+    currentMilestoneValue,
+    pendingMilestoneValue,
+  } = useMemo(() => {
     const total = items.reduce(
       (sum, item) => sum + calculateItemRow(item).netTotal,
       0,
@@ -24,23 +29,28 @@ export default function ReviewModal({ data, onClose }) {
     const completed = items
       .filter((item) => item.status === "Completed")
       .reduce((sum, item) => sum + calculateItemRow(item).netTotal, 0);
-    return { totalContractValue: total, completedMilestoneValue: completed };
+    const current = items
+      .filter((item) => item.status === "Current")
+      .reduce((sum, item) => sum + calculateItemRow(item).netTotal, 0);
+    const pending = items
+      .filter((item) => item.status === "Pending")
+      .reduce((sum, item) => sum + calculateItemRow(item).netTotal, 0);
+    return {
+      totalContractValue: total,
+      completedMilestoneValue: completed,
+      currentMilestoneValue: current,
+      pendingMilestoneValue: pending,
+    };
   }, [items]);
-
-  const completionRatio =
-    totalContractValue > 0 ? completedMilestoneValue / totalContractValue : 0;
 
   const discountAmount = totals.discountAmount || 0;
   const taxAmount = totals.taxAmount || 0;
 
-  const contractAfterDiscount = totalContractValue - discountAmount;
-  const netContractTotal = contractAfterDiscount + taxAmount;
-
-  const invoiceDiscount = discountAmount * completionRatio;
-  const invoiceAfterDiscount = completedMilestoneValue - invoiceDiscount;
-  const invoiceTax = taxAmount * completionRatio;
-  const dueThisInvoice = invoiceAfterDiscount + invoiceTax;
-  const remaining = netContractTotal - dueThisInvoice;
+  const netContractTotal = totals.total;
+  const adjustmentRatio =
+    totalContractValue > 0 ? netContractTotal / totalContractValue : 1;
+  const dueThisInvoice = currentMilestoneValue * adjustmentRatio;
+  const remaining = pendingMilestoneValue * adjustmentRatio;
 
   const discountLabel =
     invoice.discountType === "percent"
@@ -59,34 +69,13 @@ export default function ReviewModal({ data, onClose }) {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="mx-4 flex max-h-[85vh] w-full max-w-3xl flex-col rounded-xl bg-white shadow-2xl"
+        className="mx-4 flex max-h-[85vh] w-full max-w-3xl flex-col rounded-xl bg-white shadow-2xl overflow-hidden"
       >
-        <div className="flex items-start justify-between border-b px-6 py-4">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">
-              {invoice.documentType || "Invoice"} {invoice.documentType === "Quotation" ? "QT-" : "INV-"}{invoice.documentNumber || "-"}
-            </h2>
-            <p className="mt-0.5 text-sm text-gray-500">
-              {invoice.customer || "—"} ·{" "}
-              {formatInvoiceDate(invoice.invoiceDate)}
-            </p>
-            {invoice.contractType === "Milestones" && (
-              <span className="mt-2 inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800">
-                {/* Milestone #{invoice.milestoneNumber} */}
-                Milestone
-              </span>
-            )}
-          </div>
-          <button
-            onClick={onClose}
-            className="rounded-lg p-1.5 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+        <ReviewModalHeader invoice={invoice} onClose={onClose} />
 
         <div className="flex-1 overflow-y-auto px-6 py-4">
-          <div className="rounded-lg border">
+        <ReviewCustomerInfo invoice={invoice} />
+          <div className="rounded-lg border mt-5">
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
@@ -106,19 +95,8 @@ export default function ReviewModal({ data, onClose }) {
                       <p className="font-semibold text-gray-900">
                         {item.product || "—"}
                       </p>
-
                       {item.description && (
-                        <p
-                          className="
-        mt-2
-        text-sm
-        leading-6
-        text-gray-500
-        whitespace-pre-wrap
-        break-words
-        overflow-wrap-anywhere
-      "
-                        >
+                        <p className="mt-2 text-sm leading-6 text-gray-500 whitespace-pre-wrap break-words overflow-wrap-anywhere">
                           {item.description}
                         </p>
                       )}
@@ -152,7 +130,6 @@ export default function ReviewModal({ data, onClose }) {
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
                   Contract Summary
                 </p>
-
                 <div className="flex justify-between">
                   <span>Total Contract Value</span>
                   <span className="font-medium tabular-nums">
@@ -160,17 +137,12 @@ export default function ReviewModal({ data, onClose }) {
                     {formatCurrency(totalContractValue)}
                   </span>
                 </div>
-
                 {invoice.discount ? (
                   <div className="flex justify-between text-black">
-                    <span>Discount ({discountLabel})</span>
-                    <span className="tabular-nums">
-                      −<span className="text-xs mr-0.5">{symbol}</span>
-                      {formatCurrency(discountAmount)}
-                    </span>
+                    <span>Discount</span>
+                    <span className="tabular-nums font-medium">{discountLabel}</span>
                   </div>
                 ) : null}
-
                 {invoice.tax ? (
                   <div className="flex justify-between text-black">
                     <span>Tax ({taxLabel})</span>
@@ -180,7 +152,6 @@ export default function ReviewModal({ data, onClose }) {
                     </span>
                   </div>
                 ) : null}
-
                 <div className="flex justify-between font-bold text-gray-900 pt-1.5 border-t border-dashed border-slate-300">
                   <span>Net Contract Total</span>
                   <span className="tabular-nums">
@@ -188,7 +159,6 @@ export default function ReviewModal({ data, onClose }) {
                     {formatCurrency(netContractTotal)}
                   </span>
                 </div>
-
                 <div className="relative py-2">
                   <div className="absolute inset-0 flex items-center">
                     <span className="w-full border-t border-slate-300" />
@@ -199,45 +169,15 @@ export default function ReviewModal({ data, onClose }) {
                     </span>
                   </div>
                 </div>
-
-                <div className="flex justify-between">
-                  <span>Completed Milestones Value</span>
-                  <span className="font-medium tabular-nums">
-                    <span className="text-xs text-slate-400 mr-0.5">{symbol}</span>
-                    {formatCurrency(completedMilestoneValue)}
-                  </span>
-                </div>
-
-                {invoice.discount ? (
-                  <div className="flex justify-between text-black">
-                    <span>Discount ({discountLabel})</span>
-                    <span className="tabular-nums">
-                      −<span className="text-xs mr-0.5">{symbol}</span>
-                      {formatCurrency(invoiceDiscount)}
-                    </span>
-                  </div>
-                ) : null}
-
-                {invoice.tax ? (
-                  <div className="flex justify-between text-black">
-                    <span>Tax ({taxLabel})</span>
-                    <span className="tabular-nums">
-                      +<span className="text-xs mr-0.5">{symbol}</span>
-                      {formatCurrency(invoiceTax)}
-                    </span>
-                  </div>
-                ) : null}
-
-                <div className="flex justify-between font-bold text-gray-900 pt-1.5 border-t border-dashed border-slate-300">
+                <div className="flex justify-between font-bold text-gray-900 pt-1.5">
                   <span>Due This Invoice</span>
                   <span className="tabular-nums">
                     <span className="text-xs text-slate-400 mr-0.5">{symbol}</span>
                     {formatCurrency(dueThisInvoice)}
                   </span>
                 </div>
-
                 <div className="flex justify-between text-xs text-slate-500">
-                  <span>Remaining (To Be Paid)</span>
+                  <span>Pending (To Be Paid)</span>
                   <span className="tabular-nums">
                     <span className="text-xs mr-0.5">{symbol}</span>
                     {formatCurrency(remaining)}
@@ -254,15 +194,11 @@ export default function ReviewModal({ data, onClose }) {
                 </div>
                 {invoice.discount ? (
                   <div className="flex justify-between text-black">
-                    <span>
-                      Discount (
+                    <span>Discount</span>
+                    <span className="font-medium">
                       {invoice.discountType === "percent"
                         ? `${invoice.discount}%`
                         : `${symbol} ${invoice.discount}`}
-                      )
-                    </span>
-                    <span className="font-medium">
-                      -{symbol} {formatCurrency(totals.discountAmount)}
                     </span>
                   </div>
                 ) : null}

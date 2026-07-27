@@ -13,6 +13,9 @@ import toast from "react-hot-toast";
 export default function InvoiceHistoryPanel() {
   const isOpen = useInvoiceStore((s) => s.isInvoiceHistoryOpen);
   const close = useInvoiceStore((s) => s.closeInvoiceHistory);
+  const setInvoice = useInvoiceStore((s) => s.setInvoice);
+  const setItems = useInvoiceStore((s) => s.setItems);
+  const setEditingInvoiceId = useInvoiceStore((s) => s.setEditingInvoiceId);
 
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -154,6 +157,20 @@ export default function InvoiceHistoryPanel() {
     }
   }, []);
 
+  const handleEditClick = useCallback(async (documentId) => {
+    try {
+      const result = await fetchDocumentForPrint(documentId);
+      if (!result.success) throw new Error("Failed to fetch document data");
+      setInvoice(result.invoice);
+      setItems(result.items);
+      setEditingInvoiceId(documentId);
+      close();
+    } catch (err) {
+      console.error("Edit error:", err);
+      toast.error("Failed to load document for editing");
+    }
+  }, [setInvoice, setItems, setEditingInvoiceId, close]);
+
   useEffect(() => {
     if (!printData) return;
     const timer = setTimeout(() => { handlePrintAction(); setPrintData(null); }, 50);
@@ -198,6 +215,7 @@ export default function InvoiceHistoryPanel() {
               error={error}
               onPrint={handlePrintClick}
               onReview={handleReviewClick}
+              onEdit={handleEditClick}
             />
           </div>
 

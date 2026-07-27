@@ -11,6 +11,8 @@ const InvoicePrintPage = ({
   allItems,
   isFirstPage,
   isLastPage,
+  pageNumber,
+  totalPages,
   subtotal,
   total,
   balanceDue,
@@ -71,6 +73,13 @@ const InvoicePrintPage = ({
         </>
       )}
 
+      {totalPages > 1 && (
+        <div className="absolute -bottom-7 left-9 pb-16 z-30">
+          <span className="text-xs text-black font-semibold">
+            Page {pageNumber} of {totalPages}
+          </span>
+        </div>
+      )}
       <div className="absolute bottom-0 left-0 w-full">
         <BillingFooter hideContact={isFirstPage && !isLastPage} />
       </div>

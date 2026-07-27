@@ -30,9 +30,7 @@ export default function InvoiceSummary({ onPrint }) {
   const items = useInvoiceStore((state) => state.items);
   const updateInvoice = useInvoiceStore((state) => state.updateInvoice);
   const resetInvoice = useInvoiceStore((state) => state.resetInvoice);
-  // const incrementInvoiceNumber = useInvoiceStore(
-  //   (state) => state.incrementInvoiceNumber,
-  // );
+  const editingInvoiceId = useInvoiceStore((state) => state.editingInvoiceId);
   const setErrors = useInvoiceStore((state) => state.setErrors);
 
   const [loading, setLoading] = useState(false);
@@ -41,7 +39,12 @@ export default function InvoiceSummary({ onPrint }) {
   const { subtotal, discountAmount, taxAmount, total, balanceDue } =
     useInvoiceTotals();
 
-  const { totalContractValue, completedMilestoneValue } = useMemo(() => {
+  const {
+    totalContractValue,
+    completedMilestoneValue,
+    currentMilestoneValue,
+    pendingMilestoneValue,
+  } = useMemo(() => {
     const total = items.reduce(
       (sum, item) => sum + calculateItemRow(item).netTotal,
       0,
@@ -49,20 +52,25 @@ export default function InvoiceSummary({ onPrint }) {
     const completed = items
       .filter((item) => item.status === "Completed")
       .reduce((sum, item) => sum + calculateItemRow(item).netTotal, 0);
-    return { totalContractValue: total, completedMilestoneValue: completed };
+    const current = items
+      .filter((item) => item.status === "Current")
+      .reduce((sum, item) => sum + calculateItemRow(item).netTotal, 0);
+    const pending = items
+      .filter((item) => item.status === "Pending")
+      .reduce((sum, item) => sum + calculateItemRow(item).netTotal, 0);
+    return {
+      totalContractValue: total,
+      completedMilestoneValue: completed,
+      currentMilestoneValue: current,
+      pendingMilestoneValue: pending,
+    };
   }, [items]);
 
-  const completionRatio =
-    totalContractValue > 0 ? completedMilestoneValue / totalContractValue : 0;
-
-  const contractAfterDiscount = totalContractValue - discountAmount;
-  const netContractTotal = contractAfterDiscount + taxAmount;
-
-  const invoiceDiscount = discountAmount * completionRatio;
-  const invoiceAfterDiscount = completedMilestoneValue - invoiceDiscount;
-  const invoiceTax = taxAmount * completionRatio;
-  const dueThisInvoice = invoiceAfterDiscount + invoiceTax;
-  const remaining = netContractTotal - dueThisInvoice;
+  const netContractTotal = total;
+  const adjustmentRatio =
+    totalContractValue > 0 ? netContractTotal / totalContractValue : 1;
+  const dueThisInvoice = currentMilestoneValue * adjustmentRatio;
+  const remaining = pendingMilestoneValue * adjustmentRatio;
 
   const discountLabel =
     invoice.discountType === "percent"
@@ -94,7 +102,7 @@ export default function InvoiceSummary({ onPrint }) {
       }
 
       const result = await saveDocument(invoiceToSave, items);
-      console.log("Save result:", result);
+
       if (!result.success) {
         toast.error("Failed to save.");
         return;
@@ -107,7 +115,6 @@ export default function InvoiceSummary({ onPrint }) {
       resetInvoice();
       setErrors({});
 
-      // Load next document number after reset
       const nextDoc = await loadNextDocumentNumber(invoice.documentType);
 
       updateInvoice("documentCounter", nextDoc.documentCounter);
@@ -134,7 +141,9 @@ export default function InvoiceSummary({ onPrint }) {
             <div className="flex justify-between">
               <span>Total Contract Value</span>
               <span className="font-medium tabular-nums">
-                <span className="text-xs text-slate-400 mr-0.5">{invoice.currency.symbol}</span>
+                <span className="text-xs text-slate-400 mr-0.5">
+                  {invoice.currency.symbol}
+                </span>
                 {formatCurrency(totalContractValue)}
               </span>
             </div>
@@ -143,7 +152,10 @@ export default function InvoiceSummary({ onPrint }) {
               <div className="flex justify-between text-black">
                 <span>Discount ({discountLabel})</span>
                 <span className="tabular-nums">
-                  −<span className="text-xs mr-0.5">{invoice.currency.symbol}</span>
+                  −
+                  <span className="text-xs mr-0.5">
+                    {invoice.currency.symbol}
+                  </span>
                   {formatCurrency(discountAmount)}
                 </span>
               </div>
@@ -153,7 +165,10 @@ export default function InvoiceSummary({ onPrint }) {
               <div className="flex justify-between text-black">
                 <span>Tax ({taxLabel})</span>
                 <span className="tabular-nums">
-                  +<span className="text-xs mr-0.5">{invoice.currency.symbol}</span>
+                  +
+                  <span className="text-xs mr-0.5">
+                    {invoice.currency.symbol}
+                  </span>
                   {formatCurrency(taxAmount)}
                 </span>
               </div>
@@ -162,7 +177,9 @@ export default function InvoiceSummary({ onPrint }) {
             <div className="flex justify-between font-bold text-gray-900 pt-1.5 border-t border-dashed border-slate-300">
               <span>Net Contract Total</span>
               <span className="tabular-nums">
-                <span className="text-xs text-slate-400 mr-0.5">{invoice.currency.symbol}</span>
+                <span className="text-xs text-slate-400 mr-0.5">
+                  {invoice.currency.symbol}
+                </span>
                 {formatCurrency(netContractTotal)}
               </span>
             </div>
@@ -178,46 +195,22 @@ export default function InvoiceSummary({ onPrint }) {
               </div>
             </div>
 
-            <div className="flex justify-between">
-              <span>Completed Milestones Value</span>
-              <span className="font-medium tabular-nums">
-                <span className="text-xs text-slate-400 mr-0.5">{invoice.currency.symbol}</span>
-                {formatCurrency(completedMilestoneValue)}
-              </span>
-            </div>
-
-            {Number(invoice.discount) > 0 && (
-              <div className="flex justify-between text-black">
-                <span>Discount ({discountLabel})</span>
-                <span className="tabular-nums">
-                  −<span className="text-xs mr-0.5">{invoice.currency.symbol}</span>
-                  {formatCurrency(invoiceDiscount)}
-                </span>
-              </div>
-            )}
-
-            {Number(invoice.tax) > 0 && (
-              <div className="flex justify-between text-black">
-                <span>Tax ({taxLabel})</span>
-                <span className="tabular-nums">
-                  +<span className="text-xs mr-0.5">{invoice.currency.symbol}</span>
-                  {formatCurrency(invoiceTax)}
-                </span>
-              </div>
-            )}
-
-            <div className="flex justify-between font-bold text-gray-900 pt-1.5 border-t border-dashed border-slate-300">
+            <div className="flex justify-between font-bold text-gray-900 pt-1.5  border-slate-300">
               <span>Due This Invoice</span>
               <span className="tabular-nums">
-                <span className="text-xs text-slate-400 mr-0.5">{invoice.currency.symbol}</span>
+                <span className="text-xs text-slate-400 mr-0.5">
+                  {invoice.currency.symbol}
+                </span>
                 {formatCurrency(dueThisInvoice)}
               </span>
             </div>
 
             <div className="flex justify-between text-xs text-slate-500">
-              <span>Remaining (To Be Paid)</span>
+              <span>Pending (To Be Paid)</span>
               <span className="tabular-nums">
-                <span className="text-xs mr-0.5">{invoice.currency.symbol}</span>
+                <span className="text-xs mr-0.5">
+                  {invoice.currency.symbol}
+                </span>
                 {formatCurrency(remaining)}
               </span>
             </div>
@@ -236,20 +229,18 @@ export default function InvoiceSummary({ onPrint }) {
                 {Number(invoice.discount) > 0 && (
                   <>
                     <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-slate-700">Discount</span>
-                        <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-black">
-                          {discountLabel}
-                        </span>
-                      </div>
-                      <span className="font-semibold text-black">
-                        − {invoice.currency.symbol} {formatCurrency(discountAmount)}
+                      <span className="font-medium text-slate-700">
+                        Discount
+                      </span>
+                      <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-black">
+                        {discountLabel}
                       </span>
                     </div>
                     <div className="flex items-center justify-between border-b pb-3 text-sm text-slate-600">
                       <span>After Discount</span>
                       <span className="font-semibold text-slate-900">
-                        {invoice.currency.symbol} {formatCurrency(subtotal - discountAmount)}
+                        {invoice.currency.symbol}{" "}
+                        {formatCurrency(subtotal - discountAmount)}
                       </span>
                     </div>
                   </>
@@ -270,7 +261,8 @@ export default function InvoiceSummary({ onPrint }) {
                     <div className="flex items-center justify-between text-sm text-slate-600">
                       <span>After Tax</span>
                       <span className="font-semibold text-slate-900">
-                        {invoice.currency.symbol} {formatCurrency(subtotal - discountAmount + taxAmount)}
+                        {invoice.currency.symbol}{" "}
+                        {formatCurrency(subtotal - discountAmount + taxAmount)}
                       </span>
                     </div>
                   </>
@@ -289,50 +281,15 @@ export default function InvoiceSummary({ onPrint }) {
           </>
         )}
 
-        {/* Discount Input */}
-        <div className="space-y-2">
-          <Label>Discount</Label>
-          <div className="flex gap-2">
-            <Input
-              type="number"
-              placeholder="0"
-              min={0}
-              max={subtotal === 0 ? 0 : invoice.discountType === "percent" ? 100 : subtotal}
-              value={invoice.discount === 0 ? "" : invoice.discount}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (value === "") {
-                  updateInvoice("discount", 0);
-                  return;
-                }
-                let num = Number(value);
-                if (num < 0) num = 0;
-                if (subtotal === 0) {
-                  num = 0;
-                } else if (invoice.discountType === "percent") {
-                  num = Math.min(num, 100);
-                } else {
-                  num = Math.min(num, subtotal);
-                }
-                updateInvoice("discount", num);
-              }}
-            />
-            <Select
-              value={invoice.discountType}
-              onValueChange={(value) => {
-                updateInvoice("discountType", value);
-                updateInvoice("discount", 0);
-              }}
-            >
-              <SelectTrigger className="w-28">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="percent">%</SelectItem>
-                <SelectItem value="fixed">{invoice.currency.code}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        {/* Discount */}
+        <div className="flex items-center justify-between text-sm">
+          <span className="font-medium text-slate-700">Discount</span>
+          <span className="font-semibold tabular-nums">
+            − {invoice.currency.symbol} {formatCurrency(discountAmount)}
+            <span className="ml-1 text-xs text-slate-500">
+              ({discountLabel})
+            </span>
+          </span>
         </div>
 
         {/* Tax Input */}
@@ -343,7 +300,13 @@ export default function InvoiceSummary({ onPrint }) {
               type="number"
               placeholder="0"
               min={0}
-              max={subtotal === 0 ? 0 : invoice.taxType === "percent" ? 100 : subtotal}
+              max={
+                subtotal === 0
+                  ? 0
+                  : invoice.taxType === "percent"
+                    ? 100
+                    : subtotal
+              }
               value={invoice.tax === 0 ? "" : invoice.tax}
               onChange={(e) => {
                 const value = e.target.value;
@@ -429,6 +392,11 @@ export default function InvoiceSummary({ onPrint }) {
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Saving...
+            </>
+          ) : editingInvoiceId ? (
+            <>
+              <Printer className="mr-2 h-4 w-4" />
+              Update Invoice
             </>
           ) : (
             <>

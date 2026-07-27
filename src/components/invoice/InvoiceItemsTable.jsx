@@ -1,22 +1,43 @@
+import { useState, useCallback } from "react";
 import InvoiceItemRow from "./InvoiceItemRow";
 import ActionButtons from "@/components/invoice/ActionButtons";
 import InvoiceSummary from "@/components/invoice/InvoiceSummary";
 import NoteEditor from "@/components/invoice/NoteEditor";
-import { useState } from "react";
 
 import { useInvoiceStore } from "@/store/invoiceStore";
 import PaymentEditior from "./PaymentEditior";
 
 export default function InvoiceItemsTable({ onPrint }) {
   const [html, setHtml] = useState("<p>Enter your notes here...</p>");
+  const [dragIndex, setDragIndex] = useState(null);
 
   const items = useInvoiceStore((state) => state.items);
   const addItem = useInvoiceStore((state) => state.addItem);
   const clearItems = useInvoiceStore((state) => state.clearItems);
+  const reorderItems = useInvoiceStore((state) => state.reorderItems);
   const invoice = useInvoiceStore((state) => state.invoice);
 
   const thClass =
     "border border-gray-200 bg-gray-50 px-3 py-3 text-left text-sm font-semibold whitespace-nowrap";
+
+  const handleDragStart = useCallback((index) => {
+    setDragIndex(index);
+  }, []);
+
+  const handleDragOver = useCallback((e) => {
+    e.preventDefault();
+  }, []);
+
+  const handleDrop = useCallback((index) => {
+    if (dragIndex === null || dragIndex === index) return;
+    if (items[dragIndex].status === "Completed" || items[index].status === "Completed") return;
+    reorderItems(dragIndex, index);
+    setDragIndex(null);
+  }, [dragIndex, items, reorderItems]);
+
+  const handleDragEnd = useCallback(() => {
+    setDragIndex(null);
+  }, []);
 
   return (
     <div className="overflow-x-auto rounded-lg bg-white p-5">
@@ -29,7 +50,6 @@ export default function InvoiceItemsTable({ onPrint }) {
             <th className={`${thClass} w-84`}>Description</th>
             <th className={`${thClass} w-30 text-right`}>Unit Price</th>
             <th className={`${thClass} w-30 text-right`}>Quantity</th>
-            <th className={`${thClass} text-right w-36`}>Service Discount</th>
             {invoice.contractType === "Milestones" && (
               <th className={`${thClass} w-36 text-center`}>Status</th>
             )}
@@ -40,7 +60,16 @@ export default function InvoiceItemsTable({ onPrint }) {
 
         <tbody>
           {items.map((item, index) => (
-            <InvoiceItemRow key={`${index}-${invoice.contractType}`} index={index} item={item} />
+            <InvoiceItemRow
+              key={`${index}-${invoice.contractType}`}
+              index={index}
+              item={item}
+              dragIndex={dragIndex}
+              onDragStart={handleDragStart}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              onDragEnd={handleDragEnd}
+            />
           ))}
         </tbody>
       </table>

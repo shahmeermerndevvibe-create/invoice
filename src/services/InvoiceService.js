@@ -7,6 +7,7 @@ import {
   getDocs,
   query,
   serverTimestamp,
+  setDoc,
   updateDoc,
   where,
   orderBy,
@@ -17,6 +18,7 @@ import { db } from "@/firebase/firebase";
 
 const invoiceCollection = collection(db, "invoices");
 const documentItemCollection = collection(db, "invoiceItems");
+const settingsCollection = collection(db, "settings");
 
 export const invoiceService = {
   async createDocument(data) {
@@ -35,8 +37,8 @@ export const invoiceService = {
     if (!snapshot.exists()) return null;
 
     return {
-      id: snapshot.id,
       ...snapshot.data(),
+      id: snapshot.id,
     };
   },
 
@@ -44,8 +46,8 @@ export const invoiceService = {
     const snapshot = await getDocs(invoiceCollection);
 
     return snapshot.docs.map((doc) => ({
-      id: doc.id,
       ...doc.data(),
+      id: doc.id,
     }));
   },
 
@@ -150,8 +152,8 @@ export const invoiceService = {
 
     return {
       invoices: snapshot.docs.map((doc) => ({
-        id: doc.id,
         ...doc.data(),
+        id: doc.id,
       })),
       lastDoc: snapshot.docs[snapshot.docs.length - 1] || null,
       hasMore: snapshot.docs.length === pageSize,
@@ -198,8 +200,8 @@ export const documentItemService = {
     const snapshot = await getDocs(q);
 
     return snapshot.docs.map((doc) => ({
-      id: doc.id,
       ...doc.data(),
+      id: doc.id,
     }));
   },
 
@@ -212,5 +214,24 @@ export const documentItemService = {
 
   async deleteItem(id) {
     await deleteDoc(doc(documentItemCollection, id));
+  },
+};
+
+const SETTINGS_DOC_ID = "company";
+
+export const settingsService = {
+  async getSettings() {
+    const snapshot = await getDoc(doc(settingsCollection, SETTINGS_DOC_ID));
+
+    if (!snapshot.exists()) return null;
+
+    return snapshot.data();
+  },
+
+  async saveSettings(data) {
+    await setDoc(doc(settingsCollection, SETTINGS_DOC_ID), {
+      ...data,
+      updatedAt: serverTimestamp(),
+    });
   },
 };

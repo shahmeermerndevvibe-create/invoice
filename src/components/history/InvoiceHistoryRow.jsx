@@ -1,9 +1,9 @@
 import { memo, useState } from "react";
-import { Printer, Eye, Loader2 } from "lucide-react";
+import { Printer, Eye, Pencil, Loader2 } from "lucide-react";
 import { formatCurrency } from "@/utils/invoiceUtils";
 import { formatInvoiceDate } from "@/utils/historyUtils";
 
-function InvoiceHistoryRow({ invoice, onPrint, onReview }) {
+function InvoiceHistoryRow({ invoice, onPrint, onReview, onEdit }) {
   const [action, setAction] = useState(null);
   console.log(invoice);
 
@@ -12,6 +12,12 @@ function InvoiceHistoryRow({ invoice, onPrint, onReview }) {
     setAction({ type: "print", id: invoice.id });
     await onPrint(invoice.id);
     setAction(null);
+  };
+
+  const handleEdit = (e) => {
+    e.stopPropagation();
+    setAction({type: "edit", id: invoice.id })
+    onEdit(invoice.id);
   };
 
   const handleReview = async (e) => {
@@ -69,6 +75,19 @@ function InvoiceHistoryRow({ invoice, onPrint, onReview }) {
         <span className="mr-1 text-sm font-semibold text-gray-900">
           {invoice.currency?.symbol || ""} {formatCurrency(invoice.total)}
         </span>
+        <button
+          onClick={handleEdit}
+          disabled={isLoading("edit")}
+          title="Edit"
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-amber-50 hover:text-amber-600"
+        >
+         {
+          isLoading("edit") ? 
+          (<Loader2 className="h-4 w-4 animate-spin" />) 
+          : 
+          ( <Pencil className="h-4 w-4" />)
+         }
+        </button>
         <button
           onClick={handleReview}
           disabled={isLoading("review")}

@@ -55,9 +55,9 @@ export const validateInvoice = (invoice = {}, items = [], subtotal = 0) => {
     // }
   }
 
-  if (invoice.notes?.length > 700) {
-    errors.notes = "Notes cannot exceed 500 characters.";
-  }
+  // if (invoice.notes?.length > 700) {
+  //   errors.notes = "Notes cannot exceed 500 characters.";
+  // }
 
   // =====================
   // Discount

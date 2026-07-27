@@ -19,11 +19,11 @@ export default function CustomerSection() {
   const clearInvoiceSectionError = useInvoiceStore(
     (state) => state.clearInvoiceSectionError,
   );
-  console.log("Errors in CustomerSection:", errors);
+  // console.log("Errors in CustomerSection:", errors);
 
   const updateInvoice = useInvoiceStore((state) => state.updateInvoice);
 
-  const { balanceDue } = useInvoiceTotals();
+  const { balanceDue, subtotal } = useInvoiceTotals();
 
   const formattedBalance = formatCurrency(balanceDue);
 
@@ -59,64 +59,6 @@ export default function CustomerSection() {
       <div className="flex flex-col gap-6 rounded-xl p-6 lg:flex-row lg:items-start">
         {/* Left */}
         <div className="flex flex-1 flex-col gap-5">
-          {/* Document Type & Country */}
-          <div className="flex flex-wrap gap-4">
-            <div className="w-full md:w-52">
-              <Label className="mb-2 block">Type</Label>
-
-              <Select
-                value={invoice.documentType}
-                onValueChange={(value) => handleChange("documentType", value)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Invoice" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  <SelectItem value="Invoice">Invoice</SelectItem>
-                  <SelectItem value="Quotation">Quotation</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="w-full md:w-52">
-              <Label className="mb-2 block">Contract</Label>
-
-              <Select
-                value={invoice.contractType}
-                onValueChange={(value) => handleChange("contractType", value)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Fixed" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  <SelectItem value="Fixed">Fixed</SelectItem>
-                  <SelectItem value="Milestones">Milestone</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="w-full md:w-52">
-              <Label className="mb-2 block">Country</Label>
-
-              <Select
-                value={invoice.country}
-                onValueChange={(value) => handleChange("country", value)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select Country" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  <SelectItem value="Australia">Australia</SelectItem>
-                  <SelectItem value="Pakistan">Pakistan</SelectItem>
-                  <SelectItem value="USA">USA</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
           {/* Customer & Email */}
           <div className="flex flex-wrap gap-4">
             <div className="w-full md:w-72">
@@ -234,11 +176,55 @@ export default function CustomerSection() {
                 <p className="mt-1 text-sm text-red-500">{errors.phoneNo}</p>
               )}
             </div>
+
+            <div className="w-full md:w-52">
+              <Label className="mb-2 block">Discount</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="number"
+                  placeholder="0"
+                  min={0}
+                  max={100}
+                  value={invoice.discount === 0 ? "" : invoice.discount}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "") {
+                      updateInvoice("discount", 0);
+                      return;
+                    }
+                    let num = Number(value);
+                    if (num < 0) num = 0;
+                    if (subtotal === 0) {
+                      num = 0;
+                    } else if (invoice.discountType === "percent") {
+                      num = Math.min(num, 100);
+                    } else {
+                      num = Math.min(num, subtotal);
+                    }
+                    updateInvoice("discount", num);
+                  }}
+                />
+                <Select
+                  value={invoice.discountType}
+                  onValueChange={(value) => {
+                    updateInvoice("discountType", value);
+                    updateInvoice("discount", 0);
+                  }}
+                >
+                  <SelectTrigger className="w-28">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="percent">%</SelectItem>
+                    <SelectItem value="fixed">{invoice.currency.code}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Right */}
-
         <div className="w-full rounded-xl border bg-slate-50 p-6 lg:w-96">
           <div>
             <Label className="mb-2 block">Currency</Label>

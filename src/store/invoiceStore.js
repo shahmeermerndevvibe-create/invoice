@@ -23,6 +23,14 @@ export const useInvoiceStore = create(
 
       isInvoiceHistoryOpen: false,
 
+      editingInvoiceId: null,
+
+      setInvoice: (invoice) => set({ invoice }),
+
+      setItems: (items) => set({ items }),
+
+      setEditingInvoiceId: (id) => set({ editingInvoiceId: id }),
+
       openInvoiceHistory: () => set({ isInvoiceHistoryOpen: true }),
 
       closeInvoiceHistory: () => set({ isInvoiceHistoryOpen: false }),
@@ -94,6 +102,7 @@ export const useInvoiceStore = create(
               ...invoiceItemModel,
             },
           ],
+          editingInvoiceId: null,
         }));
       },
 
@@ -128,6 +137,15 @@ export const useInvoiceStore = create(
         }));
       },
 
+
+      reorderItems(fromIndex, toIndex) {
+        set((state) => {
+          const items = [...state.items];
+          const [moved] = items.splice(fromIndex, 1);
+          items.splice(toIndex, 0, moved);
+          return { items };
+        });
+      },
 
       clearItems() {
         set({

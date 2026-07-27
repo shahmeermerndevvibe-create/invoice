@@ -97,6 +97,8 @@ const InvoicePrint = ({
             allItems={allItems || items}
             isFirstPage={index === 0}
             isLastPage={index === pageChunks.length - 1}
+            pageNumber={index + 1}
+            totalPages={pageChunks.length}
             subtotal={subtotal}
             total={total}
             balanceDue={balanceDue}

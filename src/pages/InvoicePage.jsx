@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { useReactToPrint } from "react-to-print";
 
 import InvoiceHeader from "@/components/invoice/InvoiceHeader";
@@ -8,9 +8,16 @@ import InvoicePrint from "@/components/invoice-print/InvoicePrint";
 import InvoiceHistoryPanel from "@/components/history/InvoiceHistoryPanel";
 import { useInvoiceStore } from "@/store/invoiceStore";
 import { useInvoiceTotals } from "@/hooks/useInvoiceTotals";
+import { useSettingsStore } from "@/store/settingsStore";
 
 const InvoicePage = () => {
   const printRef = useRef(null);
+  const loadSettings = useSettingsStore((s) => s.loadSettings);
+  const settingsLoaded = useSettingsStore((s) => s.loaded);
+
+  useEffect(() => {
+    if (!settingsLoaded) loadSettings();
+  }, [settingsLoaded, loadSettings]);
 
   const invoice = useInvoiceStore((state) => state.invoice);
 const items = useInvoiceStore((state) => state.items);

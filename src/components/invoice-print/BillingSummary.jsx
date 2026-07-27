@@ -11,7 +11,7 @@ export default function BillingSummary({
   discountAmount,
   notesPosition = "inline",
 }) {
-  const { totalContractValue, completedMilestoneValue } = useMemo(() => {
+  const { totalContractValue, completedMilestoneValue, currentMilestoneValue, pendingMilestoneValue } = useMemo(() => {
     const total = items.reduce(
       (sum, item) => sum + calculateItemRow(item).netTotal,
       0,
@@ -19,7 +19,13 @@ export default function BillingSummary({
     const completed = items
       .filter((item) => item.status === "Completed")
       .reduce((sum, item) => sum + calculateItemRow(item).netTotal, 0);
-    return { totalContractValue: total, completedMilestoneValue: completed };
+    const current = items
+      .filter((item) => item.status === "Current")
+      .reduce((sum, item) => sum + calculateItemRow(item).netTotal, 0);
+    const pending = items
+      .filter((item) => item.status === "Pending")
+      .reduce((sum, item) => sum + calculateItemRow(item).netTotal, 0);
+    return { totalContractValue: total, completedMilestoneValue: completed, currentMilestoneValue: current, pendingMilestoneValue: pending };
   }, [items]);
 
   const completionRatio =
@@ -28,11 +34,8 @@ export default function BillingSummary({
   const contractAfterDiscount = totalContractValue - (discountAmount || 0);
   const netContractTotal = contractAfterDiscount + (taxAmount || 0);
 
-  const invoiceDiscount = (discountAmount || 0) * completionRatio;
-  const invoiceAfterDiscount = completedMilestoneValue - invoiceDiscount;
-  const invoiceTax = (taxAmount || 0) * completionRatio;
-  const dueThisInvoice = invoiceAfterDiscount + invoiceTax;
-  const remaining = netContractTotal - dueThisInvoice;
+  const dueThisInvoice = currentMilestoneValue;
+  const remaining = pendingMilestoneValue;
 
   const discountLabel =
     invoice.discountType === "percent"
@@ -78,10 +81,10 @@ export default function BillingSummary({
         >
           {invoice.contractType === "Milestones" ? (
             <div className="ml-auto max-w-[280px] space-y-0.5 text-sm">
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+              {/* <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
                 Contract Summary
-              </p>
-              <div className="border-t border-black my-1" />
+              </p> */}
+              {/* <div className="border-t border-black my-1" /> */}
 
               <div className="flex justify-between">
                 <span>Total Contract Value</span>
@@ -95,28 +98,12 @@ export default function BillingSummary({
 
               {Number(invoice.discount) > 0 && (
                 <div className="flex justify-between text-black">
-                  <span>Discount ({discountLabel})</span>
-                  <span className="tabular-nums">
-                    −
-                    <span className="text-xs mr-0.5">
-                      {invoice.currency.symbol}
-                    </span>
-                    {formatCurrency(discountAmount)}
+                  <span>Discount</span>
+                  <span className="tabular-nums font-medium">
+                    {discountLabel}
                   </span>
                 </div>
               )}
-
-              {/* {Number(invoice.discount) > 0 && (
-                <div className="flex justify-between text-slate-500">
-                  <span className="pl-3">After Discount</span>
-                  <span className="tabular-nums font-medium text-slate-800">
-                    <span className="text-xs mr-0.5">
-                      {invoice.currency.symbol}
-                    </span>
-                    {formatCurrency(contractAfterDiscount)}
-                  </span>
-                </div>
-              )} */}
 
               {Number(invoice.tax) > 0 && (
                 <div className="flex justify-between text-black">
@@ -131,7 +118,7 @@ export default function BillingSummary({
                 </div>
               )}
 
-              <div className="border-t border-black my-1" />
+              {/* <div className="border-t border-black my-1" /> */}
               <div className="flex justify-between font-bold text-gray-900">
                 <span>Net Contract Total</span>
                 <span className="tabular-nums">
@@ -142,57 +129,9 @@ export default function BillingSummary({
                 </span>
               </div>
 
-              <div className="border-t-2 border-double border-slate-400 my-3" />
+              {/* <div className="border-t-2 border-double border-slate-400 my-3" />
 
-              <div className="flex justify-between">
-                <span>Completed Value</span>
-                <span className="tabular-nums font-medium">
-                  <span className="text-xs mr-0.5">
-                    {invoice.currency.symbol}
-                  </span>
-                  {formatCurrency(completedMilestoneValue)}
-                </span>
-              </div>
-
-              {Number(invoice.discount) > 0 && (
-                <div className="flex justify-between text-black">
-                  <span>Discount ({discountLabel})</span>
-                  <span className="tabular-nums">
-                    −
-                    <span className="text-xs mr-0.5">
-                      {invoice.currency.symbol}
-                    </span>
-                    {formatCurrency(invoiceDiscount)}
-                  </span>
-                </div>
-              )}
-
-              {/* {Number(invoice.discount) > 0 && (
-                <div className="flex justify-between text-slate-500">
-                  <span className="pl-3">After Discount</span>
-                  <span className="tabular-nums font-medium text-slate-800">
-                    <span className="text-xs mr-0.5">
-                      {invoice.currency.symbol}
-                    </span>
-                    {formatCurrency(invoiceAfterDiscount)}
-                  </span>
-                </div>
-              )} */}
-
-              {Number(invoice.tax) > 0 && (
-                <div className="flex justify-between text-black">
-                  <span>Tax ({taxLabel})</span>
-                  <span className="tabular-nums">
-                    +
-                    <span className="text-xs mr-0.5">
-                      {invoice.currency.symbol}
-                    </span>
-                    {formatCurrency(invoiceTax)}
-                  </span>
-                </div>
-              )}
-
-              <div className="border-t-2 border-double border-slate-400 my-3" />
+              <div className="border-t-2 border-double border-slate-400 my-3" /> */}
 
               <div className="mt-2 flex justify-between overflow-hidden rounded-md bg-linear-60 from-blue-800 to-blue-500 text-white">
                 <div className="flex-1 py-2 pl-4 text-base font-bold">
@@ -211,7 +150,7 @@ export default function BillingSummary({
               </div>
 
               <div className="flex justify-between text-xs text-slate-500 pt-1">
-                <span>Remaining (To Be Paid)</span>
+                <span>Pending (To Be Paid)</span>
                 <span className="tabular-nums">
                   <span className="text-xs mr-0.5">
                     {invoice.currency.symbol}
@@ -233,6 +172,15 @@ export default function BillingSummary({
               </div>
 
               <div className="flex justify-between text-base font-semibold">
+                <span className="font-bold">Discount:</span>
+                <span className="text-sm font-normal text-black">
+                  {invoice.discountType === "percent"
+                    ? `${invoice.discount}%`
+                    : `${invoice.currency.symbol} ${formatCurrency(invoice.discount)}`}
+                </span>
+              </div>
+
+                <div className="flex justify-between text-base font-semibold">
                 <span className="font-bold">Tax:</span>
                 <span className="flex items-center gap-1">
                   {invoice.taxType === "fixed" && (
@@ -242,21 +190,6 @@ export default function BillingSummary({
                   )}
                   {formatCurrency(invoice.tax)}
                   {invoice.taxType === "percent" && (
-                    <span className="text-sm font-normal text-black">%</span>
-                  )}
-                </span>
-              </div>
-
-              <div className="flex justify-between text-base font-semibold">
-                <span className="font-bold">Discount:</span>
-                <span className="flex items-center gap-1">
-                  {invoice.discountType === "fixed" && (
-                    <span className="text-sm font-normal text-black">
-                      {invoice.currency.symbol}
-                    </span>
-                  )}
-                  {formatCurrency(invoice.discount)}
-                  {invoice.discountType === "percent" && (
                     <span className="text-sm font-normal text-black">%</span>
                   )}
                 </span>
