@@ -1,13 +1,12 @@
 import { Globe, MapPin, Phone } from "lucide-react";
-import { useSettingsStore } from "@/store/settingsStore";
 
-export default function BillingFooter({ hideContact }) {
-  const phoneNo = useSettingsStore((s) => s.phoneNo);
-  const website = useSettingsStore((s) => s.website);
-  const location = useSettingsStore((s) => s.location);
-  const signatureName = useSettingsStore((s) => s.signatureName);
-  const signatureTitle = useSettingsStore((s) => s.signatureTitle);
-  const thankYouText = useSettingsStore((s) => s.thankYouText);
+export default function BillingFooter({ hideContact, invoice = {} }) {
+  const phoneNo = invoice.companyPhone || "";
+  const website = invoice.companyWebsite || "";
+  const location = invoice.companyLocation || "";
+  const signatureName = invoice.signatureName || "";
+  const signatureTitle = invoice.signatureTitle || "";
+  const thankYouText = invoice.thankYouText || "";
 
   return (
     <footer className="print-footer relative">

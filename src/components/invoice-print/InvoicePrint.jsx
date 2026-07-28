@@ -58,15 +58,6 @@ function buildPagesFromMeasurements(items, contentHeight, headerHeight, billingI
         break;
       }
       
-      // If this is the absolute last item, and taking it would mean this page becomes the last page...
-      // We already know `remainingH > currentLastBudget`, so taking ALL items means this page WILL overflow summary/notes.
-      // We MUST leave it for the next page, UNLESS putting it on the next page would overflow the next page's last budget anyway.
-      if (start === items.length - 1 && page.length > 0) {
-        if (h <= interiorLastBudget) {
-          break; // Leave for next page
-        }
-      }
-      
       page.push(items[start]);
       used += h;
       start++;
@@ -262,13 +253,15 @@ const BillingTableSection = ({
         </div>
       )}
 
-      <div className={"shrink-0" + (isFirstPage ? "" : " pt-8")}>
-        <BillingTable items={items} invoice={invoice} />
-      </div>
+      {items.length > 0 && (
+        <div className={"shrink-0" + (isFirstPage ? "" : " pt-8")}>
+          <BillingTable items={items} invoice={invoice} />
+        </div>
+      )}
 
       {isLastPage && (
         <>
-          <div className="shrink-0">
+          <div className={"shrink-0" + (items.length === 0 ? " pt-16" : "")}>
             <BillingSummary
               invoice={invoice}
               items={allItems || items}
@@ -301,7 +294,7 @@ const BillingTableSection = ({
         </div>
       )}
       <div className="absolute bottom-0 left-0 w-full">
-        <BillingFooter hideContact={isFirstPage && !isLastPage} />
+        <BillingFooter hideContact={isFirstPage && !isLastPage} invoice={invoice} />
       </div>
     </div>
   );

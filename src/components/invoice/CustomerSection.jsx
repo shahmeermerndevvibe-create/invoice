@@ -49,6 +49,10 @@ export default function CustomerSection() {
         code: "USD",
         symbol: "$",
       },
+      AED: {
+        code: "AED",
+        symbol: "AED",
+      },
     };
 
     updateInvoice("currency", currencies[code]);
@@ -241,6 +245,8 @@ export default function CustomerSection() {
                 <SelectItem value="PKR">🇵🇰 PKR</SelectItem>
 
                 <SelectItem value="USD">🇺🇸 USD</SelectItem>
+
+                <SelectItem value="AED">🇦🇪 AED</SelectItem>
               </SelectContent>
             </Select>
           </div>

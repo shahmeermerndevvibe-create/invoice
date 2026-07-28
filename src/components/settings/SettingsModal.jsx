@@ -3,19 +3,36 @@ import { X, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
 import { useSettingsStore } from "@/store/settingsStore";
+import { useInvoiceStore } from "@/store/invoiceStore";
 import toast from "react-hot-toast";
 
 export default function SettingsModal({ onClose }) {
-  const phoneNo = useSettingsStore((s) => s.phoneNo);
-  const website = useSettingsStore((s) => s.website);
-  const location = useSettingsStore((s) => s.location);
-  const signatureName = useSettingsStore((s) => s.signatureName);
-  const signatureTitle = useSettingsStore((s) => s.signatureTitle);
-  const thankYouText = useSettingsStore((s) => s.thankYouText);
+  const byCountry = useSettingsStore((s) => s.byCountry);
   const updateSettings = useSettingsStore((s) => s.updateSettings);
   const saveSettings = useSettingsStore((s) => s.saveSettings);
+  const invoiceCountry = useInvoiceStore((s) => s.invoice.country);
+  const updateInvoice = useInvoiceStore((s) => s.updateInvoice);
   const [saving, setSaving] = useState(false);
+  const current = byCountry[invoiceCountry] || {};
+  const phoneNo = current.phoneNo || "";
+  const website = current.website || "";
+  const location = current.location || "";
+  const signatureName = current.signatureName || "";
+  const signatureTitle = current.signatureTitle || "";
+  const thankYouText = current.thankYouText || "";
+  const ph = { phone: phoneNo || "+61 421 702 706", location: location || "10 Leo Ave, Melbourne, Australia, 3029" };
+
+  const handleCountryChange = (value) => {
+    updateInvoice("country", value);
+  };
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") onClose(); };
@@ -32,6 +49,19 @@ export default function SettingsModal({ onClose }) {
     try {
       setSaving(true);
       await saveSettings();
+      const editingId = useInvoiceStore.getState().editingInvoiceId;
+      if (!editingId) {
+        const settings = useSettingsStore.getState();
+        const country = useInvoiceStore.getState().invoice.country;
+        const cs = settings.byCountry[country] || {};
+        const inv = useInvoiceStore.getState();
+        inv.updateInvoice("companyPhone", cs.phoneNo || "");
+        inv.updateInvoice("companyWebsite", cs.website || "");
+        inv.updateInvoice("companyLocation", cs.location || "");
+        inv.updateInvoice("signatureName", cs.signatureName || "");
+        inv.updateInvoice("signatureTitle", cs.signatureTitle || "");
+        inv.updateInvoice("thankYouText", cs.thankYouText || "");
+      }
       toast.success("Settings saved successfully!");
       onClose();
     } catch {
@@ -65,19 +95,32 @@ export default function SettingsModal({ onClose }) {
             <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
               Contact Info
             </h3>
+            <div className="space-y-2 ">
+              <Label>Country</Label>
+              <Select value={invoiceCountry} onValueChange={handleCountryChange}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Australia">Australia</SelectItem>
+                  <SelectItem value="Pakistan">Pakistan</SelectItem>
+                  <SelectItem value="USA">USA</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="space-y-2">
               <Label>Phone Number</Label>
               <Input
                 value={phoneNo}
-                onChange={(e) => updateSettings("phoneNo", e.target.value)}
-                placeholder="+61 421 702 706"
+                onChange={(e) => updateSettings(invoiceCountry, "phoneNo", e.target.value)}
+                placeholder={ph.phone}
               />
             </div>
             <div className="space-y-2">
               <Label>Website</Label>
               <Input
                 value={website}
-                onChange={(e) => updateSettings("website", e.target.value)}
+                onChange={(e) => updateSettings(invoiceCountry, "website", e.target.value)}
                 placeholder="www.devvibe.com"
               />
             </div>
@@ -85,8 +128,8 @@ export default function SettingsModal({ onClose }) {
               <Label>Location</Label>
               <Input
                 value={location}
-                onChange={(e) => updateSettings("location", e.target.value)}
-                placeholder="10 Leo Ave, Melbourne, Australia, 3029"
+                onChange={(e) => updateSettings(invoiceCountry, "location", e.target.value)}
+                placeholder={ph.location}
               />
             </div>
           </div>
@@ -99,7 +142,7 @@ export default function SettingsModal({ onClose }) {
               <Label>Name</Label>
               <Input
                 value={signatureName}
-                onChange={(e) => updateSettings("signatureName", e.target.value)}
+                onChange={(e) => updateSettings(invoiceCountry, "signatureName", e.target.value)}
                 placeholder="Ajmal Jillani"
               />
             </div>
@@ -107,7 +150,7 @@ export default function SettingsModal({ onClose }) {
               <Label>Title</Label>
               <Input
                 value={signatureTitle}
-                onChange={(e) => updateSettings("signatureTitle", e.target.value)}
+                onChange={(e) => updateSettings(invoiceCountry, "signatureTitle", e.target.value)}
                 placeholder="COO - DevVibe"
               />
             </div>
@@ -117,7 +160,7 @@ export default function SettingsModal({ onClose }) {
             <Label>Thank You Text</Label>
             <Input
               value={thankYouText}
-              onChange={(e) => updateSettings("thankYouText", e.target.value)}
+              onChange={(e) => updateSettings(invoiceCountry, "thankYouText", e.target.value)}
               placeholder="THANK YOU FOR YOUR PAYMENT"
             />
           </div>

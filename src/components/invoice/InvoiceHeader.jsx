@@ -18,6 +18,7 @@ import { loadNextDocumentNumber } from "../../utils/InvoiceCounter"
 import { formatDocumentId } from "@/utils/invoiceUtils";
 import toast from "react-hot-toast";
 
+
 export default function InvoiceHeader() {
   const invoice = useInvoiceStore((state) => state.invoice);
   const openInvoiceHistory = useInvoiceStore((state) => state.openInvoiceHistory);
@@ -170,7 +171,9 @@ export default function InvoiceHeader() {
           <Label className="mb-1 block text-xs sm:mb-2 sm:text-sm">Country</Label>
           <Select
             value={invoice.country}
-            onValueChange={(value) => updateInvoice("country", value)}
+            onValueChange={(value) => {
+              updateInvoice("country", value);
+            }}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select Country" />

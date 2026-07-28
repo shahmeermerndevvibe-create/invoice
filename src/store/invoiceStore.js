@@ -3,12 +3,23 @@ import { persist } from "zustand/middleware";
 
 import { invoiceModel } from "@/models/invoiceModel";
 import { invoiceItemModel } from "@/models/invoiceItemModel";
+import { useSettingsStore } from "@/store/settingsStore";
+
+const settings = useSettingsStore.getState();
+const defaultCountry = "Australia";
+const defaultCountrySettings = settings.byCountry[defaultCountry] || {};
 
 export const useInvoiceStore = create(
   persist(
     (set) => ({
       invoice: {
         ...invoiceModel,
+        companyPhone: defaultCountrySettings.phoneNo || "",
+        companyWebsite: defaultCountrySettings.website || "",
+        companyLocation: defaultCountrySettings.location || "",
+        signatureName: defaultCountrySettings.signatureName || "",
+        signatureTitle: defaultCountrySettings.signatureTitle || "",
+        thankYouText: defaultCountrySettings.thankYouText || "",
       },
 
       items: [
@@ -90,20 +101,31 @@ export const useInvoiceStore = create(
       },
 
       resetInvoice() {
-        set((state) => ({
-          invoice: {
-            ...invoiceModel,
-            documentCounter: state.invoice.documentCounter,
-            documentNumber: state.invoice.documentNumber,
-            documentType: state.invoice.documentType,
-          },
-          items: [
-            {
-              ...invoiceItemModel,
+        const current = useSettingsStore.getState();
+        set((state) => {
+          const country = state.invoice.country || "Australia";
+          const cs = current.byCountry[country] || {};
+          return {
+            invoice: {
+              ...invoiceModel,
+              companyPhone: cs.phoneNo || "",
+              companyWebsite: cs.website || "",
+              companyLocation: cs.location || "",
+              signatureName: cs.signatureName || "",
+              signatureTitle: cs.signatureTitle || "",
+              thankYouText: cs.thankYouText || "",
+              documentCounter: state.invoice.documentCounter,
+              documentNumber: state.invoice.documentNumber,
+              documentType: state.invoice.documentType,
             },
-          ],
-          editingInvoiceId: null,
-        }));
+            items: [
+              {
+                ...invoiceItemModel,
+              },
+            ],
+            editingInvoiceId: null,
+          };
+        });
       },
 
       // Item actions
@@ -172,6 +194,12 @@ export const useInvoiceStore = create(
           invoice: {
             ...current.invoice,
             ...old,
+            companyPhone: current.invoice.companyPhone,
+            companyWebsite: current.invoice.companyWebsite,
+            companyLocation: current.invoice.companyLocation,
+            signatureName: current.invoice.signatureName,
+            signatureTitle: current.invoice.signatureTitle,
+            thankYouText: current.invoice.thankYouText,
             documentCounter: old.documentCounter ?? old.invoiceCounter ?? current.invoice.documentCounter,
             documentNumber: old.documentNumber ?? (String(old.invoiceNumber ?? "") || current.invoice.documentNumber),
           },
