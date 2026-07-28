@@ -11,7 +11,7 @@ export default function BillingFooter({ hideContact }) {
 
   return (
     <footer className="print-footer relative">
-      <div className="px-8 pb-16 pt-4 md:px-14 relative bottom-15 z-10">
+      <div className="px-8 pb-16 pt-4 md:px-14 relative z-10" style={{ bottom: "60px" }}>
         {!hideContact && (
         <div className="flex items-center justify-between text-xs mb-8">
           {/* Contact Items */}

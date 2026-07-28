@@ -133,9 +133,7 @@ function renderMeasureNodes(invoice, items, allItems, subtotal, total, balanceDu
         <BillingInfo invoice={invoice} />
       </div>
       <div data-meas-items>
-        <section className="px-8 md:px-14">
-          <BillingTable items={items} invoice={invoice} />
-        </section>
+        <BillingTable items={items} invoice={invoice} />
       </div>
       <div data-meas-summary>
         <BillingSummary invoice={invoice} items={allItems || items} subtotal={subtotal} total={total} balanceDue={balanceDue} taxAmount={taxAmount} discountAmount={discountAmount} notesPosition="bottom" />
@@ -178,20 +176,12 @@ const InvoicePrint = ({
     const m = measureHeights(root);
     const contentHeight = PAGE_H - FOOTER_H - SAFE_PX;
 
-    console.log("=== MEASUREMENT DEBUG ===");
-    console.log("contentHeight:", contentHeight);
-    console.log("header:", m.headerHeight, "billingInfo:", m.billingInfoHeight);
-    console.log("rowHeights:", m.rowHeights, "tableOverhead:", m.tableOverheadH);
-    console.log("summary:", m.summaryHeight, "notes:", m.notesHeight);
-
     const chunks = buildPagesFromMeasurements(
       items, contentHeight,
       m.headerHeight, m.billingInfoHeight,
       m.rowHeights, m.tableOverheadH,
       m.summaryHeight, m.notesHeight,
     );
-
-    console.log("chunks:", chunks.map(c => c.length + " items"));
     setPageChunks(chunks);
   });
 

@@ -57,6 +57,17 @@ export const calculateItemRow = (item = {}) => {
   };
 };
 
+export function formatDocumentId(invoice) {
+  if (!invoice) return "";
+  const year = invoice.documentYear
+    || (invoice.createdAt
+      ? new Date(invoice.createdAt).getFullYear().toString().slice(-2)
+      : new Date().getFullYear().toString().slice(-2));
+  const number = invoice.documentNumber || "—";
+  const base = `DV-${year}-${number}`;
+  return invoice.documentSuffix ? `${base}-${invoice.documentSuffix}` : base;
+}
+
 export const calculateInvoiceTotals = (
   items = [],
   invoice = {}

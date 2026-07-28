@@ -2,6 +2,8 @@ export const invoiceModel = {
   documentNumber: "1001",
   documentCounter: 1001,
   documentType: "Invoice",
+  documentYear: new Date().getFullYear().toString().slice(-2),
+  documentSuffix: "",
 
   customer: "",
   customerEmail: "",
@@ -31,4 +33,5 @@ export const invoiceModel = {
   payment: "",
   contractType: "Fixed",
   milestoneNumber: 1,
+  isDraft: false,
 };

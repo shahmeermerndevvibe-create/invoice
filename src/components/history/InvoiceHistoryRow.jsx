@@ -1,9 +1,9 @@
 import { memo, useState } from "react";
-import { Printer, Eye, Pencil, Loader2 } from "lucide-react";
-import { formatCurrency } from "@/utils/invoiceUtils";
+import { Printer, Eye, Pencil, Copy, Loader2 } from "lucide-react";
+import { formatCurrency, formatDocumentId } from "@/utils/invoiceUtils";
 import { formatInvoiceDate } from "@/utils/historyUtils";
 
-function InvoiceHistoryRow({ invoice, onPrint, onReview, onEdit }) {
+function InvoiceHistoryRow({ invoice, onPrint, onReview, onEdit, onCreateDraft }) {
   const [action, setAction] = useState(null);
   console.log(invoice);
 
@@ -18,6 +18,16 @@ function InvoiceHistoryRow({ invoice, onPrint, onReview, onEdit }) {
     e.stopPropagation();
     setAction({type: "edit", id: invoice.id })
     onEdit(invoice.id);
+  };
+
+  const handleCreateDraft = async (e) => {
+    e.stopPropagation();
+    setAction({ type: "draft", id: invoice.id });
+    try {
+      await onCreateDraft(invoice.id);
+    } finally {
+      setAction(null);
+    }
   };
 
   const handleReview = async (e) => {
@@ -44,8 +54,7 @@ function InvoiceHistoryRow({ invoice, onPrint, onReview, onEdit }) {
           >
             {invoice.documentType === "Quotation" ? "Quotation" : "Invoice"}
             <span className="ml-1 font-bold">
-              {invoice.documentType === "Quotation" ? "QT-" : "INV-"}
-              {invoice.documentNumber || "-"}
+              {formatDocumentId(invoice)}
             </span>
           </span>
 
@@ -62,6 +71,12 @@ function InvoiceHistoryRow({ invoice, onPrint, onReview, onEdit }) {
               📄 {invoice.contractType}
             </span>
           )}
+
+          {invoice.isDraft && (
+            <span className="inline-flex items-center rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-700">
+              Draft
+            </span>
+          )}
         </div>
         <p className="mt-0.5 truncate text-sm font-medium text-gray-800 italic">
           {invoice.customer || "—"}
@@ -71,45 +86,57 @@ function InvoiceHistoryRow({ invoice, onPrint, onReview, onEdit }) {
           <span>Created: {formatInvoiceDate(invoice.createdAt)}</span>
         </div>
       </div>
-      <div className="flex flex-shrink-0 items-center gap-1">
-        <span className="mr-1 text-sm font-semibold text-gray-900">
+      <div className="flex flex-shrink-0 items-center gap-0.5 sm:gap-1">
+        <span className="mr-0.5 text-xs font-semibold text-gray-900 sm:mr-1 sm:text-sm">
           {invoice.currency?.symbol || ""} {formatCurrency(invoice.total)}
         </span>
+        <button
+          onClick={handleCreateDraft}
+          disabled={isLoading("draft")}
+          title="Create Draft"
+          className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition hover:bg-orange-50 hover:text-orange-600 sm:h-8 sm:w-8"
+        >
+          {isLoading("draft") ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin sm:h-4 sm:w-4" />
+          ) : (
+            <Copy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          )}
+        </button>
         <button
           onClick={handleEdit}
           disabled={isLoading("edit")}
           title="Edit"
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-amber-50 hover:text-amber-600"
+          className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition hover:bg-amber-50 hover:text-amber-600 sm:h-8 sm:w-8"
         >
          {
           isLoading("edit") ? 
-          (<Loader2 className="h-4 w-4 animate-spin" />) 
+          (<Loader2 className="h-3.5 w-3.5 animate-spin sm:h-4 sm:w-4" />) 
           : 
-          ( <Pencil className="h-4 w-4" />)
+          ( <Pencil className="h-3.5 w-3.5 sm:h-4 sm:w-4" />)
          }
         </button>
         <button
           onClick={handleReview}
           disabled={isLoading("review")}
           title="Review"
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-blue-50 hover:text-blue-600 disabled:opacity-50"
+          className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition hover:bg-blue-50 hover:text-blue-600 disabled:opacity-50 sm:h-8 sm:w-8"
         >
           {isLoading("review") ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-3.5 w-3.5 animate-spin sm:h-4 sm:w-4" />
           ) : (
-            <Eye className="h-4 w-4" />
+            <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           )}
         </button>
         <button
           onClick={handlePrint}
           disabled={isLoading("print")}
           title="Print"
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-blue-50 hover:text-blue-600 disabled:opacity-50"
+          className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition hover:bg-blue-50 hover:text-blue-600 disabled:opacity-50 sm:h-8 sm:w-8"
         >
           {isLoading("print") ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-3.5 w-3.5 animate-spin sm:h-4 sm:w-4" />
           ) : (
-            <Printer className="h-4 w-4" />
+            <Printer className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           )}
         </button>
       </div>

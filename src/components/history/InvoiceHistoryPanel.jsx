@@ -3,6 +3,7 @@ import { useReactToPrint } from "react-to-print";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useInvoiceStore } from "@/store/invoiceStore";
 import { fetchDocumentHistory, fetchDocumentForPrint } from "@/actions/invoiceActions";
+import { loadNextDocumentNumber } from "@/utils/InvoiceCounter";
 import { getDateRange } from "@/utils/historyUtils";
 import InvoicePrint from "@/components/invoice-print/InvoicePrint";
 import InvoiceHistoryFilters from "./InvoiceHistoryFilters";
@@ -16,6 +17,7 @@ export default function InvoiceHistoryPanel() {
   const setInvoice = useInvoiceStore((s) => s.setInvoice);
   const setItems = useInvoiceStore((s) => s.setItems);
   const setEditingInvoiceId = useInvoiceStore((s) => s.setEditingInvoiceId);
+  const updateInvoice = useInvoiceStore((s) => s.updateInvoice);
 
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -171,6 +173,39 @@ export default function InvoiceHistoryPanel() {
     }
   }, [setInvoice, setItems, setEditingInvoiceId, close]);
 
+  const handleCreateDraft = useCallback(async (documentId) => {
+    try {
+      const result = await fetchDocumentForPrint(documentId);
+      if (!result.success) throw new Error("Failed to fetch document data");
+
+      const cleanInvoice = { ...result.invoice, isDraft: true };
+      delete cleanInvoice.id;
+      delete cleanInvoice.createdAt;
+      delete cleanInvoice.updatedAt;
+      cleanInvoice.documentYear = new Date().getFullYear().toString().slice(-2);
+      setInvoice(cleanInvoice);
+
+      const cleanItems = result.items.map((item) => {
+        const copy = { ...item };
+        delete copy.id;
+        delete copy.createdAt;
+        delete copy.updatedAt;
+        delete copy.documentId;
+        return copy;
+      });
+      setItems(cleanItems);
+
+      const nextDoc = await loadNextDocumentNumber(cleanInvoice.documentType);
+      updateInvoice("documentCounter", nextDoc.documentCounter);
+      updateInvoice("documentNumber", nextDoc.documentNumber);
+
+      close();
+    } catch (err) {
+      console.error("Create draft error:", err);
+      toast.error("Failed to create draft");
+    }
+  }, [setInvoice, setItems, updateInvoice, close]);
+
   useEffect(() => {
     if (!printData) return;
     const timer = setTimeout(() => { handlePrintAction(); setPrintData(null); }, 50);
@@ -182,15 +217,15 @@ export default function InvoiceHistoryPanel() {
   return (
     <>
       <div
-        className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 pt-10 backdrop-blur-sm sm:pt-16"
+        className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 pt-0 backdrop-blur-sm sm:pt-16"
         onClick={close}
       >
         <div
           onClick={(e) => e.stopPropagation()}
-          className="mx-2 flex h-[85vh] w-full max-w-4xl flex-col rounded-xl bg-white shadow-2xl sm:mx-4"
+          className="mx-0 flex h-full w-full flex-col rounded-none bg-white shadow-2xl sm:mx-4 sm:h-[85vh] sm:max-w-4xl sm:rounded-xl"
         >
-          <div className="flex items-center justify-between border-b px-4 py-4 sm:px-6">
-            <h2 className="text-lg font-semibold text-gray-900">Document History</h2>
+          <div className="flex items-center justify-between border-b px-3 py-3 sm:px-6">
+            <h2 className="text-base font-semibold text-gray-900 sm:text-lg">Document History</h2>
             <button onClick={close} className="rounded-lg p-1.5 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700">
               <X className="h-5 w-5" />
             </button>
@@ -208,7 +243,7 @@ export default function InvoiceHistoryPanel() {
             onTypeChange={handleTypeChange}
           />
 
-          <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
+          <div className="flex-1 overflow-y-auto px-3 py-3 sm:px-6">
             <InvoiceHistoryList
               invoices={invoices}
               loading={loading}
@@ -216,27 +251,28 @@ export default function InvoiceHistoryPanel() {
               onPrint={handlePrintClick}
               onReview={handleReviewClick}
               onEdit={handleEditClick}
+              onCreateDraft={handleCreateDraft}
             />
           </div>
 
-          <div className="flex items-center justify-between border-t px-4 py-3 sm:px-6">
-            <span className="text-sm text-gray-500">
+          <div className="flex items-center justify-between border-t px-3 py-3 sm:px-6">
+            <span className="text-xs text-gray-500 sm:text-sm">
               {invoices.length > 0 && `${invoices.length} document${invoices.length > 1 ? "s" : ""}`}
             </span>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
               <button
                 onClick={() => { page.current--; fetchData(); }}
                 disabled={!canGoPrev || loading}
-                className="flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium text-gray-600 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 sm:px-3 sm:text-sm"
               >
-                <ChevronLeft className="h-4 w-4" /> Previous
+                <ChevronLeft className="h-4 w-4" /> <span className="hidden sm:inline">Previous</span>
               </button>
               <button
                 onClick={() => { page.current++; fetchData(); }}
                 disabled={!hasMore || loading}
-                className="flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium text-gray-600 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 sm:px-3 sm:text-sm"
               >
-                Next <ChevronRight className="h-4 w-4" />
+                <span className="hidden sm:inline">Next</span> <ChevronRight className="h-4 w-4" />
               </button>
             </div>
           </div>

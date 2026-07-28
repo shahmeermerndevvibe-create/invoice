@@ -8,6 +8,7 @@ export default function InvoiceHistoryList({
   onPrint,
   onReview,
   onEdit,
+  onCreateDraft,
 }) {
   if (loading) {
     return (
@@ -44,6 +45,7 @@ export default function InvoiceHistoryList({
           onPrint={onPrint}
           onReview={onReview}
           onEdit={onEdit}
+          onCreateDraft={onCreateDraft}
         />
       ))}
     </div>

@@ -10,7 +10,7 @@ export default function BillingInfo({ invoice = {} }) {
           </h4>
 
           <h2 className="mb-2 text-4xl font-bold text-slate-900">
-            {invoice.customer}.
+            {invoice.customer || ""}
           </h2>
 
           <p className="mb-2 text-black font-bold">

@@ -26,7 +26,7 @@ export default function InvoiceHistoryFilters({
   onTypeChange,
 }) {
   return (
-    <div className="flex flex-col gap-3 border-b px-4 py-4 sm:flex-row sm:items-center sm:px-6">
+    <div className="flex flex-col gap-2 border-b px-3 py-3 sm:flex-row sm:items-center sm:gap-3 sm:px-6">
       <div className="relative flex-1">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
         <input
@@ -41,7 +41,7 @@ export default function InvoiceHistoryFilters({
         <select
           value={documentType}
           onChange={onTypeChange}
-          className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="rounded-lg border border-gray-300 bg-white px-2 py-2 text-xs text-gray-700 transition focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:px-3 sm:text-sm"
         >
           {TYPE_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -50,26 +50,26 @@ export default function InvoiceHistoryFilters({
         <select
           value={preset}
           onChange={onPresetChange}
-          className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="rounded-lg border border-gray-300 bg-white px-2 py-2 text-xs text-gray-700 transition focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:px-3 sm:text-sm"
         >
           {DATE_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
         {preset === "custom" && (
-          <div className="flex items-center gap-2">
+          <div className="flex w-full items-center gap-1 sm:w-auto sm:gap-2">
             <input
               type="date"
               value={customFrom}
               onChange={(e) => onCustomDateChange("from", e.target.value)}
-              className="rounded border border-gray-300 px-2 py-1.5 text-xs"
+              className="flex-1 rounded border border-gray-300 px-2 py-1.5 text-xs sm:flex-none"
             />
             <span className="text-xs text-gray-500">to</span>
             <input
               type="date"
               value={customTo}
               onChange={(e) => onCustomDateChange("to", e.target.value)}
-              className="rounded border border-gray-300 px-2 py-1.5 text-xs"
+              className="flex-1 rounded border border-gray-300 px-2 py-1.5 text-xs sm:flex-none"
             />
           </div>
         )}

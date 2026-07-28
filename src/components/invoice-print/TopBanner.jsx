@@ -1,11 +1,15 @@
+import { formatDocumentId } from "@/utils/invoiceUtils";
+
 export default function TopBanner({invoice}) {
   const title = (invoice?.documentType || "Invoice").toUpperCase();
-  const year = new Date().getFullYear().toString().slice(-2);
 
   return (
     <div
-      className="absolute top-13 -right-1 w-[48%] h-39"
+      className="absolute w-[48%]"
       style={{
+        top: "52px",
+        right: "-4px",
+        height: "156px",
         backgroundImage: "url('/HeaderImage.svg')",
         backgroundSize: "100% 100%",
         backgroundRepeat: "no-repeat",
@@ -16,7 +20,7 @@ export default function TopBanner({invoice}) {
           {title}
         </h1>
         <p className="mt-2 text-sm tracking-widest pr-2.5">
-          # DV-{year}-{invoice?.documentNumber}
+          # {formatDocumentId(invoice)}
         </p>
       </div>
     </div>

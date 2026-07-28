@@ -52,19 +52,20 @@ const BillingTable = ({ items = [], invoice = {} }) => {
 
           <TableBody>
             {items.map((item, index) => {
-              const { discountAmount, netTotal } = calculateItemRow(item);
+              const { netTotal } = calculateItemRow(item);
+              const isCompletedMilestone = invoice.contractType === "Milestones" && item.status === "Completed";
 
               return (
                 <TableRow
                   key={item.id || index}
-                  className="hover:bg-transparent"
+                  className={`hover:bg-transparent ${isCompletedMilestone ? "opacity-60" : ""}`}
                 >
                   <TableCell className="py-3 align-top">
-                    <p className="text-lg font-bold text-[#0A4A95] break-words">
+                    <p className={`text-lg font-bold break-words ${isCompletedMilestone ? "text-slate-400" : "text-[#0A4A95]"}`}>
                       {item.product}
                     </p>
                     {item.description && (
-                      <p className="mt-1 whitespace-pre-wrap break-normal leading-6 text-black text-sm">
+                      <p className="mt-1 whitespace-pre-wrap break-words leading-6 text-black text-sm">
                         {item.description}
                       </p>
                     )}
@@ -80,14 +81,23 @@ const BillingTable = ({ items = [], invoice = {} }) => {
 
                   {invoice.contractType === "Milestones" && (
                     <TableCell className="align-top py-4 text-center">
-                      <span
-                        className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${
-                          statusColors[item.status] ||
-                          "bg-slate-100 text-slate-700 border-slate-200"
-                        }`}
-                      >
-                        {item.status || "Pending"}
-                      </span>
+                      {isCompletedMilestone ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700 border border-green-200">
+                          <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                          Completed
+                        </span>
+                      ) : (
+                        <span
+                          className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${
+                            statusColors[item.status] ||
+                            "bg-slate-100 text-slate-700 border-slate-200"
+                          }`}
+                        >
+                          {item.status || "Pending"}
+                        </span>
+                      )}
                     </TableCell>
                   )}
 

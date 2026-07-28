@@ -183,15 +183,9 @@ export default function BillingSummary({
               <div className="flex justify-between text-base font-semibold">
                 <span className="font-bold">Tax:</span>
                 <span className="flex items-center gap-1">
-                  {invoice.taxType === "fixed" && (
-                    <span className="text-sm font-normal text-black">
-                      {invoice.currency.symbol}
-                    </span>
-                  )}
-                  {formatCurrency(invoice.tax)}
-                  {invoice.taxType === "percent" && (
-                    <span className="text-sm font-normal text-black">%</span>
-                  )}
+                  {invoice.taxType === "percent"
+                    ? `${invoice.tax}%`
+                    : `${invoice.currency?.symbol || ""} ${formatCurrency(invoice.tax)}`}
                 </span>
               </div>
 
