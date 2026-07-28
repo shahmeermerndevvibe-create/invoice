@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useInvoiceStore } from "@/store/invoiceStore";
+import { useSettingsStore } from "@/store/settingsStore";
 import { checkDocumentNumberExists } from "@/actions/invoiceActions";
 import { loadNextDocumentNumber } from "../../utils/InvoiceCounter"
 import { formatDocumentId } from "@/utils/invoiceUtils";
@@ -173,6 +174,14 @@ export default function InvoiceHeader() {
             value={invoice.country}
             onValueChange={(value) => {
               updateInvoice("country", value);
+              const s = useSettingsStore.getState();
+              const cs = s.byCountry[value] || {};
+              updateInvoice("companyPhone", cs.phoneNo || "");
+              updateInvoice("companyWebsite", cs.website || "");
+              updateInvoice("companyLocation", cs.location || "");
+              updateInvoice("signatureName", cs.signatureName || "");
+              updateInvoice("signatureTitle", cs.signatureTitle || "");
+              updateInvoice("thankYouText", cs.thankYouText || "");
             }}
           >
             <SelectTrigger className="w-full">
