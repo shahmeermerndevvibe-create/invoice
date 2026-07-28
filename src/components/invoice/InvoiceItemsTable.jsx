@@ -18,9 +18,9 @@ import {
 import { ChevronDown, Circle } from "lucide-react";
 
 const statuses = {
-  Pending: { color: "text-amber-500", bg: "bg-amber-50", border: "border-amber-200" },
-  Current: { color: "text-blue-500", bg: "bg-blue-50", border: "border-blue-200" },
-  Completed: { color: "text-emerald-500", bg: "bg-emerald-50", border: "border-emerald-200" },
+  Pending: { color: "text-amber-600", bg: "bg-amber-100", border: "border-amber-300" },
+  Current: { color: "text-blue-600", bg: "bg-blue-100", border: "border-blue-300" },
+  Completed: { color: "text-green-700", bg: "bg-green-100", border: "border-green-300" },
 };
 
 function MobileItemCard({ index, item, invoice }) {

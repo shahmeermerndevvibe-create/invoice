@@ -58,10 +58,10 @@ const BillingTable = ({ items = [], invoice = {} }) => {
               return (
                 <TableRow
                   key={item.id || index}
-                  className={`hover:bg-transparent ${isCompletedMilestone ? "opacity-60" : ""}`}
+                  className={`hover:bg-transparent`}
                 >
                   <TableCell className="py-3 align-top">
-                    <p className={`text-lg font-bold break-words ${isCompletedMilestone ? "text-slate-400" : "text-[#0A4A95]"}`}>
+                    <p className="text-lg font-bold break-words text-[#0A4A95]">
                       {item.product}
                     </p>
                     {item.description && (
