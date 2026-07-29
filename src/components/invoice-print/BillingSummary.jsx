@@ -92,9 +92,6 @@ export default function BillingSummary({
         >
           {invoice.contractType === "Milestones" ? (
             <div className="ml-auto max-w-[280px] space-y-0.5 text-sm">
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
-                Contract Summary
-              </p>
 
               <div className="flex justify-between">
                 <span>Total Contract Value</span>
