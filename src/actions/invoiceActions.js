@@ -1,6 +1,6 @@
 import { invoiceService, documentItemService } from "@/services/InvoiceService";
 import { useInvoiceStore } from "@/store/invoiceStore";
-import { calculateInvoiceTotals } from "@/utils/invoiceUtils";
+import { calculateInvoiceTotals, calculateItemRow } from "@/utils/invoiceUtils";
 
 const stripItemMeta = ({ id, createdAt, updatedAt, documentId, ...rest }) => rest;
 
@@ -25,10 +25,14 @@ export const saveDocument = async (document, items) => {
     ...totals,
   };
 
-  const itemData = items.map((item) => ({
-    ...item,
-    amount: (Number(item.qty) || 0) * (Number(item.rate) || 0),
-  }));
+  const itemData = items.map((item) => {
+    const { netTotal, discountAmount } = calculateItemRow(item);
+    return {
+      ...item,
+      amount: netTotal,
+      discountAmount,
+    };
+  });
 
   const editingInvoiceId = useInvoiceStore.getState().editingInvoiceId;
 
@@ -43,7 +47,6 @@ export const saveDocument = async (document, items) => {
     const completedItemIds = new Set(completedItems.map((item) => item.id));
 
     const itemsToDelete = existingItems.filter((item) => !completedItemIds.has(item.id));
-    await Promise.all(itemsToDelete.map((item) => documentItemService.deleteItem(item.id)));
 
     const incomingEditableItems = itemData.filter(
       (item) => !item.id || !completedItemIds.has(item.id),
@@ -51,8 +54,9 @@ export const saveDocument = async (document, items) => {
 
     const preservedCompletedData = completedItems.map(stripItemMeta);
 
-    await documentItemService.createItems(
+    await documentItemService.replaceItems(
       editingInvoiceId,
+      itemsToDelete,
       [...preservedCompletedData, ...incomingEditableItems.map(stripItemMeta)],
     );
 
@@ -134,10 +138,9 @@ export const fetchDocumentForPrint = async (documentId) => {
     if (!data) return { success: false };
 
     const { invoice, items } = data;
-    const dedupedItems = deduplicateItems(items);
-    const totals = calculateInvoiceTotals(dedupedItems, invoice);
+    const totals = calculateInvoiceTotals(items, invoice);
 
-    return { success: true, invoice, items: dedupedItems, totals };
+    return { success: true, invoice, items, totals };
   } catch (error) {
     console.error("Failed to fetch document for print:", error);
     return { success: false };

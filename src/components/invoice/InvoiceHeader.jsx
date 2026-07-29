@@ -22,6 +22,7 @@ import toast from "react-hot-toast";
 
 export default function InvoiceHeader() {
   const invoice = useInvoiceStore((state) => state.invoice);
+  const editingInvoiceId = useInvoiceStore((state) => state.editingInvoiceId);
   const openInvoiceHistory = useInvoiceStore((state) => state.openInvoiceHistory);
   const updateInvoice = useInvoiceStore((state) => state.updateInvoice);
 
@@ -174,6 +175,7 @@ export default function InvoiceHeader() {
             value={invoice.country}
             onValueChange={(value) => {
               updateInvoice("country", value);
+              if (editingInvoiceId) return;
               const s = useSettingsStore.getState();
               const cs = s.byCountry[value] || {};
               updateInvoice("companyPhone", cs.phoneNo || "");

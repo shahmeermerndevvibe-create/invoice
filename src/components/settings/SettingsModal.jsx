@@ -49,11 +49,11 @@ export default function SettingsModal({ onClose }) {
     try {
       setSaving(true);
       await saveSettings();
-      const editingId = useInvoiceStore.getState().editingInvoiceId;
-      if (!editingId) {
-        const settings = useSettingsStore.getState();
+      const editingInvoiceId = useInvoiceStore.getState().editingInvoiceId;
+      if (!editingInvoiceId) {
+        const s = useSettingsStore.getState();
         const country = useInvoiceStore.getState().invoice.country;
-        const cs = settings.byCountry[country] || {};
+        const cs = s.byCountry[country] || {};
         const inv = useInvoiceStore.getState();
         inv.updateInvoice("companyPhone", cs.phoneNo || "");
         inv.updateInvoice("companyWebsite", cs.website || "");

@@ -19,10 +19,9 @@ import { useInvoiceTotals } from "@/hooks/useInvoiceTotals";
 import { formatCurrency, calculateItemRow } from "@/utils/invoiceUtils";
 import { saveDocument } from "@/actions/invoiceActions";
 import { toast } from "react-hot-toast";
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { Loader2 } from "lucide-react";
 import { validateInvoice } from "@/vaidations/invoiceValidation";
-import { loadNextDocumentNumber } from "../../utils/InvoiceCounter";
 
 export default function InvoiceSummary({ onPrint }) {
   const invoice = useInvoiceStore((state) => state.invoice);
@@ -32,11 +31,10 @@ export default function InvoiceSummary({ onPrint }) {
   const resetInvoice = useInvoiceStore((state) => state.resetInvoice);
   const editingInvoiceId = useInvoiceStore((state) => state.editingInvoiceId);
   const setErrors = useInvoiceStore((state) => state.setErrors);
+  const processing = useInvoiceStore((state) => state.processing);
+  const setProcessing = useInvoiceStore((state) => state.setProcessing);
 
-  const [loading, setLoading] = useState(false);
-  // const [showDepositInput, setShowDepositInput] = useState(false);
-
-  const { subtotal, discountAmount, taxAmount, total, balanceDue } =
+  const { subtotal, itemDiscountsTotal, discountAmount, taxAmount, total, balanceDue } =
     useInvoiceTotals();
 
   const {
@@ -84,8 +82,6 @@ export default function InvoiceSummary({ onPrint }) {
 
   const handlePrintInvoice = async () => {
     try {
-      setLoading(true);
-
       const invoiceToSave = {
         ...invoice,
         subtotal,
@@ -97,9 +93,25 @@ export default function InvoiceSummary({ onPrint }) {
 
       if (!isValid) {
         setErrors(errors);
-        toast.error("Please fix the errors in the invoice.");
+        const messages = [];
+        for (const [key, val] of Object.entries(errors)) {
+          if (key === "itemErrors") {
+            for (const item of val) messages.push(...Object.values(item));
+          } else {
+            messages.push(val);
+          }
+        }
+        toast.error(
+          <div className="text-left">
+            {messages.map((msg, i) => (
+              <p key={i} className={i > 0 ? "mt-1" : ""}>{msg}</p>
+            ))}
+          </div>
+        );
         return;
       }
+
+      setProcessing({ title: "Saving Invoice...", message: "Please wait while we save your invoice." });
 
       const result = await saveDocument(invoiceToSave, items);
 
@@ -112,18 +124,18 @@ export default function InvoiceSummary({ onPrint }) {
 
       await onPrint();
 
+      const nextCounter = invoiceToSave.documentCounter + 1;
+
       resetInvoice();
       setErrors({});
 
-      const nextDoc = await loadNextDocumentNumber(invoice.documentType);
-
-      updateInvoice("documentCounter", nextDoc.documentCounter);
-      updateInvoice("documentNumber", nextDoc.documentNumber);
+      updateInvoice("documentCounter", nextCounter);
+      updateInvoice("documentNumber", String(nextCounter));
     } catch (error) {
       console.error(error);
       toast.error("An error occurred while saving the invoice.");
     } finally {
-      setLoading(false);
+      setProcessing(null);
     }
   };
 
@@ -148,9 +160,22 @@ export default function InvoiceSummary({ onPrint }) {
               </span>
             </div>
 
-            {Number(invoice.discount) > 0 && (
-              <div className="flex justify-between text-black">
-                <span>Discount ({discountLabel})</span>
+            {Number(itemDiscountsTotal) > 0 && (
+              <div className="flex justify-between">
+                <span>Item Discounts</span>
+                <span className="tabular-nums">
+                  −
+                  <span className="text-xs mr-0.5">
+                    {invoice.currency.symbol}
+                  </span>
+                  {formatCurrency(itemDiscountsTotal)}
+                </span>
+              </div>
+            )}
+
+            {Number(discountAmount) > 0 && (
+              <div className="flex justify-between">
+                <span>Invoice Discount ({discountLabel})</span>
                 <span className="tabular-nums">
                   −
                   <span className="text-xs mr-0.5">
@@ -161,8 +186,8 @@ export default function InvoiceSummary({ onPrint }) {
               </div>
             )}
 
-            {Number(invoice.tax) > 0 && (
-              <div className="flex justify-between text-black">
+            {Number(taxAmount) > 0 && (
+              <div className="flex justify-between">
                 <span>Tax ({taxLabel})</span>
                 <span className="tabular-nums">
                   +
@@ -175,7 +200,7 @@ export default function InvoiceSummary({ onPrint }) {
             )}
 
             <div className="flex justify-between font-bold text-gray-900 pt-1.5 border-t border-dashed border-slate-300">
-              <span>Net Contract Total</span>
+              <span>Net Contract Value</span>
               <span className="tabular-nums">
                 <span className="text-xs text-slate-400 mr-0.5">
                   {invoice.currency.symbol}
@@ -184,18 +209,7 @@ export default function InvoiceSummary({ onPrint }) {
               </span>
             </div>
 
-            <div className="relative py-2">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-slate-300" />
-              </div>
-              <div className="relative flex justify-center">
-                <span className="bg-slate-50 px-2 text-[11px] font-medium uppercase tracking-wider text-slate-400">
-                  Current Invoice
-                </span>
-              </div>
-            </div>
-
-            <div className="flex justify-between font-bold text-gray-900 pt-1.5  border-slate-300">
+            <div className="flex justify-between font-bold text-gray-900 pt-1.5 border-slate-300">
               <span>Due This Invoice</span>
               <span className="tabular-nums">
                 <span className="text-xs text-slate-400 mr-0.5">
@@ -206,7 +220,7 @@ export default function InvoiceSummary({ onPrint }) {
             </div>
 
             <div className="flex justify-between text-xs text-slate-500">
-              <span>Pending (To Be Paid)</span>
+              <span>Remaining to be paid</span>
               <span className="tabular-nums">
                 <span className="text-xs mr-0.5">
                   {invoice.currency.symbol}
@@ -224,49 +238,38 @@ export default function InvoiceSummary({ onPrint }) {
               </span>
             </div>
 
-            {(Number(invoice.discount) > 0 || Number(invoice.tax) > 0) && (
-              <div className="space-y-3 rounded-lg border bg-slate-50 p-4">
-                {Number(invoice.discount) > 0 && (
-                  <>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium text-slate-700">
-                        Discount
-                      </span>
-                      <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-black">
-                        {discountLabel}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between border-b pb-3 text-sm text-slate-600">
-                      <span>After Discount</span>
-                      <span className="font-semibold text-slate-900">
-                        {invoice.currency.symbol}{" "}
-                        {formatCurrency(subtotal - discountAmount)}
-                      </span>
-                    </div>
-                  </>
-                )}
-                {Number(invoice.tax) > 0 && (
-                  <>
-                    <div className="flex items-center justify-between pt-1 text-sm">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-slate-700">Tax</span>
-                        <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-black">
-                          {taxLabel}
-                        </span>
-                      </div>
-                      <span className="font-semibold text-black">
-                        + {invoice.currency.symbol} {formatCurrency(taxAmount)}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm text-slate-600">
-                      <span>After Tax</span>
-                      <span className="font-semibold text-slate-900">
-                        {invoice.currency.symbol}{" "}
-                        {formatCurrency(subtotal - discountAmount + taxAmount)}
-                      </span>
-                    </div>
-                  </>
-                )}
+            {Number(itemDiscountsTotal) > 0 && (
+              <>
+                <div className="flex items-center justify-between text-sm text-slate-600">
+                  <span>Item Discounts</span>
+                  <span className="font-medium">
+                    − {invoice.currency.symbol} {formatCurrency(itemDiscountsTotal)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label>Subtotal After Items</Label>
+                  <span className="font-medium">
+                    {invoice.currency.symbol} {formatCurrency(subtotal - itemDiscountsTotal)}
+                  </span>
+                </div>
+              </>
+            )}
+
+            {Number(discountAmount) > 0 && (
+              <div className="flex items-center justify-between">
+                <Label>Invoice Discount ({discountLabel})</Label>
+                <span className="font-medium">
+                  − {invoice.currency.symbol} {formatCurrency(discountAmount)}
+                </span>
+              </div>
+            )}
+
+            {Number(taxAmount) > 0 && (
+              <div className="flex items-center justify-between">
+                <Label>Tax ({taxLabel})</Label>
+                <span className="font-medium">
+                  + {invoice.currency.symbol} {formatCurrency(taxAmount)}
+                </span>
               </div>
             )}
 
@@ -281,17 +284,6 @@ export default function InvoiceSummary({ onPrint }) {
           </>
         )}
 
-        {/* Discount */}
-        <div className="flex items-center justify-between text-sm">
-          <span className="font-medium text-slate-700">Discount</span>
-          <span className="font-semibold tabular-nums">
-            − {invoice.currency.symbol} {formatCurrency(discountAmount)}
-            <span className="ml-1 text-xs text-slate-500">
-              ({discountLabel})
-            </span>
-          </span>
-        </div>
-
         {/* Tax Input */}
         <div className="space-y-2">
           <Label>Tax</Label>
@@ -305,7 +297,7 @@ export default function InvoiceSummary({ onPrint }) {
                   ? 0
                   : invoice.taxType === "percent"
                     ? 100
-                    : subtotal
+                    : subtotal - itemDiscountsTotal
               }
               value={invoice.tax === 0 ? "" : invoice.tax}
               onChange={(e) => {
@@ -316,12 +308,13 @@ export default function InvoiceSummary({ onPrint }) {
                 }
                 let num = Number(value);
                 if (num < 0) num = 0;
+                const afterItemDiscounts = subtotal - itemDiscountsTotal;
                 if (subtotal === 0) {
                   num = 0;
                 } else if (invoice.taxType === "percent") {
                   num = Math.min(num, 100);
                 } else {
-                  num = Math.min(num, subtotal);
+                  num = Math.min(num, afterItemDiscounts);
                 }
                 updateInvoice("tax", num);
               }}
@@ -387,8 +380,8 @@ export default function InvoiceSummary({ onPrint }) {
             </span>
           </div>
         )} */}
-        <Button className="w-full h-12" size="lg" onClick={handlePrintInvoice}>
-          {loading ? (
+        <Button className="w-full h-12" size="lg" onClick={handlePrintInvoice} disabled={!!processing}>
+          {processing ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Saving...

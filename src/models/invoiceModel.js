@@ -21,8 +21,10 @@ export const invoiceModel = {
   businessNumber: "",
 
   subtotal: 0,
+  itemDiscountsTotal: 0,
   discountType: "percent",
   discount: "",
+  discountAmount: 0,
   taxType: "percent",
   tax: "",
   total: 0,

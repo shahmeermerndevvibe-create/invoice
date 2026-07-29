@@ -107,6 +107,38 @@ export default function InvoiceItemRow({ index, item, dragIndex, onDragStart, on
         </div>
       </td>
 
+      {/* Quantity */}
+      <td className={`${tdClass} min-w-[100px]`}>
+        <Input
+          type="number"
+          min={1}
+          max={9999999}
+          step={1}
+          placeholder="1"
+          value={item.qty}
+          onChange={(e) => {
+            const value = e.target.value;
+            handleChange("qty", value === "" ? 1 : Math.min(9999999, Number(value)));
+          }}
+          className={`h-9 rounded-md border bg-white text-right shadow-sm transition-colors
+            focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/20
+            ${itemErrors.qty ? "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20" : "border-gray-200 hover:border-gray-300"}`}
+        />
+        {itemErrors.qty && (
+          <p className="mt-1 text-xs text-red-500">{itemErrors.qty}</p>
+        )}
+      </td>
+
+      {/* Unit */}
+      <td className={`${tdClass} min-w-[100px]`}>
+        <Input
+          placeholder="Unit"
+          value={item.unit}
+          onChange={(e) => handleChange("unit", e.target.value)}
+          className="h-9 rounded-md border border-gray-200 bg-white text-center shadow-sm transition-colors hover:border-gray-300 focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/20"
+        />
+      </td>
+
       {/* Unit Price */}
       <td className={`${tdClass} min-w-[140px]`}>
         <Input
@@ -128,25 +160,46 @@ export default function InvoiceItemRow({ index, item, dragIndex, onDragStart, on
         )}
       </td>
 
-      {/* Quantity */}
+      {/* Discount */}
       <td className={`${tdClass} min-w-[100px]`}>
-        <Input
-          type="number"
-          min={1}
-          max={9999999}
-          step={1}
-          placeholder="0"
-          value={item.qty === 0 ? "" : item.qty}
-          onChange={(e) => {
-            const value = e.target.value;
-            handleChange("qty", value === "" ? 0 : Math.min(9999999, Number(value)));
-          }}
-          className={`h-9 rounded-md border bg-white text-right shadow-sm transition-colors
-            focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/20
-            ${itemErrors.qty ? "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20" : "border-gray-200 hover:border-gray-300"}`}
-        />
-        {itemErrors.qty && (
-          <p className="mt-1 text-xs text-red-500">{itemErrors.qty}</p>
+        <div className="flex flex-col gap-1">
+          <Input
+            type="number"
+            min={0}
+            max={9999999}
+            placeholder="0"
+            value={item.discount === "" ? "" : item.discount}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value === "") {
+                handleChange("discount", "");
+                return;
+              }
+              let num = Number(value);
+              if (num < 0) num = 0;
+              if (item.discountType === "percent") {
+                num = Math.min(num, 100);
+              } else {
+                const lineTotal = Number(item.qty || 0) * Number(item.rate || 0);
+                num = Math.min(num, Math.max(0, lineTotal));
+              }
+              handleChange("discount", num);
+            }}
+            className={`h-8 w-full rounded-md border bg-white text-right shadow-sm transition-colors
+              focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/20
+              ${itemErrors.discount ? "border-red-500" : "border-gray-200 hover:border-gray-300"}`}
+          />
+          <select
+            value={item.discountType}
+            onChange={(e) => handleChange("discountType", e.target.value)}
+            className="h-7 w-full rounded-md border border-gray-200 bg-white px-1 text-xs shadow-sm outline-none hover:border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+          >
+            <option value="percent">%</option>
+            <option value="fixed">{invoice.currency.code}</option>
+          </select>
+        </div>
+        {itemErrors.discount && (
+          <p className="mt-1 text-xs text-red-500">{itemErrors.discount}</p>
         )}
       </td>
 

@@ -5,12 +5,14 @@ export const invoiceItemModel = {
   product: "",
   description: "",
 
-  qty: "",
+  qty: 1,
+  unit: "",
   rate: "",
   amount: 0,
 
   discount: "",
   discountType: "percent",
+  discountAmount: 0,
 
   status: "Pending",
 };

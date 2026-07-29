@@ -36,11 +36,15 @@ export const useInvoiceStore = create(
 
       editingInvoiceId: null,
 
+      processing: null,
+
       setInvoice: (invoice) => set({ invoice }),
 
       setItems: (items) => set({ items }),
 
       setEditingInvoiceId: (id) => set({ editingInvoiceId: id }),
+
+      setProcessing: (processing) => set({ processing }),
 
       openInvoiceHistory: () => set({ isInvoiceHistoryOpen: true }),
 
@@ -125,6 +129,43 @@ export const useInvoiceStore = create(
             ],
             editingInvoiceId: null,
           };
+        });
+      },
+
+      syncCompanyFieldsFromSettings() {
+        const current = useSettingsStore.getState();
+        const { editingInvoiceId, invoice } = useInvoiceStore.getState();
+        if (editingInvoiceId) return;
+        const country = invoice.country || "Australia";
+        const cs = current.byCountry[country] || {};
+        set({
+          invoice: {
+            ...invoice,
+            companyPhone: cs.phoneNo || "",
+            companyWebsite: cs.website || "",
+            companyLocation: cs.location || "",
+            signatureName: cs.signatureName || "",
+            signatureTitle: cs.signatureTitle || "",
+            thankYouText: cs.thankYouText || "",
+          },
+        });
+      },
+
+      applyLatestCompanyDetails() {
+        const current = useSettingsStore.getState();
+        const { invoice } = useInvoiceStore.getState();
+        const country = invoice.country || "Australia";
+        const cs = current.byCountry[country] || {};
+        set({
+          invoice: {
+            ...invoice,
+            companyPhone: cs.phoneNo || "",
+            companyWebsite: cs.website || "",
+            companyLocation: cs.location || "",
+            signatureName: cs.signatureName || "",
+            signatureTitle: cs.signatureTitle || "",
+            thankYouText: cs.thankYouText || "",
+          },
         });
       },
 

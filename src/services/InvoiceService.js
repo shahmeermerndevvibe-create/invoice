@@ -13,6 +13,7 @@ import {
   orderBy,
   limit,
   startAfter,
+  writeBatch,
 } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
 
@@ -173,14 +174,46 @@ export const documentItemService = {
   },
 
   async createItems(documentId, items) {
-    return Promise.all(
-      items.map((item) =>
-        this.createItem({
-          ...item,
-          documentId,
-        }),
-      ),
-    );
+    if (items.length === 0) return [];
+
+    const batch = writeBatch(db);
+    const ids = [];
+
+    for (const item of items) {
+      const ref = doc(documentItemCollection);
+      batch.set(ref, {
+        ...item,
+        documentId,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      ids.push(ref.id);
+    }
+
+    await batch.commit();
+    return ids;
+  },
+
+  async replaceItems(documentId, existingItems, newItems) {
+    if (existingItems.length === 0 && newItems.length === 0) return;
+
+    const batch = writeBatch(db);
+
+    for (const item of existingItems) {
+      batch.delete(doc(documentItemCollection, item.id));
+    }
+
+    for (const item of newItems) {
+      const ref = doc(documentItemCollection);
+      batch.set(ref, {
+        ...item,
+        documentId,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    }
+
+    await batch.commit();
   },
 
   async getItem(id) {

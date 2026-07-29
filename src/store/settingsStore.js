@@ -2,9 +2,30 @@ import { create } from "zustand";
 import { settingsService } from "@/services/InvoiceService";
 
 const COUNTRY_PLACEHOLDERS = {
-  Australia: { phoneNo: "+61 421 702 706", website: "www.devvibe.com", location: "10 Leo Ave, Melbourne, Australia, 3029", signatureName: "Ajmal Jillani", signatureTitle: "COO - DevVibe", thankYouText: "THANK YOU FOR YOUR PAYMENT" },
-  Pakistan:  { phoneNo: "+92 300 1234567",  website: "www.devvibe.com", location: "5 Main Blvd, Karachi, Pakistan", signatureName: "Ajmal Jillani", signatureTitle: "COO - DevVibe", thankYouText: "THANK YOU FOR YOUR PAYMENT" },
-  USA:       { phoneNo: "+1 212 555 0198",   website: "www.devvibe.com", location: "123 Broadway, New York, NY 10006", signatureName: "Ajmal Jillani", signatureTitle: "COO - DevVibe", thankYouText: "THANK YOU FOR YOUR PAYMENT" },
+  Australia: {
+    phoneNo: "+61 421 702 706",
+    website: "www.devvibe.com",
+    location: "10 Leo Ave, Melbourne, Australia, 3029",
+    signatureName: "Ajmal Jillani",
+    signatureTitle: "COO - DevVibe",
+    thankYouText: "THANK YOU FOR YOUR PAYMENT",
+  },
+  Pakistan: {
+    phoneNo: "+92 300 1234567",
+    website: "www.devvibe.com",
+    location: "5 Main Blvd, Karachi, Pakistan",
+    signatureName: "Ajmal Jillani",
+    signatureTitle: "COO - DevVibe",
+    thankYouText: "THANK YOU FOR YOUR PAYMENT",
+  },
+  USA: {
+    phoneNo: "+1 212 555 0198",
+    website: "www.devvibe.com",
+    location: "123 Broadway, New York, NY 10006",
+    signatureName: "Ajmal Jillani",
+    signatureTitle: "COO - DevVibe",
+    thankYouText: "THANK YOU FOR YOUR PAYMENT",
+  },
 };
 
 const buildDefaultByCountry = () => {
@@ -52,6 +73,9 @@ export const useSettingsStore = create((set, get) => ({
     } catch {
       set({ loaded: true });
     }
+
+    const { useInvoiceStore } = await import("@/store/invoiceStore");
+    useInvoiceStore.getState().syncCompanyFieldsFromSettings();
   },
 
   updateSettings: (country, field, value) => {

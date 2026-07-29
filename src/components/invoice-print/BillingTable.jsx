@@ -31,15 +31,23 @@ const BillingTable = ({ items = [], invoice = {} }) => {
               </TableHead>
 
               <TableHead className="bg-[#1E90FF] py-4 text-center font-semibold text-white">
-                Unit Price
+                Qty
               </TableHead>
 
               <TableHead className="bg-[#0A4A95] py-4 text-center font-semibold text-white">
-                Quantity
+                Unit
+              </TableHead>
+
+              <TableHead className="bg-[#1E90FF] py-4 text-center font-semibold text-white">
+                Rate
+              </TableHead>
+
+              <TableHead className="bg-[#0A4A95] py-4 text-center font-semibold text-white">
+                Discount
               </TableHead>
 
               {invoice.contractType === "Milestones" && (
-                <TableHead className="bg-[#0A4A95] py-4 text-center font-semibold text-white">
+                <TableHead className="bg-[#1E90FF] py-4 text-center font-semibold text-white">
                   Status
                 </TableHead>
               )}
@@ -52,7 +60,7 @@ const BillingTable = ({ items = [], invoice = {} }) => {
 
           <TableBody>
             {items.map((item, index) => {
-              const { netTotal } = calculateItemRow(item);
+              const { netTotal, discountAmount } = calculateItemRow(item);
               const isCompletedMilestone = invoice.contractType === "Milestones" && item.status === "Completed";
 
               return (
@@ -72,11 +80,21 @@ const BillingTable = ({ items = [], invoice = {} }) => {
                   </TableCell>
 
                   <TableCell className="bg-slate-50 align-top text-center py-4">
-                    {formatCurrency(item.rate)}
+                    {item.qty}
                   </TableCell>
 
                   <TableCell className="align-top text-center py-4">
-                    {item.qty}
+                    {item.unit || "-"}
+                  </TableCell>
+
+                  <TableCell className="bg-slate-50 align-top text-center py-4">
+                    {formatCurrency(item.rate)}
+                  </TableCell>
+
+                  <TableCell className="bg-slate-50 align-top text-center py-4">
+                    {discountAmount > 0
+                      ? `-${formatCurrency(discountAmount)}`
+                      : "-"}
                   </TableCell>
 
                   {invoice.contractType === "Milestones" && (
@@ -113,8 +131,10 @@ const BillingTable = ({ items = [], invoice = {} }) => {
                 <TableCell className="h-16"></TableCell>
                 <TableCell className="bg-slate-50"></TableCell>
                 <TableCell></TableCell>
+                <TableCell className="bg-slate-50"></TableCell>
+                <TableCell></TableCell>
                 {invoice.contractType === "Milestones" && (
-                  <TableCell></TableCell>
+                  <TableCell className="bg-slate-50"></TableCell>
                 )}
                 <TableCell className="bg-slate-50"></TableCell>
               </TableRow>

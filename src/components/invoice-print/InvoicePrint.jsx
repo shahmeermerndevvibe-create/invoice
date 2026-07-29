@@ -108,9 +108,9 @@ function measureHeights(container) {
   return { headerHeight, billingInfoHeight, rowHeights, tableOverheadH: Math.max(0, tableOverheadH), summaryHeight, notesHeight };
 }
 
-function renderMeasureNodes(invoice, items, allItems, subtotal, total, balanceDue, taxAmount, discountAmount) {
+function renderMeasureNodes(invoice, items, allItems, subtotal, total, balanceDue, taxAmount, discountAmount, itemDiscountsTotal) {
   return (
-    <div style={{ position: "fixed", left: 0, top: 0, width: Math.round(210 * MM_PX) + "px", zIndex: -1, opacity: 0.01, pointerEvents: "none" }}>
+    <>
       <div data-meas-header>
         <div className="print-header relative shrink-0">
           <div className="relative flex items-start justify-between border-b border-slate-900 px-12 pt-8 pb-8">
@@ -127,7 +127,7 @@ function renderMeasureNodes(invoice, items, allItems, subtotal, total, balanceDu
         <BillingTable items={items} invoice={invoice} />
       </div>
       <div data-meas-summary>
-        <BillingSummary invoice={invoice} items={allItems || items} subtotal={subtotal} total={total} balanceDue={balanceDue} taxAmount={taxAmount} discountAmount={discountAmount} notesPosition="bottom" />
+        <BillingSummary invoice={invoice} items={allItems || items} subtotal={subtotal} total={total} balanceDue={balanceDue} taxAmount={taxAmount} discountAmount={discountAmount} itemDiscountsTotal={itemDiscountsTotal} notesPosition="bottom" />
       </div>
       <div data-meas-notes>
         <div className="px-8 pb-4 md:px-14">
@@ -135,9 +135,18 @@ function renderMeasureNodes(invoice, items, allItems, subtotal, total, balanceDu
           <div className="text-slate-700 text-xs [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:mb-2" dangerouslySetInnerHTML={{ __html: invoice.notes || "<p>No notes available.</p>" }} />
         </div>
       </div>
-    </div>
+    </>
   );
 }
+
+const MEAS_STYLE = {
+  position: "fixed",
+  left: "-9999px",
+  top: 0,
+  width: Math.round(210 * MM_PX) + "px",
+  pointerEvents: "none",
+  opacity: 0.01,
+};
 
 const InvoicePrint = ({
   invoice,
@@ -148,20 +157,13 @@ const InvoicePrint = ({
   balanceDue,
   taxAmount,
   discountAmount,
+  itemDiscountsTotal,
 }) => {
   const [pageChunks, setPageChunks] = useState(null);
   const measRef = useRef(null);
-  const prevItemsRef = useRef(items);
 
   useLayoutEffect(() => {
-    if (!measRef.current) {
-      if (pageChunks !== null && prevItemsRef.current !== items) {
-        prevItemsRef.current = items;
-        setPageChunks(null);
-      }
-      return;
-    }
-    prevItemsRef.current = items;
+    if (!measRef.current) return;
 
     const root = measRef.current;
     const m = measureHeights(root);
@@ -174,20 +176,13 @@ const InvoicePrint = ({
       m.summaryHeight, m.notesHeight,
     );
     setPageChunks(chunks);
-  });
+  }, [items]);
 
-  if (!pageChunks) {
-    return createPortal(
-      <div ref={measRef}>
-        {renderMeasureNodes(invoice, items, allItems, subtotal, total, balanceDue, taxAmount, discountAmount)}
-      </div>,
-      document.body
-    );
-  }
+  const pages = pageChunks || [items];
 
   return (
-    <div>
-      {pageChunks.map((chunk, index) => (
+    <>
+      {pages.map((chunk, index) => (
         <div
           key={index}
           style={index > 0 ? { pageBreakBefore: "always" } : undefined}
@@ -197,18 +192,25 @@ const InvoicePrint = ({
             items={chunk}
             allItems={allItems || items}
             isFirstPage={index === 0}
-            isLastPage={index === pageChunks.length - 1}
+            isLastPage={index === pages.length - 1}
             pageNumber={index + 1}
-            totalPages={pageChunks.length}
+            totalPages={pages.length}
             subtotal={subtotal}
             total={total}
             balanceDue={balanceDue}
             taxAmount={taxAmount}
             discountAmount={discountAmount}
+            itemDiscountsTotal={itemDiscountsTotal}
           />
         </div>
       ))}
-    </div>
+      {createPortal(
+        <div ref={measRef} style={MEAS_STYLE}>
+          {renderMeasureNodes(invoice, items, allItems, subtotal, total, balanceDue, taxAmount, discountAmount, itemDiscountsTotal)}
+        </div>,
+        document.body
+      )}
+    </>
   );
 };
 
@@ -225,6 +227,7 @@ const BillingTableSection = ({
   balanceDue,
   taxAmount,
   discountAmount,
+  itemDiscountsTotal,
 }) => {
   return (
     <div
@@ -270,6 +273,7 @@ const BillingTableSection = ({
               balanceDue={balanceDue}
               taxAmount={taxAmount}
               discountAmount={discountAmount}
+              itemDiscountsTotal={itemDiscountsTotal}
               notesPosition="bottom"
             />
           </div>

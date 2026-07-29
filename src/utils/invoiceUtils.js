@@ -2,10 +2,10 @@ const calculateDiscount = (subtotal, invoice) => {
   const discount = Number(invoice.discount) || 0;
 
   if (invoice.discountType === "percent") {
-    return (subtotal * discount) / 100;
+    return (subtotal * Math.min(discount, 100)) / 100;
   }
 
-  return discount;
+  return Math.min(discount, subtotal);
 };
 
 const calculateTax = (taxableAmount, invoice) => {
@@ -19,11 +19,11 @@ const calculateTax = (taxableAmount, invoice) => {
 };
 
 const calculateTotal = (
-  subtotal,
+  afterItemDiscounts,
   discountAmount,
   taxAmount
 ) => {
-  return (subtotal - discountAmount) + taxAmount;
+  return (afterItemDiscounts - discountAmount) + taxAmount;
 };
 
 const calculateBalanceDue = (
@@ -73,14 +73,16 @@ export const calculateInvoiceTotals = (
   invoice = {}
 ) => {
   const itemRows = items.map(item => calculateItemRow(item));
-  const subtotal = itemRows.reduce((sum, row) => sum + row.netTotal, 0);
+  const subtotal = itemRows.reduce((sum, row) => sum + row.lineTotal, 0);
+  const itemDiscountsTotal = itemRows.reduce((sum, row) => sum + row.discountAmount, 0);
+  const afterItemDiscounts = subtotal - itemDiscountsTotal;
 
   const discountAmount = calculateDiscount(
-    subtotal,
+    afterItemDiscounts,
     invoice
   );
 
-  const taxableAmount = subtotal - discountAmount;  
+  const taxableAmount = afterItemDiscounts - discountAmount;
 
   const taxAmount = calculateTax(
     taxableAmount,
@@ -88,7 +90,7 @@ export const calculateInvoiceTotals = (
   );
 
   const total = calculateTotal(
-    subtotal,
+    afterItemDiscounts,
     discountAmount,
     taxAmount
   );
@@ -100,6 +102,7 @@ export const calculateInvoiceTotals = (
 
   return {
     subtotal,
+    itemDiscountsTotal,
     discountAmount,
     taxAmount,
     total,

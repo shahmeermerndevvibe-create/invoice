@@ -9,9 +9,15 @@ export default function BillingSummary({
   // balanceDue,
   taxAmount,
   discountAmount,
+  itemDiscountsTotal,
   notesPosition = "inline",
 }) {
-  const { totalContractValue, completedMilestoneValue, currentMilestoneValue, pendingMilestoneValue } = useMemo(() => {
+  const {
+    totalContractValue,
+    completedMilestoneValue,
+    currentMilestoneValue,
+    pendingMilestoneValue,
+  } = useMemo(() => {
     const total = items.reduce(
       (sum, item) => sum + calculateItemRow(item).netTotal,
       0,
@@ -25,7 +31,12 @@ export default function BillingSummary({
     const pending = items
       .filter((item) => item.status === "Pending")
       .reduce((sum, item) => sum + calculateItemRow(item).netTotal, 0);
-    return { totalContractValue: total, completedMilestoneValue: completed, currentMilestoneValue: current, pendingMilestoneValue: pending };
+    return {
+      totalContractValue: total,
+      completedMilestoneValue: completed,
+      currentMilestoneValue: current,
+      pendingMilestoneValue: pending,
+    };
   }, [items]);
 
   const completionRatio =
@@ -81,10 +92,9 @@ export default function BillingSummary({
         >
           {invoice.contractType === "Milestones" ? (
             <div className="ml-auto max-w-[280px] space-y-0.5 text-sm">
-              {/* <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
                 Contract Summary
-              </p> */}
-              {/* <div className="border-t border-black my-1" /> */}
+              </p>
 
               <div className="flex justify-between">
                 <span>Total Contract Value</span>
@@ -96,17 +106,34 @@ export default function BillingSummary({
                 </span>
               </div>
 
-              {Number(invoice.discount) > 0 && (
-                <div className="flex justify-between text-black">
-                  <span>Discount</span>
-                  <span className="tabular-nums font-medium">
-                    {discountLabel}
+              {Number(itemDiscountsTotal) > 0 && (
+                <div className="flex justify-between">
+                  <span>Item Discounts</span>
+                  <span className="tabular-nums">
+                    −
+                    <span className="text-xs mr-0.5">
+                      {invoice.currency.symbol}
+                    </span>
+                    {formatCurrency(itemDiscountsTotal)}
                   </span>
                 </div>
               )}
 
-              {Number(invoice.tax) > 0 && (
-                <div className="flex justify-between text-black">
+              {Number(discountAmount) > 0 && (
+                <div className="flex justify-between">
+                  <span>Invoice Discount ({discountLabel})</span>
+                  <span className="tabular-nums">
+                    −
+                    <span className="text-xs mr-0.5">
+                      {invoice.currency.symbol}
+                    </span>
+                    {formatCurrency(discountAmount)}
+                  </span>
+                </div>
+              )}
+
+              {Number(taxAmount) > 0 && (
+                <div className="flex justify-between">
                   <span>Tax ({taxLabel})</span>
                   <span className="tabular-nums">
                     +
@@ -119,8 +146,9 @@ export default function BillingSummary({
               )}
 
               {/* <div className="border-t border-black my-1" /> */}
+
               <div className="flex justify-between font-bold text-gray-900">
-                <span>Net Contract Total</span>
+                <span>Net Contract Value</span>
                 <span className="tabular-nums">
                   <span className="text-xs mr-0.5">
                     {invoice.currency.symbol}
@@ -129,17 +157,13 @@ export default function BillingSummary({
                 </span>
               </div>
 
-              {/* <div className="border-t-2 border-double border-slate-400 my-3" />
-
-              <div className="border-t-2 border-double border-slate-400 my-3" /> */}
-
-              <div className="mt-2 flex justify-between overflow-hidden rounded-md bg-linear-60 from-blue-800 to-blue-500 text-white">
+              <div className="mt-5 flex justify-between overflow-hidden rounded-md bg-gradient-to-r from-blue-800 to-blue-500 text-white">
                 <div className="flex-1 py-2 pl-4 text-base font-bold">
                   Due This Invoice
                 </div>
 
-                <div className="flex items-center justify-center px-4 font-bold">
-                  <span className="mr-2 text-xs font-bold">
+                <div className="flex items-center justify-center whitespace-nowrap px-4 font-bold">
+                  <span className="mr-2 shrink-0 text-sm font-extrabold">
                     {invoice.currency.symbol}
                   </span>
 
@@ -149,8 +173,8 @@ export default function BillingSummary({
                 </div>
               </div>
 
-              <div className="flex justify-between text-xs text-slate-500 pt-1">
-                <span>Pending (To Be Paid)</span>
+              <div className="flex justify-between text-xs text-slate-500">
+                <span>Remaining to be paid</span>
                 <span className="tabular-nums">
                   <span className="text-xs mr-0.5">
                     {invoice.currency.symbol}
@@ -162,7 +186,7 @@ export default function BillingSummary({
           ) : (
             <div className="ml-auto max-w-[280px] space-y-3">
               <div className="flex justify-between text-base font-semibold">
-                <span className="font-bold">Sub Total:</span>
+                <span className="font-bold">Subtotal:</span>
                 <span>
                   <span className="ml-1 text-sm font-normal pr-2 text-black font-extrabold">
                     {invoice.currency.symbol}
@@ -171,23 +195,46 @@ export default function BillingSummary({
                 </span>
               </div>
 
-              <div className="flex justify-between text-base font-semibold">
-                <span className="font-bold">Discount:</span>
-                <span className="text-sm font-normal text-black">
-                  {invoice.discountType === "percent"
-                    ? `${invoice.discount}%`
-                    : `${invoice.currency.symbol} ${formatCurrency(invoice.discount)}`}
-                </span>
-              </div>
+              {Number(itemDiscountsTotal) > 0 && (
+                <>
+                  <div className="flex justify-between text-base font-semibold">
+                    <span className="font-bold">Item Discounts:</span>
+                    <span className="text-sm font-normal">
+                      −{invoice.currency.symbol}{" "}
+                      {formatCurrency(itemDiscountsTotal)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-base font-semibold">
+                    <span className="font-bold">Subtotal After Items:</span>
+                    <span>
+                      <span className="ml-1 text-sm font-normal pr-2 text-black font-extrabold">
+                        {invoice.currency.symbol}
+                      </span>
+                      {formatCurrency(subtotal - itemDiscountsTotal)}
+                    </span>
+                  </div>
+                </>
+              )}
 
-              <div className="flex justify-between text-base font-semibold">
-                <span className="font-bold">Tax:</span>
-                <span className="flex items-center gap-1">
-                  {invoice.taxType === "percent"
-                    ? `${invoice.tax}%`
-                    : `${invoice.currency?.symbol || ""} ${formatCurrency(invoice.tax)}`}
-                </span>
-              </div>
+              {Number(discountAmount) > 0 && (
+                <div className="flex justify-between text-base font-semibold">
+                  <span className="font-bold">
+                    Invoice Discount ({discountLabel}):
+                  </span>
+                  <span className="text-sm font-normal">
+                    −{invoice.currency.symbol} {formatCurrency(discountAmount)}
+                  </span>
+                </div>
+              )}
+
+              {Number(taxAmount) > 0 && (
+                <div className="flex justify-between text-base font-semibold">
+                  <span className="font-bold">Tax ({taxLabel}):</span>
+                  <span className="text-sm font-normal">
+                    +{invoice.currency.symbol} {formatCurrency(taxAmount)}
+                  </span>
+                </div>
+              )}
 
               <div className="mt-5 flex justify-between text-white bg-linear-60 from-blue-800 to-blue-500 overflow-hidden rounded-md">
                 <div className="flex-1 pl-4 py-2 text-white font-bold text-lg">

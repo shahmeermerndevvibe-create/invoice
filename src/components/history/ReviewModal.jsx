@@ -81,7 +81,9 @@ export default function ReviewModal({ data, onClose }) {
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="w-1/2">Description</TableHead>
                   <TableHead className="text-center">Qty</TableHead>
+                  <TableHead className="text-center">Unit</TableHead>
                   <TableHead className="text-right">Rate</TableHead>
+                  <TableHead className="text-right">Discount</TableHead>
                   {invoice.contractType === "Milestones" && (
                     <TableHead className="text-center">Status</TableHead>
                   )}
@@ -89,37 +91,45 @@ export default function ReviewModal({ data, onClose }) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {items.map((item, i) => (
-                  <TableRow key={item.id || i} className="hover:bg-transparent">
-                    <TableCell className="max-w-md align-top">
-                      <p className="font-semibold text-gray-900">
-                        {item.product || "—"}
-                      </p>
-                      {item.description && (
-                        <p className="mt-2 text-sm leading-6 text-gray-500 whitespace-pre-wrap break-words overflow-wrap-anywhere">
-                          {item.description}
+                {items.map((item, i) => {
+                  const { discountAmount, netTotal } = calculateItemRow(item);
+                  return (
+                    <TableRow key={item.id || i} className="hover:bg-transparent">
+                      <TableCell className="max-w-md align-top">
+                        <p className="font-semibold text-gray-900">
+                          {item.product || "—"}
                         </p>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {item.qty || 0}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {symbol} {formatCurrency(item.rate)}
-                    </TableCell>
-                    {invoice.contractType === "Milestones" && (
-                      <TableCell className="text-center">
-                        {item.status || "Pending"}
+                        {item.description && (
+                          <p className="mt-2 text-sm leading-6 text-gray-500 whitespace-pre-wrap break-words overflow-wrap-anywhere">
+                            {item.description}
+                          </p>
+                        )}
                       </TableCell>
-                    )}
-                    <TableCell className="text-right font-medium">
-                      {symbol}{" "}
-                      {formatCurrency(
-                        Number(item.qty || 0) * Number(item.rate || 0),
+                      <TableCell className="text-center">
+                        {item.qty || 0}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {item.unit || "-"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {symbol} {formatCurrency(item.rate)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {discountAmount > 0
+                          ? `-${symbol} ${formatCurrency(discountAmount)}`
+                          : "-"}
+                      </TableCell>
+                      {invoice.contractType === "Milestones" && (
+                        <TableCell className="text-center">
+                          {item.status || "Pending"}
+                        </TableCell>
                       )}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      <TableCell className="text-right font-medium">
+                        {symbol} {formatCurrency(netTotal)}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
@@ -137,47 +147,49 @@ export default function ReviewModal({ data, onClose }) {
                     {formatCurrency(totalContractValue)}
                   </span>
                 </div>
-                {invoice.discount ? (
-                  <div className="flex justify-between text-black">
-                    <span>Discount</span>
-                    <span className="tabular-nums font-medium">{discountLabel}</span>
+                {Number(totals.itemDiscountsTotal) > 0 && (
+                  <div className="flex justify-between">
+                    <span>Item Discounts</span>
+                    <span className="tabular-nums">
+                      −<span className="text-xs mr-0.5">{symbol}</span>
+                      {formatCurrency(totals.itemDiscountsTotal)}
+                    </span>
                   </div>
-                ) : null}
-                {invoice.tax ? (
-                  <div className="flex justify-between text-black">
+                )}
+                {Number(discountAmount) > 0 && (
+                  <div className="flex justify-between">
+                    <span>Invoice Discount ({discountLabel})</span>
+                    <span className="tabular-nums">
+                      −<span className="text-xs mr-0.5">{symbol}</span>
+                      {formatCurrency(discountAmount)}
+                    </span>
+                  </div>
+                )}
+                {Number(taxAmount) > 0 && (
+                  <div className="flex justify-between">
                     <span>Tax ({taxLabel})</span>
                     <span className="tabular-nums">
                       +<span className="text-xs mr-0.5">{symbol}</span>
                       {formatCurrency(taxAmount)}
                     </span>
                   </div>
-                ) : null}
+                )}
                 <div className="flex justify-between font-bold text-gray-900 pt-1.5 border-t border-dashed border-slate-300">
-                  <span>Net Contract Total</span>
+                  <span>Net Contract Value</span>
                   <span className="tabular-nums">
                     <span className="text-xs text-slate-400 mr-0.5">{symbol}</span>
                     {formatCurrency(netContractTotal)}
                   </span>
                 </div>
-                <div className="relative py-2">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-slate-300" />
-                  </div>
-                  <div className="relative flex justify-center">
-                    <span className="bg-slate-50 px-2 text-[11px] font-medium uppercase tracking-wider text-slate-400">
-                      Current Invoice
-                    </span>
-                  </div>
-                </div>
                 <div className="flex justify-between font-bold text-gray-900 pt-1.5">
-                  <span>Due This Invoice</span>
+                  <span>Amount Due This Invoice</span>
                   <span className="tabular-nums">
                     <span className="text-xs text-slate-400 mr-0.5">{symbol}</span>
                     {formatCurrency(dueThisInvoice)}
                   </span>
                 </div>
                 <div className="flex justify-between text-xs text-slate-500">
-                  <span>Pending (To Be Paid)</span>
+                  <span>Remaining Balance</span>
                   <span className="tabular-nums">
                     <span className="text-xs mr-0.5">{symbol}</span>
                     {formatCurrency(remaining)}
@@ -192,30 +204,38 @@ export default function ReviewModal({ data, onClose }) {
                     {symbol} {formatCurrency(totals.subtotal)}
                   </span>
                 </div>
-                {invoice.discount ? (
-                  <div className="flex justify-between text-black">
-                    <span>Discount</span>
+                {Number(totals.itemDiscountsTotal) > 0 && (
+                  <>
+                    <div className="flex justify-between text-gray-600">
+                      <span>Item Discounts</span>
+                      <span className="font-medium">
+                        − {symbol} {formatCurrency(totals.itemDiscountsTotal)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-gray-600">
+                      <span>Subtotal After Items</span>
+                      <span className="font-medium">
+                        {symbol} {formatCurrency(totals.subtotal - totals.itemDiscountsTotal)}
+                      </span>
+                    </div>
+                  </>
+                )}
+                {Number(discountAmount) > 0 && (
+                  <div className="flex justify-between">
+                    <span>Invoice Discount ({discountLabel})</span>
                     <span className="font-medium">
-                      {invoice.discountType === "percent"
-                        ? `${invoice.discount}%`
-                        : `${symbol} ${invoice.discount}`}
+                      − {symbol} {formatCurrency(discountAmount)}
                     </span>
                   </div>
-                ) : null}
-                {invoice.tax ? (
-                  <div className="flex justify-between text-black">
-                    <span>
-                      Tax (
-                      {invoice.taxType === "percent"
-                        ? `${invoice.tax}%`
-                        : `${symbol} ${invoice.tax}`}
-                      )
-                    </span>
+                )}
+                {Number(taxAmount) > 0 && (
+                  <div className="flex justify-between">
+                    <span>Tax ({taxLabel})</span>
                     <span className="font-medium">
-                      {symbol} {formatCurrency(totals.taxAmount)}
+                      + {symbol} {formatCurrency(taxAmount)}
                     </span>
                   </div>
-                ) : null}
+                )}
                 <div className="flex justify-between border-t pt-3 text-base font-bold text-gray-900">
                   <span>Total</span>
                   <span>

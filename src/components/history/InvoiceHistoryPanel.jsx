@@ -291,6 +291,7 @@ export default function InvoiceHistoryPanel() {
               balanceDue={printData.totals.balanceDue}
               taxAmount={printData.totals.taxAmount}
               discountAmount={printData.totals.discountAmount}
+              itemDiscountsTotal={printData.totals.itemDiscountsTotal}
             />
           </div>
         </div>

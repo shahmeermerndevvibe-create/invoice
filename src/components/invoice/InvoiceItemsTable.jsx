@@ -67,7 +67,31 @@ function MobileItemCard({ index, item, invoice }) {
 
       <div className="flex gap-2">
         <div className="flex-1">
-          <label className="mb-1 block text-xs font-medium text-gray-500">Unit Price</label>
+          <label className="mb-1 block text-xs font-medium text-gray-500">Qty</label>
+          <Input
+            type="number"
+            min={1}
+            max={9999999}
+            placeholder="0"
+            value={item.qty}
+            onChange={(e) => {
+              const value = e.target.value;
+              handleChange("qty", value === "" ? 1 : Math.min(9999999, Number(value)));
+            }}
+            className="h-9 text-right"
+          />
+        </div>
+        <div className="flex-1">
+          <label className="mb-1 block text-xs font-medium text-gray-500">Unit</label>
+          <Input
+            placeholder="Unit"
+            value={item.unit}
+            onChange={(e) => handleChange("unit", e.target.value)}
+            className="h-9 text-center"
+          />
+        </div>
+        <div className="flex-1">
+          <label className="mb-1 block text-xs font-medium text-gray-500">Rate</label>
           <Input
             type="number"
             min={1}
@@ -82,19 +106,40 @@ function MobileItemCard({ index, item, invoice }) {
           />
         </div>
         <div className="flex-1">
-          <label className="mb-1 block text-xs font-medium text-gray-500">Quantity</label>
-          <Input
-            type="number"
-            min={1}
-            max={9999999}
-            placeholder="0"
-            value={item.qty === 0 ? "" : item.qty}
-            onChange={(e) => {
-              const value = e.target.value;
-              handleChange("qty", value === "" ? 0 : Math.min(9999999, Number(value)));
-            }}
-            className="h-9 text-right"
-          />
+          <label className="mb-1 block text-xs font-medium text-gray-500">Discount</label>
+          <div className="flex flex-col gap-1">
+            <Input
+              type="number"
+              min={0}
+              placeholder="0"
+              value={item.discount === "" ? "" : item.discount}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === "") {
+                  handleChange("discount", "");
+                  return;
+                }
+                let num = Number(value);
+                if (num < 0) num = 0;
+                if (item.discountType === "percent") {
+                  num = Math.min(num, 100);
+                } else {
+                  const lineTotal = Number(item.qty || 0) * Number(item.rate || 0);
+                  num = Math.min(num, Math.max(0, lineTotal));
+                }
+                handleChange("discount", num);
+              }}
+              className="h-8 w-full text-right"
+            />
+            <select
+              value={item.discountType}
+              onChange={(e) => handleChange("discountType", e.target.value)}
+              className="h-7 w-full rounded-md border border-gray-200 bg-white px-1 text-xs shadow-sm outline-none"
+            >
+              <option value="percent">%</option>
+              <option value="fixed">{invoice.currency.code}</option>
+            </select>
+          </div>
         </div>
         <div className="flex-1">
           <label className="mb-1 block text-xs font-medium text-gray-500">Total</label>
@@ -186,8 +231,10 @@ export default function InvoiceItemsTable({ onPrint }) {
               <th className={`${thClass} w-10 text-right`}>#</th>
               <th className={`${thClass} w-45`}>Title</th>
               <th className={`${thClass} w-84`}>Description</th>
-              <th className={`${thClass} w-30 text-right`}>Unit Price</th>
-              <th className={`${thClass} w-30 text-right`}>Quantity</th>
+              <th className={`${thClass} w-30 text-right`}>Qty</th>
+              <th className={`${thClass} w-30 text-right`}>Unit</th>
+              <th className={`${thClass} w-30 text-right`}>Rate</th>
+              <th className={`${thClass} w-30 text-right`}>Discount</th>
               {invoice.contractType === "Milestones" && (
                 <th className={`${thClass} w-36 text-center`}>Status</th>
               )}
