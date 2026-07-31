@@ -19,7 +19,7 @@ export default function SettingsModal({ onClose }) {
   const updateSettings = useSettingsStore((s) => s.updateSettings);
   const saveSettings = useSettingsStore((s) => s.saveSettings);
   const invoiceCountry = useInvoiceStore((s) => s.invoice.country);
-  const updateInvoice = useInvoiceStore((s) => s.updateInvoice);
+  const applyCountrySettings = useInvoiceStore((s) => s.applyCountrySettings);
   const [saving, setSaving] = useState(false);
   const current = byCountry[invoiceCountry] || {};
   const phoneNo = current.phoneNo || "";
@@ -31,7 +31,7 @@ export default function SettingsModal({ onClose }) {
   const ph = { phone: phoneNo || "+61 421 702 706", location: location || "10 Leo Ave, Melbourne, Australia, 3029" };
 
   const handleCountryChange = (value) => {
-    updateInvoice("country", value);
+    applyCountrySettings(value);
   };
 
   useEffect(() => {
@@ -49,18 +49,9 @@ export default function SettingsModal({ onClose }) {
     try {
       setSaving(true);
       await saveSettings();
-      const editingInvoiceId = useInvoiceStore.getState().editingInvoiceId;
-      if (!editingInvoiceId) {
-        const s = useSettingsStore.getState();
-        const country = useInvoiceStore.getState().invoice.country;
-        const cs = s.byCountry[country] || {};
-        const inv = useInvoiceStore.getState();
-        inv.updateInvoice("companyPhone", cs.phoneNo || "");
-        inv.updateInvoice("companyWebsite", cs.website || "");
-        inv.updateInvoice("companyLocation", cs.location || "");
-        inv.updateInvoice("signatureName", cs.signatureName || "");
-        inv.updateInvoice("signatureTitle", cs.signatureTitle || "");
-        inv.updateInvoice("thankYouText", cs.thankYouText || "");
+      const invoiceStore = useInvoiceStore.getState();
+      if (!invoiceStore.editingInvoiceId) {
+        invoiceStore.applyCountrySettings(invoiceStore.invoice.country);
       }
       toast.success("Settings saved successfully!");
       onClose();

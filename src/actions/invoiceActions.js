@@ -67,6 +67,10 @@ export const saveDocument = async (document, items) => {
 
   await documentItemService.createItems(documentId, itemData.map(stripItemMeta));
 
+  if (documentData.isDraft) {
+    useInvoiceStore.getState().setEditingInvoiceId(documentId);
+  }
+
   return {
     success: true,
     documentId,

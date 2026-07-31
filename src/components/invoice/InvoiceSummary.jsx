@@ -82,14 +82,15 @@ export default function InvoiceSummary({ onPrint }) {
 
   const handlePrintInvoice = async () => {
     try {
+      const currentInvoice = useInvoiceStore.getState().invoice;
       const invoiceToSave = {
-        ...invoice,
+        ...currentInvoice,
         subtotal,
         total,
         balanceDue,
       };
 
-      const { isValid, errors } = validateInvoice(invoice, items, subtotal);
+      const { isValid, errors } = validateInvoice(invoiceToSave, items, subtotal);
 
       if (!isValid) {
         setErrors(errors);
@@ -137,6 +138,31 @@ export default function InvoiceSummary({ onPrint }) {
     } finally {
       setProcessing(null);
     }
+  };
+
+  const handleSaveDraft = async () => {
+    try {
+      setProcessing({ title: "Saving Draft...", message: "Please wait while we save your draft." });
+
+      const result = await saveDocument(invoice, items);
+
+      if (!result.success) {
+        toast.error("Failed to save draft.");
+        return;
+      }
+
+      toast.success("Draft saved!");
+    } catch (error) {
+      console.error(error);
+      toast.error("An error occurred while saving the draft.");
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const handleFinalizeDraft = async () => {
+    updateInvoice("isDraft", false);
+    await handlePrintInvoice();
   };
 
   return (
@@ -380,24 +406,52 @@ export default function InvoiceSummary({ onPrint }) {
             </span>
           </div>
         )} */}
-        <Button className="w-full h-12" size="lg" onClick={handlePrintInvoice} disabled={!!processing}>
-          {processing ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Saving...
-            </>
-          ) : editingInvoiceId ? (
-            <>
-              <Printer className="mr-2 h-4 w-4" />
-              Update Invoice
-            </>
-          ) : (
-            <>
-              <Printer className="mr-2 h-4 w-4" />
-              Print {invoice.documentType}
-            </>
-          )}
-        </Button>
+        {invoice.isDraft ? (
+          <div className="space-y-2">
+            <Button className="w-full h-12" size="lg" onClick={handleSaveDraft} disabled={!!processing}>
+              {processing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : editingInvoiceId ? (
+                "Update Draft"
+              ) : (
+                "Save Draft"
+              )}
+            </Button>
+            {editingInvoiceId && (
+              <Button
+                variant="outline"
+                className="w-full h-12"
+                size="lg"
+                onClick={handleFinalizeDraft}
+                disabled={!!processing}
+              >
+                Finalize
+              </Button>
+            )}
+          </div>
+        ) : (
+          <Button className="w-full h-12" size="lg" onClick={handlePrintInvoice} disabled={!!processing}>
+            {processing ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : editingInvoiceId ? (
+              <>
+                <Printer className="mr-2 h-4 w-4" />
+                Update Invoice
+              </>
+            ) : (
+              <>
+                <Printer className="mr-2 h-4 w-4" />
+                Print {invoice.documentType}
+              </>
+            )}
+          </Button>
+        )}
       </CardContent>
     </Card>
   );

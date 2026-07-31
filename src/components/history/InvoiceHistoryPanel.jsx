@@ -178,6 +178,11 @@ export default function InvoiceHistoryPanel() {
       const result = await fetchDocumentForPrint(documentId);
       if (!result.success) throw new Error("Failed to fetch document data");
 
+      if (result.invoice.isDraft) {
+        toast.error("Cannot create a draft from an existing draft.");
+        return;
+      }
+
       const cleanInvoice = { ...result.invoice, isDraft: true };
       delete cleanInvoice.id;
       delete cleanInvoice.createdAt;
@@ -195,6 +200,8 @@ export default function InvoiceHistoryPanel() {
       });
       setItems(cleanItems);
 
+      setEditingInvoiceId(null);
+
       const nextDoc = await loadNextDocumentNumber(cleanInvoice.documentType);
       updateInvoice("documentCounter", nextDoc.documentCounter);
       updateInvoice("documentNumber", nextDoc.documentNumber);
@@ -204,7 +211,7 @@ export default function InvoiceHistoryPanel() {
       console.error("Create draft error:", err);
       toast.error("Failed to create draft");
     }
-  }, [setInvoice, setItems, updateInvoice, close]);
+  }, [setInvoice, setItems, setEditingInvoiceId, updateInvoice, close]);
 
   useEffect(() => {
     if (!printData) return;

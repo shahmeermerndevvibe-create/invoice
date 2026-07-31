@@ -40,10 +40,6 @@ export const useSettingsStore = create((set, get) => ({
   byCountry: buildDefaultByCountry(),
   loaded: false,
 
-  getCurrentSettings: (country) => {
-    return get().byCountry[country] || COUNTRY_PLACEHOLDERS[country] || {};
-  },
-
   loadSettings: async () => {
     try {
       const data = await settingsService.getSettings();

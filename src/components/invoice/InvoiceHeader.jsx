@@ -13,7 +13,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useInvoiceStore } from "@/store/invoiceStore";
-import { useSettingsStore } from "@/store/settingsStore";
 import { checkDocumentNumberExists } from "@/actions/invoiceActions";
 import { loadNextDocumentNumber } from "../../utils/InvoiceCounter"
 import { formatDocumentId } from "@/utils/invoiceUtils";
@@ -22,9 +21,9 @@ import toast from "react-hot-toast";
 
 export default function InvoiceHeader() {
   const invoice = useInvoiceStore((state) => state.invoice);
-  const editingInvoiceId = useInvoiceStore((state) => state.editingInvoiceId);
   const openInvoiceHistory = useInvoiceStore((state) => state.openInvoiceHistory);
   const updateInvoice = useInvoiceStore((state) => state.updateInvoice);
+  const applyCountrySettings = useInvoiceStore((state) => state.applyCountrySettings);
 
   const [editing, setEditing] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -173,18 +172,7 @@ export default function InvoiceHeader() {
           <Label className="mb-1 block text-xs sm:mb-2 sm:text-sm">Country</Label>
           <Select
             value={invoice.country}
-            onValueChange={(value) => {
-              updateInvoice("country", value);
-              if (editingInvoiceId) return;
-              const s = useSettingsStore.getState();
-              const cs = s.byCountry[value] || {};
-              updateInvoice("companyPhone", cs.phoneNo || "");
-              updateInvoice("companyWebsite", cs.website || "");
-              updateInvoice("companyLocation", cs.location || "");
-              updateInvoice("signatureName", cs.signatureName || "");
-              updateInvoice("signatureTitle", cs.signatureTitle || "");
-              updateInvoice("thankYouText", cs.thankYouText || "");
-            }}
+            onValueChange={applyCountrySettings}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select Country" />
