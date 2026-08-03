@@ -23,6 +23,31 @@ import { useMemo } from "react";
 import { Loader2 } from "lucide-react";
 import { validateInvoice } from "@/vaidations/invoiceValidation";
 
+const validateAndNotify = (invoice, items, subtotal, setErrors) => {
+  const { isValid, errors } = validateInvoice(invoice, items, subtotal);
+
+  if (!isValid) {
+    setErrors(errors);
+    const messages = [];
+    for (const [key, val] of Object.entries(errors)) {
+      if (key === "itemErrors") {
+        for (const item of val) messages.push(...Object.values(item));
+      } else {
+        messages.push(val);
+      }
+    }
+    toast.error(
+      <div className="text-left">
+        {messages.map((msg, i) => (
+          <p key={i} className={i > 0 ? "mt-1" : ""}>{msg}</p>
+        ))}
+      </div>
+    );
+  }
+
+  return isValid;
+};
+
 export default function InvoiceSummary({ onPrint }) {
   const invoice = useInvoiceStore((state) => state.invoice);
 
@@ -33,6 +58,7 @@ export default function InvoiceSummary({ onPrint }) {
   const setErrors = useInvoiceStore((state) => state.setErrors);
   const processing = useInvoiceStore((state) => state.processing);
   const setProcessing = useInvoiceStore((state) => state.setProcessing);
+  const openInvoiceHistory = useInvoiceStore((state) => state.openInvoiceHistory);
 
   const { subtotal, itemDiscountsTotal, discountAmount, taxAmount, total, balanceDue } =
     useInvoiceTotals();
@@ -90,25 +116,7 @@ export default function InvoiceSummary({ onPrint }) {
         balanceDue,
       };
 
-      const { isValid, errors } = validateInvoice(invoiceToSave, items, subtotal);
-
-      if (!isValid) {
-        setErrors(errors);
-        const messages = [];
-        for (const [key, val] of Object.entries(errors)) {
-          if (key === "itemErrors") {
-            for (const item of val) messages.push(...Object.values(item));
-          } else {
-            messages.push(val);
-          }
-        }
-        toast.error(
-          <div className="text-left">
-            {messages.map((msg, i) => (
-              <p key={i} className={i > 0 ? "mt-1" : ""}>{msg}</p>
-            ))}
-          </div>
-        );
+      if (!validateAndNotify(invoiceToSave, items, subtotal, setErrors)) {
         return;
       }
 
@@ -140,11 +148,23 @@ export default function InvoiceSummary({ onPrint }) {
     }
   };
 
-  const handleSaveDraft = async () => {
+  const handleSaveDraft = async ({ newDraft = false } = {}) => {
+    if (newDraft && editingInvoiceId) return;
     try {
+      const current = useInvoiceStore.getState();
+      const draftInvoice = {
+        ...current.invoice,
+        isDraft: true,
+        ...(newDraft ? { draftType: "saved" } : {}),
+      };
+
+      if (!validateAndNotify(draftInvoice, current.items, subtotal, setErrors)) {
+        return;
+      }
+
       setProcessing({ title: "Saving Draft...", message: "Please wait while we save your draft." });
 
-      const result = await saveDocument(invoice, items);
+      const result = await saveDocument(draftInvoice, current.items);
 
       if (!result.success) {
         toast.error("Failed to save draft.");
@@ -152,6 +172,15 @@ export default function InvoiceSummary({ onPrint }) {
       }
 
       toast.success("Draft saved!");
+
+      if (newDraft) {
+        openInvoiceHistory();
+        resetInvoice();
+        setErrors({});
+        const nextCounter = draftInvoice.documentCounter + 1;
+        updateInvoice("documentCounter", nextCounter);
+        updateInvoice("documentNumber", String(nextCounter));
+      }
     } catch (error) {
       console.error(error);
       toast.error("An error occurred while saving the draft.");
@@ -162,6 +191,7 @@ export default function InvoiceSummary({ onPrint }) {
 
   const handleFinalizeDraft = async () => {
     updateInvoice("isDraft", false);
+    updateInvoice("draftType", null);
     await handlePrintInvoice();
   };
 
@@ -433,24 +463,37 @@ export default function InvoiceSummary({ onPrint }) {
             )}
           </div>
         ) : (
-          <Button className="w-full h-12" size="lg" onClick={handlePrintInvoice} disabled={!!processing}>
-            {processing ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : editingInvoiceId ? (
-              <>
-                <Printer className="mr-2 h-4 w-4" />
-                Update Invoice
-              </>
-            ) : (
-              <>
-                <Printer className="mr-2 h-4 w-4" />
-                Print {invoice.documentType}
-              </>
+          <>
+            <Button className="w-full h-12" size="lg" onClick={handlePrintInvoice} disabled={!!processing}>
+              {processing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : editingInvoiceId ? (
+                <>
+                  <Printer className="mr-2 h-4 w-4" />
+                  Update Invoice
+                </>
+              ) : (
+                <>
+                  <Printer className="mr-2 h-4 w-4" />
+                  Print {invoice.documentType}
+                </>
+              )}
+            </Button>
+            {!editingInvoiceId && (
+              <Button
+                variant="outline"
+                className="w-full h-12"
+                size="lg"
+                onClick={() => handleSaveDraft({ newDraft: true })}
+                disabled={!!processing}
+              >
+                Save Draft
+              </Button>
             )}
-          </Button>
+          </>
         )}
       </CardContent>
     </Card>

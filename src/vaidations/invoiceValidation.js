@@ -1,5 +1,7 @@
 // src/validations/invoiceValidation.js
 
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export const validateInvoice = (invoice = {}, items = [], subtotal = 0) => {
   const errors = {};
 
@@ -7,16 +9,28 @@ export const validateInvoice = (invoice = {}, items = [], subtotal = 0) => {
   // Customer Information
   // =====================
 
-  if (!invoice.customer?.trim()) {
-    errors.customer = "Customer is required.";
-  }
-
   if (invoice.customerEmail?.trim()) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
     if (!emailRegex.test(invoice.customerEmail)) {
       errors.customerEmail = "Invalid email address.";
     }
+  }
+
+  // =====================
+  // Business Information
+  // =====================
+
+  if (!invoice.businessName?.trim()) {
+    errors.businessName = "Business name is required.";
+  }
+
+  if (!invoice.businessEmail?.trim()) {
+    errors.businessEmail = "Business email is required.";
+  } else if (!emailRegex.test(invoice.businessEmail)) {
+    errors.businessEmail = "Invalid email address.";
+  }
+
+  if (!invoice.businessAddress?.trim()) {
+    errors.businessAddress = "Business address is required.";
   }
 
   // =====================

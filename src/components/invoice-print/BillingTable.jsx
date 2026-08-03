@@ -26,7 +26,7 @@ const BillingTable = ({ items = [], invoice = {} }) => {
         <Table>
           <TableHeader>
             <TableRow className="border-b-0 hover:bg-transparent">
-              <TableHead className="bg-[#0A4A95] py-4 text-left font-semibold text-white">
+              <TableHead className="bg-[#0A4A95] py-4 text-left font-semibold bg-gradient-to-r from-blue-950 to-blue-500 text-white">
                 Title
               </TableHead>
 

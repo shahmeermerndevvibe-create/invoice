@@ -5,6 +5,7 @@ import { formatInvoiceDate } from "@/utils/historyUtils";
 
 function InvoiceHistoryRow({ invoice, onPrint, onReview, onEdit, onCreateDraft }) {
   const [action, setAction] = useState(null);
+  const isSavedDraft = invoice.isDraft && invoice.draftType === "saved";
   console.log(invoice);
 
   const handlePrint = async (e) => {
@@ -90,18 +91,20 @@ function InvoiceHistoryRow({ invoice, onPrint, onReview, onEdit, onCreateDraft }
         <span className="mr-0.5 text-xs font-semibold text-gray-900 sm:mr-1 sm:text-sm">
           {invoice.currency?.symbol || ""} {formatCurrency(invoice.total)}
         </span>
-        <button
-          onClick={handleCreateDraft}
-          disabled={isLoading("draft")}
-          title="Create Draft"
-          className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition hover:bg-orange-50 hover:text-orange-600 sm:h-8 sm:w-8"
-        >
-          {isLoading("draft") ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin sm:h-4 sm:w-4" />
-          ) : (
-            <Copy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-          )}
-        </button>
+        {!isSavedDraft && (
+          <button
+            onClick={handleCreateDraft}
+            disabled={isLoading("draft")}
+            title="Create Draft"
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition hover:bg-orange-50 hover:text-orange-600 sm:h-8 sm:w-8"
+          >
+            {isLoading("draft") ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin sm:h-4 sm:w-4" />
+            ) : (
+              <Copy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            )}
+          </button>
+        )}
         <button
           onClick={handleEdit}
           disabled={isLoading("edit")}
@@ -127,18 +130,20 @@ function InvoiceHistoryRow({ invoice, onPrint, onReview, onEdit, onCreateDraft }
             <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           )}
         </button>
-        <button
-          onClick={handlePrint}
-          disabled={isLoading("print")}
-          title="Print"
-          className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition hover:bg-blue-50 hover:text-blue-600 disabled:opacity-50 sm:h-8 sm:w-8"
-        >
-          {isLoading("print") ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin sm:h-4 sm:w-4" />
-          ) : (
-            <Printer className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-          )}
-        </button>
+        {!isSavedDraft && (
+          <button
+            onClick={handlePrint}
+            disabled={isLoading("print")}
+            title="Print"
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition hover:bg-blue-50 hover:text-blue-600 disabled:opacity-50 sm:h-8 sm:w-8"
+          >
+            {isLoading("print") ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin sm:h-4 sm:w-4" />
+            ) : (
+              <Printer className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            )}
+          </button>
+        )}
       </div>
     </div>
   );

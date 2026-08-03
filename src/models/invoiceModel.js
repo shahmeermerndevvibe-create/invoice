@@ -9,6 +9,10 @@ export const invoiceModel = {
   customerEmail: "",
   billingAddress: "",
 
+  businessName: "",
+  businessEmail: "",
+  businessAddress: "",
+
   invoiceDate: "",
   dueDate: "",
 
@@ -42,4 +46,5 @@ export const invoiceModel = {
   contractType: "Fixed",
   milestoneNumber: 1,
   isDraft: false,
+  draftType: null,
 };

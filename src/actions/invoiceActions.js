@@ -93,6 +93,7 @@ export const fetchDocumentHistory = async ({
   dateTo = null,
   searchQuery = "",
   documentType = null,
+  draftType = null,
 }) => {
   try {
     const result = await invoiceService.getDocumentsPaginated({
@@ -104,6 +105,10 @@ export const fetchDocumentHistory = async ({
     });
 
     let { invoices } = result;
+
+    if (draftType) {
+      invoices = invoices.filter((inv) => inv.draftType === draftType);
+    }
 
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase();

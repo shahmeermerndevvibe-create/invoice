@@ -12,6 +12,7 @@ import {
 import { useInvoiceStore } from "@/store/invoiceStore";
 import { useInvoiceTotals } from "@/hooks/useInvoiceTotals";
 import { formatCurrency } from "@/utils/invoiceUtils";
+import { syncDueDateNote } from "@/utils/dueDateNotes";
 
 export default function CustomerSection() {
   const invoice = useInvoiceStore((state) => state.invoice);
@@ -39,6 +40,12 @@ export default function CustomerSection() {
     clearInvoiceSectionError(field);
   };
 
+  const handleDueDateChange = (value) => {
+    const current = useInvoiceStore.getState().invoice;
+    updateInvoice("dueDate", value);
+    updateInvoice("notes", syncDueDateNote(current.notes, value));
+  };
+
   const handleCurrencyChange = (code) => {
     const currencies = {
       PKR: {
@@ -63,45 +70,82 @@ export default function CustomerSection() {
       <div className="flex flex-col gap-6 rounded-xl p-6 lg:flex-row lg:items-start">
         {/* Left */}
         <div className="flex flex-1 flex-col gap-5">
-          {/* Customer & Email */}
+          {/* Customer & Business */}
           <div className="flex flex-wrap gap-4">
-            <div className="w-full md:w-72">
-              <Label className="mb-2 block">
-                Customer <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                placeholder="Customer Name"
-                required
-                value={invoice.customer}
-                onChange={(e) => handleChange("customer", e.target.value)}
-              />
-              {errors.customer && (
-                <p className="mt-1 text-sm text-red-500">{errors.customer}</p>
-              )}
+
+            {/* Business */}
+            <div className="flex min-w-0 flex-1 flex-col gap-4">
+              <div>
+                <Label className="mb-2 block">
+                  Business Name <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  placeholder="Business Name"
+                  required
+                  value={invoice.businessName}
+                  onChange={(e) => handleChange("businessName", e.target.value)}
+                  className={`${errors.businessName ? "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20" : ""}`}
+                />
+                {errors.businessName && (
+                  <p className="mt-1 text-sm text-red-500">{errors.businessName}</p>
+                )}
+              </div>
+
+              <div>
+                <Label className="mb-2 block">
+                  Business Email <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  placeholder="business@example.com"
+                  required
+                  value={invoice.businessEmail}
+                  onChange={(e) => handleChange("businessEmail", e.target.value)}
+                  className={`${errors.businessEmail ? "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20" : ""}`}
+                />
+                {errors.businessEmail && (
+                  <p className="mt-1 text-sm text-red-500">{errors.businessEmail}</p>
+                )}
+              </div>
+
+              <div>
+                <Label className="mb-2 block">
+                  Business Address <span className="text-red-500">*</span>
+                </Label>
+
+                <Textarea
+                  placeholder="Street, City, State, ZIP Code, Country"
+                  className={`min-h-24 resize-none ${errors.businessAddress ? "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20" : ""}`}
+                  required
+                  value={invoice.businessAddress}
+                  onChange={(e) => handleChange("businessAddress", e.target.value)}
+                />
+                {errors.businessAddress && (
+                  <p className="mt-1 text-sm text-red-500">{errors.businessAddress}</p>
+                )}
+              </div>
             </div>
 
-            <div className="w-full md:flex-1">
-              <Label className="mb-2 block">Customer Email</Label>
+             <div className="flex min-w-0 flex-1 flex-col gap-4">
+              <div>
+                <Label className="mb-2 block">Business Person Name</Label>
+                <Input
+                  placeholder="Customer Name"
+                  value={invoice.customer}
+                  onChange={(e) => handleChange("customer", e.target.value)}
+                />
+              </div>
 
-              <Input
-                placeholder="customer@example.com"
-                value={invoice.customerEmail}
-                onChange={(e) => handleChange("customerEmail", e.target.value)}
-              />
+              <div>
+                <Label className="mb-2 block">Business Person Email</Label>
+
+                <Input
+                  placeholder="customer@example.com"
+                  value={invoice.customerEmail}
+                  onChange={(e) => handleChange("customerEmail", e.target.value)}
+                />
+              </div>
+
             </div>
-          </div>
-
-          {/* Customer Address */}
-
-          <div>
-            <Label className="mb-2 block">Customer Address</Label>
-
-            <Textarea
-              placeholder="Street, City, State, ZIP Code, Country"
-              className="min-h-24 resize-none"
-              value={invoice.billingAddress}
-              onChange={(e) => handleChange("billingAddress", e.target.value)}
-            />
           </div>
 
           {/* Terms & Dates */}
@@ -145,6 +189,7 @@ export default function CustomerSection() {
                 value={invoice.invoiceDate}
                 required
                 onChange={(e) => handleChange("invoiceDate", e.target.value)}
+                className={`${errors.invoiceDate ? "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20" : ""}`}
               />
               {errors.invoiceDate && (
                 <p className="mt-1 text-sm text-red-500">
@@ -161,7 +206,7 @@ export default function CustomerSection() {
                 value={invoice.dueDate}
                 min={invoice.invoiceDate || undefined}
                 disabled={!invoice.invoiceDate}
-                onChange={(e) => handleChange("dueDate", e.target.value)}
+                onChange={(e) => handleDueDateChange(e.target.value)}
               />
             </div>
 
@@ -215,12 +260,12 @@ export default function CustomerSection() {
                     updateInvoice("discount", 0);
                   }}
                 >
-                  <SelectTrigger className="w-28">
+                  <SelectTrigger className="w-32">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="percent">%</SelectItem>
-                    <SelectItem value="fixed">{invoice.currency.code}</SelectItem>
+                    <SelectItem value="percent">Percentage</SelectItem>
+                    <SelectItem value="fixed">Fixed</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

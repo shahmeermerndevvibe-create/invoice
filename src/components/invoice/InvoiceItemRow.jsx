@@ -73,7 +73,8 @@ export default function InvoiceItemRow({ index, item, dragIndex, onDragStart, on
           placeholder="Title"
           value={item.product}
           onChange={(e) => handleChange("product", e.target.value)}
-          className="w-full resize-y rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-700 placeholder:text-gray-400 outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+          className={`w-full resize-y rounded-md border bg-white p-2 text-sm text-gray-700 placeholder:text-gray-400 outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
+            ${itemErrors.product ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : "border-gray-200"}`}
         />
         {itemErrors.product && (
           <p className="mt-1 text-xs text-red-500">{itemErrors.product}</p>
@@ -162,42 +163,36 @@ export default function InvoiceItemRow({ index, item, dragIndex, onDragStart, on
 
       {/* Discount */}
       <td className={`${tdClass} min-w-[100px]`}>
-        <div className="flex flex-col gap-1">
-          <Input
-            type="number"
-            min={0}
-            max={9999999}
-            placeholder="0"
-            value={item.discount === "" ? "" : item.discount}
-            onChange={(e) => {
-              const value = e.target.value;
-              if (value === "") {
-                handleChange("discount", "");
-                return;
-              }
-              let num = Number(value);
-              if (num < 0) num = 0;
-              if (item.discountType === "percent") {
-                num = Math.min(num, 100);
-              } else {
-                const lineTotal = Number(item.qty || 0) * Number(item.rate || 0);
-                num = Math.min(num, Math.max(0, lineTotal));
-              }
-              handleChange("discount", num);
-            }}
-            className={`h-8 w-full rounded-md border bg-white text-right shadow-sm transition-colors
-              focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/20
-              ${itemErrors.discount ? "border-red-500" : "border-gray-200 hover:border-gray-300"}`}
-          />
-          <select
-            value={item.discountType}
-            onChange={(e) => handleChange("discountType", e.target.value)}
-            className="h-7 w-full rounded-md border border-gray-200 bg-white px-1 text-xs shadow-sm outline-none hover:border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-          >
-            <option value="percent">%</option>
-            <option value="fixed">{invoice.currency.code}</option>
-          </select>
-        </div>
+        <Input
+          type="number"
+          min={0}
+          max={9999999}
+          placeholder="0"
+          value={item.discount === "" ? "" : item.discount}
+          onChange={(e) => {
+            const value = e.target.value;
+            if (value === "") {
+              handleChange("discount", "");
+              handleChange("discountType", invoice.discountType);
+              return;
+            }
+            let num = Number(value);
+            if (num < 0) num = 0;
+            const lineTotal = Number(item.qty || 0) * Number(item.rate || 0);
+            if (lineTotal === 0) {
+              num = 0;
+            } else if (invoice.discountType === "percent") {
+              num = Math.min(num, 100);
+            } else {
+              num = Math.min(num, lineTotal);
+            }
+            handleChange("discount", num);
+            handleChange("discountType", invoice.discountType);
+          }}
+          className={`h-9 w-full rounded-md border bg-white text-right shadow-sm transition-colors
+            focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/20
+            ${itemErrors.discount ? "border-red-500" : "border-gray-200 hover:border-gray-300"}`}
+        />
         {itemErrors.discount && (
           <p className="mt-1 text-xs text-red-500">{itemErrors.discount}</p>
         )}
@@ -232,7 +227,7 @@ export default function InvoiceItemRow({ index, item, dragIndex, onDragStart, on
         </td>
       )}
 
-      {/* Total */}
+      {/* Amount */}
       <td className={`${tdClass} min-w-[170px]`}>
         <div className="flex h-9 items-center justify-end rounded-md border border-gray-200 bg-gray-50 px-3 font-semibold text-gray-900 shadow-sm">
           {formatCurrency(netTotal)}

@@ -4,9 +4,16 @@ export default function BillingInfo({ invoice = {} }) {
   return (
     <section className="px-8 py-6 md:px-14">
       <div className="flex justify-between items-start">
+        
         <div>
-          <h4 className="mb-2 text-sm font-bold uppercase tracking-[3px] text-black">
-            Invoice To
+             <h3 className="text-sm font-bold uppercase tracking-widest text-slate-800">
+            Date:
+            <span className="ml-2 font-bold pb-15 text-sm normal-case">
+              {formatFirestoreDate(invoice.createdAt)}
+            </span>
+          </h3>
+          <h4 className="mt-8 text-sm font-bold uppercase tracking-[3px] text-black">
+            Invoice To:
           </h4>
 
           <h2 className="mb-2 text-4xl font-bold text-slate-900">
@@ -14,23 +21,38 @@ export default function BillingInfo({ invoice = {} }) {
           </h2>
 
           <p className="mb-2 text-black font-bold">
-            <span className="font-semibold">Phone:</span> {invoice.phoneNo}
+            {invoice.customerEmail}
           </p>
 
-          <p className="text-black font-bold">
-            <span className="font-semibold">Address:</span>{" "}
+          <p className="mb-2 text-black font-medium">
+            <span className="font-bold">Phone:</span> {invoice.phoneNo}
+          </p>
+
+          <p className="mb-2 text-black font-medium">
+            <span className="font-bold">Address:</span>{" "}
             {invoice.billingAddress}
+          </p>
+
+          <h4 className="mb-2 mt-6 text-sm font-bold uppercase tracking-[3px] text-black">
+            Business:
+          </h4>
+
+          <h2 className="mb-2 text-4xl font-bold text-slate-900">
+            {invoice.businessName || ""}
+          </h2>
+
+          <p className="mb-2 text-black font-bold">
+            {invoice.businessEmail}
+          </p>
+
+          <p className="text-black font-medium">
+            <span className="font-bold">Address:</span>{" "}
+            {invoice.businessAddress}
           </p>
         </div>
 
         {/* Right */}
         <div className="text-right">
-          <h3 className="text-sm font-bold uppercase tracking-widest text-slate-800">
-            Date:
-            <span className="ml-2 font-medium normal-case">
-              {formatFirestoreDate(invoice.createdAt)}
-            </span>
-          </h3>
 
           {invoice.payment ? (
             <div className="mt-6 max-w-[380px]">

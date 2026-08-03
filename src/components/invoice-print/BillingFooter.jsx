@@ -1,6 +1,6 @@
 import { Globe, MapPin, Phone } from "lucide-react";
 
-export default function BillingFooter({ hideContact, invoice = {} }) {
+export default function BillingFooter({ hideContact, hideThankYou, invoice = {} }) {
   const phoneNo = invoice.companyPhone || "";
   const website = invoice.companyWebsite || "";
   const location = invoice.companyLocation || "";
@@ -52,11 +52,13 @@ export default function BillingFooter({ hideContact, invoice = {} }) {
         )}
 
         {/* Thank You Text */}
-        <div className="absolute bottom-0 left-50 -translate-x-1/2 z-20">
-          <h2 className="text-xl font-black uppercase whitespace-nowrap">
-            <span className="text-slate-900 pr-2">{thankYouText}</span>
-          </h2>
-        </div>
+        {!hideThankYou && (
+          <div className="absolute bottom-0 left-50 -translate-x-1/2 z-20">
+            <h2 className="text-xl font-black uppercase whitespace-nowrap">
+              <span className="text-slate-900 pr-2">{thankYouText}</span>
+            </h2>
+          </div>
+        )}
       </div>
 
       <img src="/InvoiceFooter.svg" alt="" className="absolute bottom-0 left-1 w-full h-auto max-h-[120px] object-contain" />

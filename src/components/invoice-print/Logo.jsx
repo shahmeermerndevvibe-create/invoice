@@ -17,7 +17,7 @@ export default function Logo({ invoice }) {
 
   return (
     <div className="flex flex-col">
-      <svg
+      {/* <svg
         className="w-36 h-auto"
         viewBox="0 0 160 80"
         fill="none"
@@ -50,9 +50,15 @@ export default function Logo({ invoice }) {
             <stop offset="1" stopColor="#0A4A95" />
           </linearGradient>
         </defs>
-      </svg>
+      </svg> */}
 
-      <p className="mt-3 text-sm font-semibold tracking-wide text-black">
+      <img 
+      src="/devvibe.png"
+      alt="Logo"
+      className="w-36 h-auto"
+      />
+
+      <p className="mt-1 text-sm font-bold tracking-wide text-black">
         {label}: <span className="font-medium text-slate-600">{number}</span>
       </p>
     </div>

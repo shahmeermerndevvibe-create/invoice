@@ -29,6 +29,7 @@ export default function InvoiceHistoryPanel() {
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
   const [documentType, setDocumentType] = useState("");
+  const [draftFilter, setDraftFilter] = useState("");
   const [printData, setPrintData] = useState(null);
   const [reviewData, setReviewData] = useState(null);
 
@@ -55,6 +56,7 @@ export default function InvoiceHistoryPanel() {
         dateFrom: range.dateFrom, dateTo: range.dateTo,
         searchQuery: search,
         documentType: documentType || null,
+        draftType: draftFilter || null,
       });
 
       if (id !== version.current) return;
@@ -72,7 +74,7 @@ export default function InvoiceHistoryPanel() {
     } finally {
       if (id === version.current) setLoading(false);
     }
-  }, [preset, customFrom, customTo, search, documentType]);
+  }, [preset, customFrom, customTo, search, documentType, draftFilter]);
 
   const resetAndFetch = useCallback(() => {
     page.current = 0;
@@ -104,6 +106,7 @@ export default function InvoiceHistoryPanel() {
       setInvoices([]); setSearch(""); setPreset("");
       setCustomFrom(""); setCustomTo(""); setError(null);
       setHasMore(false); setCanGoPrev(false); setDocumentType("");
+      setDraftFilter("");
     });
     cursors.current = [null]; page.current = 0;
   }, [isOpen]);
@@ -134,6 +137,11 @@ export default function InvoiceHistoryPanel() {
 
   const handleTypeChange = (e) => {
     setDocumentType(e.target.value);
+    resetAndFetch();
+  };
+
+  const handleDraftFilterChange = (e) => {
+    setDraftFilter(e.target.value);
     resetAndFetch();
   };
 
@@ -183,7 +191,7 @@ export default function InvoiceHistoryPanel() {
         return;
       }
 
-      const cleanInvoice = { ...result.invoice, isDraft: true };
+      const cleanInvoice = { ...result.invoice, isDraft: true, draftType: "copy" };
       delete cleanInvoice.id;
       delete cleanInvoice.createdAt;
       delete cleanInvoice.updatedAt;
@@ -244,10 +252,12 @@ export default function InvoiceHistoryPanel() {
             customFrom={customFrom}
             customTo={customTo}
             documentType={documentType}
+            draftFilter={draftFilter}
             onSearchChange={handleSearchChange}
             onPresetChange={handlePresetChange}
             onCustomDateChange={handleCustomDateChange}
             onTypeChange={handleTypeChange}
+            onDraftFilterChange={handleDraftFilterChange}
           />
 
           <div className="flex-1 overflow-y-auto px-3 py-3 sm:px-6">

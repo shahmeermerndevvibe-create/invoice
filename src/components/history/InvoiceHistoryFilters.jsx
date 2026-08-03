@@ -14,16 +14,23 @@ const TYPE_OPTIONS = [
   { label: "Quotations", value: "Quotation" },
 ];
 
+const DRAFT_OPTIONS = [
+  { label: "All", value: "" },
+  { label: "Saved Drafts", value: "saved" },
+];
+
 export default function InvoiceHistoryFilters({
   search,
   preset,
   customFrom,
   customTo,
   documentType,
+  draftFilter,
   onSearchChange,
   onPresetChange,
   onCustomDateChange,
   onTypeChange,
+  onDraftFilterChange,
 }) {
   return (
     <div className="flex flex-col gap-2 border-b px-3 py-3 sm:flex-row sm:items-center sm:gap-3 sm:px-6">
@@ -44,6 +51,15 @@ export default function InvoiceHistoryFilters({
           className="rounded-lg border border-gray-300 bg-white px-2 py-2 text-xs text-gray-700 transition focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:px-3 sm:text-sm"
         >
           {TYPE_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+        <select
+          value={draftFilter}
+          onChange={onDraftFilterChange}
+          className="rounded-lg border border-gray-300 bg-white px-2 py-2 text-xs text-gray-700 transition focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:px-3 sm:text-sm"
+        >
+          {DRAFT_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>

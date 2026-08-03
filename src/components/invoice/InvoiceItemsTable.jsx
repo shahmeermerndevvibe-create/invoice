@@ -52,7 +52,8 @@ function MobileItemCard({ index, item, invoice }) {
         placeholder="Title"
         value={item.product}
         onChange={(e) => handleChange("product", e.target.value)}
-        className="w-full resize-y rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-700 placeholder:text-gray-400 outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+        className={`w-full resize-y rounded-md border bg-white p-2 text-sm text-gray-700 placeholder:text-gray-400 outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
+          ${itemErrors.product ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : "border-gray-200"}`}
       />
       {itemErrors.product && <p className="text-xs text-red-500">{itemErrors.product}</p>}
 
@@ -78,7 +79,7 @@ function MobileItemCard({ index, item, invoice }) {
               const value = e.target.value;
               handleChange("qty", value === "" ? 1 : Math.min(9999999, Number(value)));
             }}
-            className="h-9 text-right"
+            className={`h-9 text-right ${itemErrors.qty ? "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20" : ""}`}
           />
         </div>
         <div className="flex-1">
@@ -91,7 +92,9 @@ function MobileItemCard({ index, item, invoice }) {
           />
         </div>
         <div className="flex-1">
-          <label className="mb-1 block text-xs font-medium text-gray-500">Rate</label>
+          <label className="mb-1 block text-xs font-medium text-gray-500">
+            Rate ({invoice.currency.code})
+          </label>
           <Input
             type="number"
             min={1}
@@ -102,47 +105,41 @@ function MobileItemCard({ index, item, invoice }) {
               const value = e.target.value;
               handleChange("rate", value === "" ? 0 : Math.min(9999999, Number(value)));
             }}
-            className="h-9 text-right"
+            className={`h-9 text-right ${itemErrors.rate ? "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20" : ""}`}
           />
         </div>
         <div className="flex-1">
           <label className="mb-1 block text-xs font-medium text-gray-500">Discount</label>
-          <div className="flex flex-col gap-1">
-            <Input
-              type="number"
-              min={0}
-              placeholder="0"
-              value={item.discount === "" ? "" : item.discount}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (value === "") {
-                  handleChange("discount", "");
-                  return;
-                }
+          <Input
+            type="number"
+            min={0}
+            placeholder="0"
+            value={item.discount === "" ? "" : item.discount}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value === "") {
+                handleChange("discount", "");
+                handleChange("discountType", invoice.discountType);
+                return;
+              }
                 let num = Number(value);
                 if (num < 0) num = 0;
-                if (item.discountType === "percent") {
+                const lineTotal = Number(item.qty || 0) * Number(item.rate || 0);
+                if (lineTotal === 0) {
+                  num = 0;
+                } else if (invoice.discountType === "percent") {
                   num = Math.min(num, 100);
                 } else {
-                  const lineTotal = Number(item.qty || 0) * Number(item.rate || 0);
-                  num = Math.min(num, Math.max(0, lineTotal));
+                  num = Math.min(num, lineTotal);
                 }
                 handleChange("discount", num);
-              }}
-              className="h-8 w-full text-right"
-            />
-            <select
-              value={item.discountType}
-              onChange={(e) => handleChange("discountType", e.target.value)}
-              className="h-7 w-full rounded-md border border-gray-200 bg-white px-1 text-xs shadow-sm outline-none"
-            >
-              <option value="percent">%</option>
-              <option value="fixed">{invoice.currency.code}</option>
-            </select>
-          </div>
+                handleChange("discountType", invoice.discountType);
+            }}
+            className={`h-9 w-full text-right ${itemErrors.discount ? "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20" : ""}`}
+          />
         </div>
         <div className="flex-1">
-          <label className="mb-1 block text-xs font-medium text-gray-500">Total</label>
+          <label className="mb-1 block text-xs font-medium text-gray-500">Amount</label>
           <div className="flex h-9 items-center justify-end rounded-md border border-gray-200 bg-gray-50 px-3 text-sm font-semibold text-gray-900">
             {formatCurrency(netTotal)}
           </div>
@@ -233,12 +230,12 @@ export default function InvoiceItemsTable({ onPrint }) {
               <th className={`${thClass} w-84`}>Description</th>
               <th className={`${thClass} w-30 text-right`}>Qty</th>
               <th className={`${thClass} w-30 text-right`}>Unit</th>
-              <th className={`${thClass} w-30 text-right`}>Rate</th>
+              <th className={`${thClass} w-30 text-right`}>Rate ({invoice.currency.code})</th>
               <th className={`${thClass} w-30 text-right`}>Discount</th>
               {invoice.contractType === "Milestones" && (
                 <th className={`${thClass} w-36 text-center`}>Status</th>
               )}
-              <th className={`${thClass} text-right w-45`}>Total</th>
+              <th className={`${thClass} text-right w-45`}>Amount</th>
               <th className={thClass}></th>
             </tr>
           </thead>
