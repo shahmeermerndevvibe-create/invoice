@@ -21,7 +21,7 @@ export default function ReviewModalHeader({ invoice, onClose }) {
       </div>
       <button
         onClick={onClose}
-        className="rounded-lg p-1.5 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
+        className="cursor-pointer rounded-lg p-1.5 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
       >
         <X className="h-5 w-5" />
       </button>

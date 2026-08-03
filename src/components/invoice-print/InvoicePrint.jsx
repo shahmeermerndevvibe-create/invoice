@@ -298,7 +298,7 @@ const BillingTableSection = ({
         </div>
       )}
       <div className="absolute bottom-0 left-0 w-full">
-        <BillingFooter hideContact={isFirstPage && !isLastPage} hideThankYou={!isLastPage} invoice={invoice} />
+        <BillingFooter isLastPage={isLastPage} invoice={invoice} />
       </div>
     </div>
   );

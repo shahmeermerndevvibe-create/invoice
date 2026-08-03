@@ -12,7 +12,7 @@ import {
 import { useInvoiceStore } from "@/store/invoiceStore";
 import { useInvoiceTotals } from "@/hooks/useInvoiceTotals";
 import { formatCurrency } from "@/utils/invoiceUtils";
-import { syncDueDateNote } from "@/utils/dueDateNotes";
+import { syncInvoiceDateNote } from "@/utils/invoiceDateNotes";
 
 export default function CustomerSection() {
   const invoice = useInvoiceStore((state) => state.invoice);
@@ -40,10 +40,10 @@ export default function CustomerSection() {
     clearInvoiceSectionError(field);
   };
 
-  const handleDueDateChange = (value) => {
+  const handleInvoiceDateChange = (value) => {
     const current = useInvoiceStore.getState().invoice;
-    updateInvoice("dueDate", value);
-    updateInvoice("notes", syncDueDateNote(current.notes, value));
+    updateInvoice("invoiceDate", value);
+    updateInvoice("notes", syncInvoiceDateNote(current.notes, value));
   };
 
   const handleCurrencyChange = (code) => {
@@ -72,7 +72,6 @@ export default function CustomerSection() {
         <div className="flex flex-1 flex-col gap-5">
           {/* Customer & Business */}
           <div className="flex flex-wrap gap-4">
-
             {/* Business */}
             <div className="flex min-w-0 flex-1 flex-col gap-4">
               <div>
@@ -87,7 +86,9 @@ export default function CustomerSection() {
                   className={`${errors.businessName ? "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20" : ""}`}
                 />
                 {errors.businessName && (
-                  <p className="mt-1 text-sm text-red-500">{errors.businessName}</p>
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.businessName}
+                  </p>
                 )}
               </div>
 
@@ -99,11 +100,15 @@ export default function CustomerSection() {
                   placeholder="business@example.com"
                   required
                   value={invoice.businessEmail}
-                  onChange={(e) => handleChange("businessEmail", e.target.value)}
+                  onChange={(e) =>
+                    handleChange("businessEmail", e.target.value)
+                  }
                   className={`${errors.businessEmail ? "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20" : ""}`}
                 />
                 {errors.businessEmail && (
-                  <p className="mt-1 text-sm text-red-500">{errors.businessEmail}</p>
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.businessEmail}
+                  </p>
                 )}
               </div>
 
@@ -117,19 +122,23 @@ export default function CustomerSection() {
                   className={`min-h-24 resize-none ${errors.businessAddress ? "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20" : ""}`}
                   required
                   value={invoice.businessAddress}
-                  onChange={(e) => handleChange("businessAddress", e.target.value)}
+                  onChange={(e) =>
+                    handleChange("businessAddress", e.target.value)
+                  }
                 />
                 {errors.businessAddress && (
-                  <p className="mt-1 text-sm text-red-500">{errors.businessAddress}</p>
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.businessAddress}
+                  </p>
                 )}
               </div>
             </div>
 
-             <div className="flex min-w-0 flex-1 flex-col gap-4">
+            <div className="flex min-w-0 flex-1 flex-col gap-4">
               <div>
                 <Label className="mb-2 block">Business Person Name</Label>
                 <Input
-                  placeholder="Customer Name"
+                  placeholder="Business Person Name"
                   value={invoice.customer}
                   onChange={(e) => handleChange("customer", e.target.value)}
                 />
@@ -139,12 +148,13 @@ export default function CustomerSection() {
                 <Label className="mb-2 block">Business Person Email</Label>
 
                 <Input
-                  placeholder="customer@example.com"
+                  placeholder="business@example.com"
                   value={invoice.customerEmail}
-                  onChange={(e) => handleChange("customerEmail", e.target.value)}
+                  onChange={(e) =>
+                    handleChange("customerEmail", e.target.value)
+                  }
                 />
               </div>
-
             </div>
           </div>
 
@@ -188,7 +198,7 @@ export default function CustomerSection() {
                 type="date"
                 value={invoice.invoiceDate}
                 required
-                onChange={(e) => handleChange("invoiceDate", e.target.value)}
+                onChange={(e) => handleInvoiceDateChange(e.target.value)}
                 className={`${errors.invoiceDate ? "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20" : ""}`}
               />
               {errors.invoiceDate && (
@@ -206,7 +216,7 @@ export default function CustomerSection() {
                 value={invoice.dueDate}
                 min={invoice.invoiceDate || undefined}
                 disabled={!invoice.invoiceDate}
-                onChange={(e) => handleDueDateChange(e.target.value)}
+                onChange={(e) => handleChange("dueDate", e.target.value)}
               />
             </div>
 

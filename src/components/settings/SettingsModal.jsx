@@ -75,7 +75,7 @@ export default function SettingsModal({ onClose }) {
           <h2 className="text-lg font-semibold text-gray-900">Settings</h2>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
+            className="cursor-pointer rounded-lg p-1.5 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
           >
             <X className="h-5 w-5" />
           </button>

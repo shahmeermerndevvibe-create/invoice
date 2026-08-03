@@ -241,7 +241,7 @@ export default function InvoiceHistoryPanel() {
         >
           <div className="flex items-center justify-between border-b px-3 py-3 sm:px-6">
             <h2 className="text-base font-semibold text-gray-900 sm:text-lg">Document History</h2>
-            <button onClick={close} className="rounded-lg p-1.5 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700">
+            <button onClick={close} className="cursor-pointer rounded-lg p-1.5 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700">
               <X className="h-5 w-5" />
             </button>
           </div>
@@ -280,14 +280,14 @@ export default function InvoiceHistoryPanel() {
               <button
                 onClick={() => { page.current--; fetchData(); }}
                 disabled={!canGoPrev || loading}
-                className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium text-gray-600 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 sm:px-3 sm:text-sm"
+                className="flex cursor-pointer items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium text-gray-600 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 sm:px-3 sm:text-sm"
               >
                 <ChevronLeft className="h-4 w-4" /> <span className="hidden sm:inline">Previous</span>
               </button>
               <button
                 onClick={() => { page.current++; fetchData(); }}
                 disabled={!hasMore || loading}
-                className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium text-gray-600 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 sm:px-3 sm:text-sm"
+                className="flex cursor-pointer items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium text-gray-600 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 sm:px-3 sm:text-sm"
               >
                 <span className="hidden sm:inline">Next</span> <ChevronRight className="h-4 w-4" />
               </button>

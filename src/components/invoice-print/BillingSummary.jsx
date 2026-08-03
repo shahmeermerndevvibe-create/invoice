@@ -91,10 +91,10 @@ export default function BillingSummary({
           }
         >
           {invoice.contractType === "Milestones" ? (
-            <div className="ml-auto max-w-[280px] space-y-0.5 text-sm">
+            <div className="ml-auto max-w-[280px] space-y-2 pb-4 text-sm">
 
-              <div className="flex justify-between">
-                <span>Total Contract Value</span>
+              <div className="flex justify-between gap-3">
+                <span className="font-bold">Total Contract Value</span>
                 <span className="tabular-nums font-medium">
                   <span className="text-xs mr-0.5">
                     {invoice.currency.symbol}
@@ -104,8 +104,8 @@ export default function BillingSummary({
               </div>
 
               {Number(itemDiscountsTotal) > 0 && (
-                <div className="flex justify-between">
-                  <span>Item Discounts</span>
+                <div className="flex justify-between gap-3">
+                  <span className="font-bold">Item Discounts</span>
                   <span className="tabular-nums">
                     −
                     <span className="text-xs mr-0.5">
@@ -117,8 +117,8 @@ export default function BillingSummary({
               )}
 
               {Number(discountAmount) > 0 && (
-                <div className="flex justify-between">
-                  <span>Invoice Discount ({discountLabel})</span>
+                <div className="flex justify-between gap-3">
+                  <span className="font-bold">Invoice Discount ({discountLabel})</span>
                   <span className="tabular-nums">
                     −
                     <span className="text-xs mr-0.5">
@@ -130,8 +130,8 @@ export default function BillingSummary({
               )}
 
               {Number(taxAmount) > 0 && (
-                <div className="flex justify-between">
-                  <span>Tax ({taxLabel})</span>
+                <div className="flex justify-between gap-3">
+                  <span className="font-bold">Tax ({taxLabel})</span>
                   <span className="tabular-nums">
                     +
                     <span className="text-xs mr-0.5">
@@ -144,7 +144,7 @@ export default function BillingSummary({
 
               {/* <div className="border-t border-black my-1" /> */}
 
-              <div className="flex justify-between font-bold text-gray-900">
+              <div className="flex justify-between gap-3 font-bold text-gray-900">
                 <span>Net Contract Value</span>
                 <span className="tabular-nums">
                   <span className="text-xs mr-0.5">
@@ -170,7 +170,7 @@ export default function BillingSummary({
                 </div>
               </div>
 
-              <div className="flex justify-between text-xs text-slate-500">
+              <div className="flex justify-between gap-3 text-xs text-slate-500">
                 <span>Remaining to be paid</span>
                 <span className="tabular-nums">
                   <span className="text-xs mr-0.5">

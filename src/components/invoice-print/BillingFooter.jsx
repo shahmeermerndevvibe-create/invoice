@@ -1,6 +1,6 @@
 import { Globe, MapPin, Phone } from "lucide-react";
 
-export default function BillingFooter({ hideContact, hideThankYou, invoice = {} }) {
+export default function BillingFooter({ isLastPage = true, invoice = {} }) {
   const phoneNo = invoice.companyPhone || "";
   const website = invoice.companyWebsite || "";
   const location = invoice.companyLocation || "";
@@ -11,9 +11,8 @@ export default function BillingFooter({ hideContact, hideThankYou, invoice = {} 
   return (
     <footer className="print-footer relative">
       <div className="px-8 pb-16 pt-4 md:px-14 relative z-10" style={{ bottom: "60px" }}>
-        {!hideContact && (
-        <div className="flex items-center justify-between text-xs mb-8">
-          {/* Contact Items */}
+        {/* Contact Items — every page */}
+        <div className={`flex items-center text-xs mb-8 ${isLastPage ? "justify-between" : "justify-center"}`}>
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
               <div className="rounded-full bg-[#173C8C] p-1 text-white">
@@ -37,22 +36,23 @@ export default function BillingFooter({ hideContact, hideThankYou, invoice = {} 
             </div>
           </div>
 
-          {/* Signature */}
-          <div className="w-48 text-center">
-            <div className="border-t-[1.5px] border-slate-300 pt-2">
-              <h3 className="font-bold text-slate-900 text-sm">
-                {signatureName}
-              </h3>
-              <p className="text-[10px] font-semibold text-slate-600">
-                {signatureTitle}
-              </p>
+          {/* Signature — last page only */}
+          {isLastPage && (
+            <div className="w-48 text-center">
+              <div className="border-t-[1.5px] border-slate-300 pt-2">
+                <h3 className="font-bold text-slate-900 text-sm">
+                  {signatureName}
+                </h3>
+                <p className="text-[10px] font-semibold text-slate-600">
+                  {signatureTitle}
+                </p>
+              </div>
             </div>
-          </div>
+          )}
         </div>
-        )}
 
-        {/* Thank You Text */}
-        {!hideThankYou && (
+        {/* Thank You Text — last page only */}
+        {isLastPage && (
           <div className="absolute bottom-0 left-50 -translate-x-1/2 z-20">
             <h2 className="text-xl font-black uppercase whitespace-nowrap">
               <span className="text-slate-900 pr-2">{thankYouText}</span>
