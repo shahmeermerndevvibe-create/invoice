@@ -291,7 +291,7 @@ const BillingTableSection = ({
       )}
 
       {totalPages > 1 && (
-        <div className="absolute -bottom-7 left-9 pb-16 z-30">
+        <div className="absolute bottom-1 left-5 z-30">
           <span className="text-xs text-black font-semibold">
             Page {pageNumber} of {totalPages}
           </span>

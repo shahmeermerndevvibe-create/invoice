@@ -142,7 +142,7 @@ export default function BillingInfo({ invoice = {} }) {
         </span>
       </h3>
 
-      <div className="mt-8 flex items-start justify-between gap-8">
+      <div className="mt-4 flex items-start justify-between gap-8">
         <div
           ref={leftRef}
           className="flex min-w-0 flex-1 flex-col"
@@ -154,19 +154,19 @@ export default function BillingInfo({ invoice = {} }) {
               Invoice To:
             </h4>
 
-            <h2 data-mb-gap data-lh className="mb-2 text-3xl font-bold text-slate-900">
+            <h2 data-mb-gap data-lh className="mb-0.5 text-xl font-bold text-slate-900">
               {invoice.businessName || ""}
             </h2>
 
-            <p data-mb-gap data-lh className="mb-2 text-black font-semibold">
+            <p data-mb-gap data-lh className="mb-0.5 text-xs text-black font-semibold">
               {invoice.businessEmail}
             </p>
 
-            <p data-mb-gap data-lh className="mb-2 text-black font-medium">
+            <p data-mb-gap data-lh className="mb-0.5 text-xs text-black font-medium">
               <span className="font-bold">Phone:</span> {invoice.phoneNo}
             </p>
 
-            <p data-mb-gap data-lh className="mb-2 text-black font-medium">
+            <p data-mb-gap data-lh className="mb-0.5 text-xs text-black font-medium">
               <span className="font-bold">Address:</span>{" "}
               {invoice.businessAddress}
             </p>
@@ -175,16 +175,16 @@ export default function BillingInfo({ invoice = {} }) {
           <div>
             <h4
               data-sec-gap
-              className="mb-2 mt-3 text-sm font-bold uppercase tracking-[3px] text-black"
+              className="mt-3 text-sm font-bold uppercase tracking-[3px] text-black"
             >
-              Business:
+              Contact Person:
             </h4>
 
-            <h2 data-mb-gap data-lh className="mb-2 text-3xl font-bold text-slate-900">
+            <h2 data-mb-gap data-lh className="mb-0.5 text-xl font-bold text-slate-900">
               {invoice.customer || ""}
             </h2>
 
-            <p data-mb-gap data-lh className="mb-2 text-black font-semibold">
+            <p data-mb-gap data-lh className="mb-0.5 text-xs text-black font-semibold">
               {invoice.customerEmail}
             </p>
 
@@ -202,8 +202,8 @@ export default function BillingInfo({ invoice = {} }) {
             className="shrink-0 text-right"
           >
             <div className="max-w-[380px]">
-              <h4 className="mb-2 text-xl font-bold uppercase tracking-widest text-black">
-                Payment Information
+              <h4 className="mb-.5 text-sm font-bold uppercase tracking-widest text-black">
+                Payment Method
               </h4>
               {invoice.payment.startsWith("http://") ||
               invoice.payment.startsWith("https://") ? (
