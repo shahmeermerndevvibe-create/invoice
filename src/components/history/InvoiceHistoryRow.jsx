@@ -1,5 +1,5 @@
 import { memo, useState } from "react";
-import { Printer, Eye, Pencil, Copy, Loader2 } from "lucide-react";
+import { Printer, Eye, Pencil, Copy, Save, Loader2 } from "lucide-react";
 import { formatCurrency, formatDocumentId } from "@/utils/invoiceUtils";
 import { formatInvoiceDate } from "@/utils/historyUtils";
 
@@ -73,11 +73,18 @@ function InvoiceHistoryRow({ invoice, onPrint, onReview, onEdit, onCreateDraft }
             </span>
           )}
 
-          {invoice.isDraft && (
-            <span className="inline-flex items-center rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-700">
-              Draft
-            </span>
-          )}
+          {invoice.isDraft &&
+            (invoice.draftType === "copy" ? (
+              <span className="inline-flex items-center rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-700">
+                <Copy className="mr-1 h-3 w-3" />
+                Copy Draft
+              </span>
+            ) : (
+              <span className="inline-flex items-center rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-700">
+                <Save className="mr-1 h-3 w-3" />
+                Saved Draft
+              </span>
+            ))}
         </div>
         <p className="mt-0.5 truncate text-sm font-medium text-gray-800 italic">
           {invoice.customer || "—"}
@@ -96,7 +103,7 @@ function InvoiceHistoryRow({ invoice, onPrint, onReview, onEdit, onCreateDraft }
             onClick={handleCreateDraft}
             disabled={isLoading("draft")}
             title="Create Draft"
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition hover:bg-orange-50 hover:text-orange-600 sm:h-8 sm:w-8"
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition hover:bg-orange-50 hover:text-orange-600 sm:h-8 sm:w-8 cursor-pointer"
           >
             {isLoading("draft") ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin sm:h-4 sm:w-4" />
@@ -109,7 +116,7 @@ function InvoiceHistoryRow({ invoice, onPrint, onReview, onEdit, onCreateDraft }
           onClick={handleEdit}
           disabled={isLoading("edit")}
           title="Edit"
-          className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition hover:bg-amber-50 hover:text-amber-600 sm:h-8 sm:w-8"
+          className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition hover:bg-amber-50 hover:text-amber-600 sm:h-8 sm:w-8 cursor-pointer"
         >
          {
           isLoading("edit") ? 
@@ -122,7 +129,7 @@ function InvoiceHistoryRow({ invoice, onPrint, onReview, onEdit, onCreateDraft }
           onClick={handleReview}
           disabled={isLoading("review")}
           title="Review"
-          className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition hover:bg-blue-50 hover:text-blue-600 disabled:opacity-50 sm:h-8 sm:w-8"
+          className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition hover:bg-blue-50 hover:text-blue-600 disabled:opacity-50 sm:h-8 sm:w-8 cursor-pointer"
         >
           {isLoading("review") ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin sm:h-4 sm:w-4" />
@@ -135,7 +142,7 @@ function InvoiceHistoryRow({ invoice, onPrint, onReview, onEdit, onCreateDraft }
             onClick={handlePrint}
             disabled={isLoading("print")}
             title="Print"
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition hover:bg-blue-50 hover:text-blue-600 disabled:opacity-50 sm:h-8 sm:w-8"
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition hover:bg-blue-50 hover:text-blue-600 disabled:opacity-50 sm:h-8 sm:w-8 cursor-pointer"
           >
             {isLoading("print") ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin sm:h-4 sm:w-4" />

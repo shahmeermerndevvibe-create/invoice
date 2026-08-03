@@ -52,8 +52,8 @@ const BillingTable = ({ items = [], invoice = {} }) => {
                 </TableHead>
               )}
 
-              <TableHead className="bg-[#0A4A95] py-4 text-center font-semibold text-white">
-                Total
+              <TableHead className={`${invoice.contractType === "Milestones" ? "bg-[#0A4A95]" : "bg-[#1E90FF]"} py-4 text-center font-semibold text-white`}>
+                Amount
               </TableHead>
             </TableRow>
           </TableHeader>

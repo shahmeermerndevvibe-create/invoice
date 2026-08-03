@@ -1,200 +1,191 @@
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { formatFirestoreDate } from "@/utils/dateUtils";
 
-const MIN_SECTION_GAP = 4;
-const INTERNAL_MARGIN_MIN = 4;
+/**
+ * Adjustable "knobs" used to balance the left column against the right
+ * reference column, identified by data attributes on the left-side elements.
+ *
+ *  - data-sec-gap → section spacing  (Business heading top margin)
+ *  - data-mb-gap  → paragraph/heading bottom margins
+ *  - data-lh      → line-height (text lines and headings)
+ *
+ * Each knob starts at its natural computed base and can grow up to
+ * base + maxAdd px. Higher weight = absorbs more of the delta.
+ */
+const TUNING_KNOBS = [
+  { attr: "data-sec-gap", prop: "marginTop", weight: 3, maxAdd: 36 },
+  { attr: "data-mb-gap", prop: "marginBottom", weight: 1, maxAdd: 12 },
+  { attr: "data-lh", prop: "lineHeight", weight: 1, maxAdd: 12 },
+];
+
+/** Stop once within this many px of the reference height. */
+const TOLERANCE = 3;
+/** Max each knob may grow per iteration (keeps the adjustment gradual). */
+const MAX_STEP = 2;
+/** Hard ceiling so the loop can never run away. */
+const MAX_ITERS = 24;
 
 export default function BillingInfo({ invoice = {} }) {
   const leftRef = useRef(null);
   const rightRef = useRef(null);
-  const invoiceToRef = useRef(null);
-  const businessRef = useRef(null);
-  const applied = useRef({
-    height: "",
-    marginA: "",
-    marginB: "",
-    internalCut: 0,
-    baseA: null,
-    baseB: null,
-    internals: null,
-  });
+  const appliedRef = useRef(null);
 
   const hasPayment = Boolean(invoice.payment);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const left = leftRef.current;
     const right = rightRef.current;
-    const invoiceTo = invoiceToRef.current;
-    const business = businessRef.current;
 
-    if (!left || !right || !invoiceTo || !business) {
-      const state = applied.current;
-      state.internals?.forEach((el) => (el.style.marginBottom = ""));
-      applied.current = {
-        height: "",
-        marginA: "",
-        marginB: "",
-        internalCut: 0,
-        baseA: null,
-        baseB: null,
-        internals: null,
-      };
-      if (left) left.style.height = "";
-      if (invoiceTo) invoiceTo.style.marginTop = "";
-      if (business) business.style.marginTop = "";
+    if (!left || !right) {
+      // Clean up any previously applied inline styles
+      if (appliedRef.current) {
+        appliedRef.current.forEach(({ el, prop }) => {
+          el.style[prop] = "";
+        });
+        appliedRef.current = null;
+      }
       return;
     }
 
-    let rafId = null;
-
-    const update = () => {
-      rafId = null;
-
-      const state = applied.current;
-
-      if (state.baseA === null) {
-        state.baseA = parseFloat(getComputedStyle(invoiceTo).marginTop) || 32;
-      }
-      if (state.baseB === null) {
-        state.baseB = parseFloat(getComputedStyle(business).marginTop) || 24;
-      }
-      if (state.internals === null) {
-        state.internals = Array.from(left.querySelectorAll(".mb-2"));
-      }
-
-      if (state.height) left.style.height = "";
-      const naturalLeft = left.getBoundingClientRect().height;
-      const rightHeight = right.getBoundingClientRect().height;
-
-      if (!rightHeight && !naturalLeft) return;
-
-      const diff = rightHeight - naturalLeft;
-
-      let height = state.height;
-      let marginA = state.marginA;
-      let marginB = state.marginB;
-      let internalCut = state.internalCut;
-
-      if (diff > 0) {
-        height = `${rightHeight}px`;
-      } else if (diff < 0) {
-        height = "";
-        const capA = Math.max(0, state.baseA - MIN_SECTION_GAP);
-        const capB = Math.max(0, state.baseB - MIN_SECTION_GAP);
-        const secCap = capA + capB;
-        const internalCap = state.internals.length * 4;
-        const need = Math.min(-diff, secCap + internalCap);
-        const secCut = Math.min(need, secCap);
-        const totalSecCap = Math.max(1, secCap);
-        const cutA = Math.round((secCut * capA) / totalSecCap);
-        marginA = `${state.baseA - cutA}px`;
-        marginB = `${state.baseB - (secCut - cutA)}px`;
-        const internalNeed = need - secCut;
-        if (internalNeed > 0 && state.internals.length > 0) {
-          internalCut = Math.min(4, internalNeed / state.internals.length);
-        }
-      }
-
-      const changed =
-        height !== state.height ||
-        marginA !== state.marginA ||
-        marginB !== state.marginB ||
-        internalCut !== state.internalCut;
-
-      if (state.height && !changed) {
-        left.style.height = state.height;
-        return;
-      }
-      if (!changed) return;
-
-      state.height = height;
-      state.marginA = marginA;
-      state.marginB = marginB;
-      state.internalCut = internalCut;
-
-      left.style.height = height;
-      invoiceTo.style.marginTop = marginA;
-      business.style.marginTop = marginB;
-      state.internals.forEach((el) => {
-        el.style.marginBottom = internalCut > 0 ? `${8 - internalCut}px` : "";
+    // --- Step 1: Discover adjustable knobs in the left column ---
+    const knobs = [];
+    for (const cfg of TUNING_KNOBS) {
+      left.querySelectorAll(`[${cfg.attr}]`).forEach((el) => {
+        knobs.push({ el, prop: cfg.prop, weight: cfg.weight, maxAdd: cfg.maxAdd });
       });
+    }
+
+    if (knobs.length === 0) return;
+
+    const touched = new Map(); // el -> Set of applied props
+    const mark = (el, prop) => {
+      if (!touched.has(el)) touched.set(el, new Set());
+      touched.get(el).add(prop);
+    };
+    const reset = () => {
+      for (const [el, props] of touched) {
+        props.forEach((p) => {
+          el.style[p] = "";
+        });
+      }
+      touched.clear();
     };
 
-    rafId = requestAnimationFrame(update);
+    // Clear any previous adjustments so we measure natural heights
+    reset();
 
-    const ro = new ResizeObserver(() => {
-      if (rafId === null) rafId = requestAnimationFrame(update);
-    });
-    ro.observe(left);
-    ro.observe(right);
+    // Read each knob's natural base from the computed style (its Tailwind class)
+    for (const k of knobs) {
+      k.base = parseFloat(getComputedStyle(k.el)[k.prop]) || 0;
+    }
 
+    const currentAdd = new Map(knobs.map((k) => [k, 0]));
+
+    // --- Step 2: Iteratively nudge knobs until the left column matches the
+    // right reference column, re-measuring after every adjustment ---
+    const rightHeight = right.getBoundingClientRect().height;
+    let iterations = 0;
+
+    for (;;) {
+      const leftHeight = left.getBoundingClientRect().height;
+      const delta = rightHeight - leftHeight;
+
+      // Close enough (or left already matches/exceeds right)
+      if (Math.abs(delta) <= TOLERANCE) break;
+      if (iterations >= MAX_ITERS) break;
+      iterations += 1;
+
+      // Only knobs that still have budget can grow this round
+      const eligible = knobs.filter((k) => currentAdd.get(k) < k.maxAdd - 0.5);
+      if (eligible.length === 0) break;
+
+      const totalWeight = eligible.reduce((sum, k) => sum + k.weight, 0);
+
+      // This iteration's budget — a small gradual step toward the goal
+      let budget = Math.min(MAX_STEP, delta);
+
+      for (const k of eligible) {
+        if (budget <= 0) break;
+        const room = k.maxAdd - currentAdd.get(k);
+        const share = Math.min((k.weight / totalWeight) * MAX_STEP, room, budget);
+
+        k.el.style[k.prop] = `${k.base + currentAdd.get(k) + share}px`;
+        mark(k.el, k.prop);
+        currentAdd.set(k, currentAdd.get(k) + share);
+        budget -= share;
+      }
+    }
+
+// Record everything we touched so styles can be reset on cleanup
+    appliedRef.current = [...touched.entries()].flatMap(([el, props]) =>
+      [...props].map((prop) => ({ el, prop }))
+    );
+
+    // Cleanup function
     return () => {
-      if (rafId !== null) cancelAnimationFrame(rafId);
-      ro.disconnect();
-      const state = applied.current;
-      state.internals?.forEach((el) => (el.style.marginBottom = ""));
-      left.style.height = "";
-      invoiceTo.style.marginTop = "";
-      business.style.marginTop = "";
+      if (appliedRef.current) {
+        appliedRef.current.forEach(({ el, prop }) => {
+          el.style[prop] = "";
+        });
+        appliedRef.current = null;
+      }
     };
-  }, [hasPayment]);
+  }, [hasPayment, invoice]);
 
   return (
     <section className="px-8 py-6 md:px-14">
-      <div className="flex items-start justify-between gap-8">
+      {/* Date sits above both columns */}
+      <h3 className="text-sm font-bold uppercase tracking-widest text-slate-800">
+        Date:
+        <span className="ml-2 font-bold pb-15 text-sm normal-case">
+          {formatFirestoreDate(invoice.createdAt)}
+        </span>
+      </h3>
+
+      <div className="mt-8 flex items-start justify-between gap-8">
         <div
           ref={leftRef}
-          className="flex min-w-0 flex-1 flex-col justify-between"
+          className="flex min-w-0 flex-1 flex-col"
         >
           <div>
-            <h3 className="text-sm font-bold uppercase tracking-widest text-slate-800">
-              Date:
-              <span className="ml-2 font-bold pb-15 text-sm normal-case">
-                {formatFirestoreDate(invoice.createdAt)}
-              </span>
-            </h3>
-          </div>
-
-          <div>
             <h4
-              ref={invoiceToRef}
-              className="mt-8 text-sm font-bold uppercase tracking-[3px] text-black"
+              className="text-sm font-bold uppercase tracking-[3px] text-black"
             >
               Invoice To:
             </h4>
 
-            <h2 className="mb-2 text-4xl font-bold text-slate-900">
+            <h2 data-mb-gap data-lh className="mb-2 text-3xl font-bold text-slate-900">
               {invoice.businessName || ""}
             </h2>
 
-            <p className="mb-2 text-black font-bold">
+            <p data-mb-gap data-lh className="mb-2 text-black font-semibold">
               {invoice.businessEmail}
             </p>
 
-            <p className="mb-2 text-black font-medium">
+            <p data-mb-gap data-lh className="mb-2 text-black font-medium">
               <span className="font-bold">Phone:</span> {invoice.phoneNo}
             </p>
 
-            <p className="mb-2 text-black font-medium">
+            <p data-mb-gap data-lh className="mb-2 text-black font-medium">
               <span className="font-bold">Address:</span>{" "}
-              {invoice.billingAddress}
+              {invoice.businessAddress}
             </p>
           </div>
 
           <div>
             <h4
-              ref={businessRef}
-              className="mb-2 mt-6 text-sm font-bold uppercase tracking-[3px] text-black"
+              data-sec-gap
+              className="mb-2 mt-3 text-sm font-bold uppercase tracking-[3px] text-black"
             >
               Business:
             </h4>
 
-            <h2 className="mb-2 text-4xl font-bold text-slate-900">
-              {invoice.businessName || ""}
+            <h2 data-mb-gap data-lh className="mb-2 text-3xl font-bold text-slate-900">
+              {invoice.customer || ""}
             </h2>
 
-            <p className="mb-2 text-black font-bold">
-              {invoice.businessEmail}
+            <p data-mb-gap data-lh className="mb-2 text-black font-semibold">
+              {invoice.customerEmail}
             </p>
 
             {/* <p className="text-black font-medium">
@@ -204,14 +195,14 @@ export default function BillingInfo({ invoice = {} }) {
           </div>
         </div>
 
-        {/* Right */}
+        {/* Right — Payment Information (DO NOT MODIFY) */}
         {invoice.payment && (
           <div
             ref={rightRef}
             className="shrink-0 text-right"
           >
             <div className="max-w-[380px]">
-              <h4 className="mb-2 text-xs font-bold uppercase tracking-widest text-slate-700">
+              <h4 className="mb-2 text-xl font-bold uppercase tracking-widest text-black">
                 Payment Information
               </h4>
               {invoice.payment.startsWith("http://") ||

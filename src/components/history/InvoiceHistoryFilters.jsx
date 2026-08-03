@@ -17,6 +17,7 @@ const TYPE_OPTIONS = [
 const DRAFT_OPTIONS = [
   { label: "All", value: "" },
   { label: "Saved Drafts", value: "saved" },
+  { label: "Copy Drafts", value: "copy" },
 ];
 
 export default function InvoiceHistoryFilters({
