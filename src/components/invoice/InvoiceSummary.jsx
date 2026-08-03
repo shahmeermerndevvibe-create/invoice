@@ -148,6 +148,15 @@ export default function InvoiceSummary({ onPrint }) {
     }
   };
 
+  const handleDraftSaved = (draftInvoice) => {
+    openInvoiceHistory();
+    resetInvoice();
+    setErrors({});
+    const nextCounter = draftInvoice.documentCounter + 1;
+    updateInvoice("documentCounter", nextCounter);
+    updateInvoice("documentNumber", String(nextCounter));
+  };
+
   const handleSaveDraft = async ({ newDraft = false } = {}) => {
     if (newDraft && editingInvoiceId) return;
     try {
@@ -173,13 +182,8 @@ export default function InvoiceSummary({ onPrint }) {
 
       toast.success("Draft saved!");
 
-      if (newDraft) {
-        openInvoiceHistory();
-        resetInvoice();
-        setErrors({});
-        const nextCounter = draftInvoice.documentCounter + 1;
-        updateInvoice("documentCounter", nextCounter);
-        updateInvoice("documentNumber", String(nextCounter));
+      if (newDraft || editingInvoiceId) {
+        handleDraftSaved(draftInvoice);
       }
     } catch (error) {
       console.error(error);
