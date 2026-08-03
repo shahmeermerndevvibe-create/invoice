@@ -87,7 +87,7 @@ function InvoiceHistoryRow({ invoice, onPrint, onReview, onEdit, onCreateDraft }
             ))}
         </div>
         <p className="mt-0.5 truncate text-sm font-medium text-gray-800 italic">
-          {invoice.customer || "—"}
+          {invoice.businessName || "—"}
         </p>
         <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
           <span>Date: {formatInvoiceDate(invoice.invoiceDate)}</span>
