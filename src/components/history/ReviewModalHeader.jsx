@@ -10,7 +10,7 @@ export default function ReviewModalHeader({ invoice, onClose }) {
           {formatDocumentId(invoice)}
         </h2>
         <p className="mt-0.5 text-sm text-gray-500">
-          {invoice.customer || "—"} ·{" "}
+          {invoice.businessName || "—"} ·{" "}
           {formatInvoiceDate(invoice.invoiceDate)}
         </p>
         {invoice.contractType === "Milestones" && (

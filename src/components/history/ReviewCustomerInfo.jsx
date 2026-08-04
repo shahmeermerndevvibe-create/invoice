@@ -49,13 +49,13 @@ export default function ReviewCustomerInfo({ invoice }) {
             <DetailRow
               icon={User}
               label="Customer"
-              value={invoice.customer}
+              value={invoice.businessName}
             />
 
             <DetailRow
               icon={Mail}
               label="Email"
-              value={invoice.customerEmail}
+              value={invoice.businessEmail}
             />
 
             <DetailRow
@@ -67,7 +67,7 @@ export default function ReviewCustomerInfo({ invoice }) {
             <DetailRow
               icon={MapPin}
               label="Billing Address"
-              value={invoice.billingAddress}
+              value={invoice.businessAddress}
             />
           </div>
         </div>
