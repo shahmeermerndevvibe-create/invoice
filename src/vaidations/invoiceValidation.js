@@ -114,9 +114,9 @@ export const validateInvoice = (invoice = {}, items = [], subtotal = 0) => {
   .replace(/<div>/g, "")
   .replace(/<\/div>/g, "");
 
-if (plainText.length > 1000) {
-  errors.payment = "Payment instructions cannot exceed 1000 characters.";
-}
+// if (plainText.length > 1000) {
+//   errors.payment = "Payment instructions cannot exceed 1000 characters.";
+// }
 
 // if (payment.includes("<img")) {
 //   errors.payment = "Images are not allowed in payment instructions.";

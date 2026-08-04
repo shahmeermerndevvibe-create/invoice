@@ -44,6 +44,7 @@ export default function CustomerSection() {
     const current = useInvoiceStore.getState().invoice;
     updateInvoice("invoiceDate", value);
     updateInvoice("notes", syncInvoiceDateNote(current.notes, value));
+    clearInvoiceSectionError("invoiceDate");
   };
 
   const handleCurrencyChange = (code) => {
