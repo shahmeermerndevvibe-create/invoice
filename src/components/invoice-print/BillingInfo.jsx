@@ -149,7 +149,7 @@ export default function BillingInfo({ invoice = {} }) {
         >
           <div>
             <h4
-              className="text-sm font-bold uppercase tracking-[3px] text-black"
+              className="text-sm font-bold uppercase tracking-[1px] text-black"
             >
               Invoice To:
             </h4>
@@ -158,34 +158,41 @@ export default function BillingInfo({ invoice = {} }) {
               {invoice.businessName || ""}
             </h2>
 
-            <p data-mb-gap data-lh className="mb-0.5 text-xs text-black font-semibold">
-              {invoice.businessEmail}
+            <p data-mb-gap data-lh className="mb-0.5 text-xs text-black font-medium">
+              <span className="font-bold">Phone No:</span> {invoice.phoneNo}
             </p>
 
-            <p data-mb-gap data-lh className="mb-0.5 text-xs text-black font-medium">
-              <span className="font-bold">Phone:</span> {invoice.phoneNo}
-            </p>
-
-            <p data-mb-gap data-lh className="mb-0.5 text-xs text-black font-medium">
+            <p data-mb-gap data-lh className="mb-0.5 text-xs text-black">
               <span className="font-bold">Address:</span>{" "}
               {invoice.businessAddress}
+            </p>
+
+             <p data-mb-gap data-lh className="mb-0.5 text-xs text-black">
+               <span className="font-bold">Email:</span>{" "}
+              {invoice.businessEmail}
             </p>
           </div>
 
           <div>
-            <h4
+            {/* <h4
               data-sec-gap
               className="mt-3 text-sm font-bold uppercase tracking-[3px] text-black"
             >
               Contact Person:
-            </h4>
+            </h4> */}
 
-            <h2 data-mb-gap data-lh className="mb-0.5 text-xl font-bold text-slate-900">
+            <h2 data-mb-gap data-lh className="mb-0.5 mt-5 text-xs text-slate-900">
+               <span className="font-bold">Contact Person:</span>{" "}
               {invoice.customer || ""}
             </h2>
 
-            <p data-mb-gap data-lh className="mb-0.5 text-xs text-black font-semibold">
-              {invoice.customerEmail}
+              <p data-mb-gap data-lh className="mb-0.5 text-xs text-black font-medium">
+              <span className="font-bold">Phone No:</span> {invoice.contactPersonPhone}
+            </p>
+
+            <p data-mb-gap data-lh className="mb-0.5 text-xs text-black">
+               <span className="font-bold">Email:</span>{" "}
+               {invoice.customerEmail}
             </p>
 
             {/* <p className="text-black font-medium">

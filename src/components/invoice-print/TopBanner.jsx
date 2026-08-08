@@ -8,7 +8,7 @@ export default function TopBanner({invoice}) {
     <div
       className="absolute w-[48%]"
       style={{
-        top: "39px",
+        top: "37px",
         right: "-4px",
         height: "166px",
         backgroundImage: "url('/HeaderImage.svg')",

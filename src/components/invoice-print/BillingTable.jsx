@@ -30,12 +30,8 @@ const BillingTable = ({ items = [], invoice = {} }) => {
                 Title
               </TableHead>
 
-              <TableHead className="bg-[#1E90FF] py-4 text-center font-semibold text-white">
-                Qty
-              </TableHead>
-
               <TableHead className="bg-[#0A4A95] py-4 text-center font-semibold text-white">
-                Unit
+                Qty (Unit)
               </TableHead>
 
               <TableHead className="bg-[#1E90FF] py-4 text-center font-semibold text-white">
@@ -52,7 +48,9 @@ const BillingTable = ({ items = [], invoice = {} }) => {
                 </TableHead>
               )}
 
-              <TableHead className={`${invoice.contractType === "Milestones" ? "bg-[#0A4A95]" : "bg-[#1E90FF]"} py-4 text-center font-semibold text-white`}>
+              <TableHead
+                className={`${invoice.contractType === "Milestones" ? "bg-[#0A4A95]" : "bg-[#1E90FF]"} py-4 text-center font-semibold text-white`}
+              >
                 Amount
               </TableHead>
             </TableRow>
@@ -61,7 +59,9 @@ const BillingTable = ({ items = [], invoice = {} }) => {
           <TableBody>
             {items.map((item, index) => {
               const { netTotal, discountAmount } = calculateItemRow(item);
-              const isCompletedMilestone = invoice.contractType === "Milestones" && item.status === "Completed";
+              const isCompletedMilestone =
+                invoice.contractType === "Milestones" &&
+                item.status === "Completed";
 
               return (
                 <TableRow
@@ -79,12 +79,10 @@ const BillingTable = ({ items = [], invoice = {} }) => {
                     )}
                   </TableCell>
 
-                  <TableCell className="bg-slate-50 align-top text-center py-4">
-                    {item.qty}
-                  </TableCell>
-
-                  <TableCell className="align-top text-center py-4">
-                    {item.unit || "-"}
+                  <TableCell className="bg-slate-50 align-top py-4 text-center">
+                    <span className="font-medium">
+                      {item.qty} {item.unit ? `(${item.unit})` : ""}
+                    </span>
                   </TableCell>
 
                   <TableCell className="bg-slate-50 align-top text-center py-4">
@@ -101,8 +99,16 @@ const BillingTable = ({ items = [], invoice = {} }) => {
                     <TableCell className="align-top py-4 text-center">
                       {isCompletedMilestone ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700 border border-green-200">
-                          <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          <svg
+                            className="h-3.5 w-3.5"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                              clipRule="evenodd"
+                            />
                           </svg>
                           Completed
                         </span>

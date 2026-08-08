@@ -137,7 +137,7 @@ export default function CustomerSection() {
 
             <div className="flex min-w-0 flex-1 flex-col gap-4">
               <div>
-                <Label className="mb-2 block">Business Person Name</Label>
+                <Label className="mb-2 block">Contact Person Name</Label>
                 <Input
                   placeholder="Business Person Name"
                   value={invoice.customer}
@@ -146,7 +146,7 @@ export default function CustomerSection() {
               </div>
 
               <div>
-                <Label className="mb-2 block">Business Person Email</Label>
+                <Label className="mb-2 block">Contact Person Email</Label>
 
                 <Input
                   placeholder="business@example.com"
@@ -155,6 +155,17 @@ export default function CustomerSection() {
                     handleChange("customerEmail", e.target.value)
                   }
                 />
+              </div>
+
+               <div>
+                <Label className="mb-2 block">Contact Person Phone No</Label>
+
+                <Input
+                type="tel"
+                placeholder="03123456789"
+                value={invoice.contactPersonPhone}
+                onChange={(e) => handleChange("contactPersonPhone", e.target.value)}
+              />
               </div>
             </div>
           </div>

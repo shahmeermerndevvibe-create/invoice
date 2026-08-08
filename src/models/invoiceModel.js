@@ -7,6 +7,7 @@ export const invoiceModel = {
 
   customer: "",
   customerEmail: "",
+  contactPersonPhone: "",
   billingAddress: "",
 
   businessName: "",

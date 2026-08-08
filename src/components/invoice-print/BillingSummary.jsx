@@ -92,7 +92,6 @@ export default function BillingSummary({
         >
           {invoice.contractType === "Milestones" ? (
             <div className="ml-auto max-w-[280px] space-y-2 pb-4 text-sm">
-
               <div className="flex justify-between gap-3">
                 <span className="font-bold">Total Contract Value</span>
                 <span className="tabular-nums font-medium">
@@ -118,7 +117,9 @@ export default function BillingSummary({
 
               {Number(discountAmount) > 0 && (
                 <div className="flex justify-between gap-3">
-                  <span className="font-bold">Invoice Discount ({discountLabel})</span>
+                  <span className="font-bold">
+                    Invoice Discount ({discountLabel})
+                  </span>
                   <span className="tabular-nums">
                     −
                     <span className="text-xs mr-0.5">
@@ -154,9 +155,9 @@ export default function BillingSummary({
                 </span>
               </div>
 
-              <div className="mt-5 flex justify-between overflow-hidden rounded-md bg-gradient-to-r from-blue-800 to-blue-500 text-white">
-                <div className="flex-1 py-2 pl-4 text-base font-bold">
-                  Due This Invoice
+              <div className="mt-5 flex justify-between overflow-hidden rounded-md bg-gradient-to-r from-[#1C3C75] from-[15%] to-[#0872BB] to-[100%] text-white">
+                <div className="flex-1 py-2 pl-4 text-lg font-bold">
+                  Due This Invoice:
                 </div>
 
                 <div className="flex items-center justify-center whitespace-nowrap px-4 font-bold">
@@ -202,7 +203,7 @@ export default function BillingSummary({
                     </span>
                   </div>
                   <div className="flex justify-between text-base font-semibold">
-                    <span className="font-bold">Subtotal After Items:</span>
+                    <span className="font-bold">Subtotal (After Discount):</span>
                     <span>
                       <span className="ml-1 text-sm font-normal pr-2 text-black font-extrabold">
                         {invoice.currency.symbol}
@@ -233,11 +234,12 @@ export default function BillingSummary({
                 </div>
               )}
 
-              <div className="mt-5 flex justify-between text-white bg-linear-60 from-blue-800 to-blue-500 overflow-hidden rounded-md">
-                <div className="flex-1 pl-4 py-2 text-white font-bold text-lg">
+              <div className="mt-5 flex justify-between overflow-hidden rounded-md bg-gradient-to-r from-[#1C3C75] from-[5%] to-[#1E90FF] to-[100%] text-white">
+                <div className="flex-1 py-2 pl-4 text-lg font-bold">
                   Total Cost:
                 </div>
-                <div className="flex items-center justify-center whitespace-nowrap px-4 font-bold text-white">
+
+                <div className="flex items-center justify-center whitespace-nowrap px-4 font-bold">
                   <span className="mr-2 shrink-0 text-sm font-extrabold">
                     {invoice.currency.symbol}
                   </span>
