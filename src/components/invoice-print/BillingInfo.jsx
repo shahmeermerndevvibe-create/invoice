@@ -154,7 +154,7 @@ export default function BillingInfo({ invoice = {} }) {
               Invoice To:
             </h4>
 
-            <h2 data-mb-gap data-lh className="mb-0.5 text-xl font-bold text-slate-900">
+            <h2 data-mb-gap data-lh className="mb-0.5 text-3xl font-bold text-slate-900">
               {invoice.businessName || ""}
             </h2>
 
