@@ -155,8 +155,8 @@ export default function BillingSummary({
                 </span>
               </div>
 
-              <div className="mt-5 flex justify-between overflow-hidden rounded-md bg-gradient-to-r from-[#1C3C75] from-[15%] to-[#0872BB] to-[100%] text-white">
-                <div className="flex-1 py-2 pl-4 text-lg font-bold">
+              <div className="mt-5 flex justify-between overflow-hidden rounded-md bg-gradient-to-r from-[#1C3C75] from-[5%] to-[#1E90FF] to-[100%] text-white">
+                <div className="flex-1 py-2 pl-2 text-lg font-bold">
                   Due This Invoice:
                 </div>
 
