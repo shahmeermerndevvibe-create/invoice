@@ -40,6 +40,8 @@ export const invoiceModel = {
   companyWebsite: "",
   companyLocation: "",
   signatureName: "",
+  signatureUrl: "",
+  signaturePublicId: "",
   signatureTitle: "",
   thankYouText: "",
   createdAt: new Date().toISOString(),

@@ -59,24 +59,24 @@ export default function BillingSummary({
       : `${invoice.currency.symbol} ${formatCurrency(invoice.tax)}`;
   return (
     <section className="totals px-8 py-3 md:px-14">
-      <div className="flex justify-between gap-10">
+      <div className="flex flex-row gap-10">
         {notesPosition === "inline" && (
-          <div className="md:col-span-7 pt-4">
+          <div className="flex-1 pt-4">
             <h3 className="mb-4 text-sm font-bold text-[#0A4A95]">Note:</h3>
 
             <div
               className="
-    text-slate-700 text-xs
-    ![&_p]:text-xs
-    ![&_span]:text-xs
-    ![&_li]:text-xs
-    ![&_div]:text-xs
-    ![&_ul]:list-disc
-    [&_ul]:pl-6
-    [&_ol]:list-decimal
-    [&_ol]:pl-6
-    [&_li]:mb-2
-  "
+        text-xs text-slate-700
+        [&_p]:text-xs
+        [&_span]:text-xs
+        [&_li]:text-xs
+        [&_div]:text-xs
+        [&_ul]:list-disc
+        [&_ul]:pl-6
+        [&_ol]:list-decimal
+        [&_ol]:pl-6
+        [&_li]:mb-2
+      "
               dangerouslySetInnerHTML={{
                 __html: invoice.notes || "<p>No notes available.</p>",
               }}
@@ -86,9 +86,9 @@ export default function BillingSummary({
 
         {/* Totals */}
         <div
-          className={
-            "md:col-span-5" + (notesPosition !== "inline" ? " ml-auto" : "")
-          }
+          className={`w-[320px] shrink-0 ${
+            notesPosition !== "inline" ? "ml-auto" : ""
+          }`}
         >
           {invoice.contractType === "Milestones" ? (
             <div className="ml-auto max-w-[280px] space-y-2 pb-4 text-sm">
@@ -203,7 +203,9 @@ export default function BillingSummary({
                     </span>
                   </div>
                   <div className="flex justify-between text-base font-semibold">
-                    <span className="font-bold">Subtotal (After Discount):</span>
+                    <span className="font-bold">
+                      Subtotal (After Discount):
+                    </span>
                     <span>
                       <span className="ml-1 text-sm font-normal pr-2 text-black font-extrabold">
                         {invoice.currency.symbol}

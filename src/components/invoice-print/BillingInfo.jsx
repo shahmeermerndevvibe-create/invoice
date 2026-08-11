@@ -215,7 +215,7 @@ export default function BillingInfo({ invoice = {} }) {
               {invoice.payment.startsWith("http://") ||
               invoice.payment.startsWith("https://") ? (
                 <a
-                  href={invoice.payment}
+                  href={invoice.payment} 
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm font-medium text-blue-600 underline hover:text-blue-800"

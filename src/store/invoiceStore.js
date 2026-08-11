@@ -8,13 +8,16 @@ import { useSettingsStore } from "@/store/settingsStore";
 const defaultCountry = "Australia";
 
 const companyFieldsFromSettings = (country) => {
-  const cs = useSettingsStore.getState().byCountry[country] || {};
+  const settings = useSettingsStore.getState();
+  const cs = settings.byCountry[country] || {};
   return {
     companyPhone: cs.phoneNo || "",
     companyWebsite: cs.website || "",
     companyLocation: cs.location || "",
     signatureName: cs.signatureName || "",
     signatureTitle: cs.signatureTitle || "",
+    signatureUrl: settings.signatureUrl || "",
+    signaturePublicId: settings.signaturePublicId || "",
     thankYouText: cs.thankYouText || "",
   };
 };
@@ -151,6 +154,12 @@ export const useInvoiceStore = create(
             ...state.invoice,
             country,
             ...companyFieldsFromSettings(country),
+            ...(state.editingInvoiceId
+              ? {
+                  signatureUrl: state.invoice.signatureUrl,
+                  signaturePublicId: state.invoice.signaturePublicId,
+                }
+              : {}),
           },
         }));
       },
@@ -226,6 +235,8 @@ export const useInvoiceStore = create(
             companyLocation: old.companyLocation ?? current.invoice.companyLocation,
             signatureName: old.signatureName ?? current.invoice.signatureName,
             signatureTitle: old.signatureTitle ?? current.invoice.signatureTitle,
+            signatureUrl: old.signatureUrl ?? current.invoice.signatureUrl,
+            signaturePublicId: old.signaturePublicId ?? current.invoice.signaturePublicId,
             thankYouText: old.thankYouText ?? current.invoice.thankYouText,
             documentCounter: old.documentCounter ?? old.invoiceCounter ?? current.invoice.documentCounter,
             documentNumber: old.documentNumber ?? (String(old.invoiceNumber ?? "") || current.invoice.documentNumber),

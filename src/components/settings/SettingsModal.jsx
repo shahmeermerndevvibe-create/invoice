@@ -13,6 +13,7 @@ import {
 import { useSettingsStore } from "@/store/settingsStore";
 import { useInvoiceStore } from "@/store/invoiceStore";
 import toast from "react-hot-toast";
+import SignatureUploader from "@/components/settings/SignatureUploader"
 
 export default function SettingsModal({ onClose }) {
   const byCountry = useSettingsStore((s) => s.byCountry);
@@ -28,21 +29,28 @@ export default function SettingsModal({ onClose }) {
   const signatureName = current.signatureName || "";
   const signatureTitle = current.signatureTitle || "";
   const thankYouText = current.thankYouText || "";
-  const ph = { phone: phoneNo || "+61 421 702 706", location: location || "10 Leo Ave, Melbourne, Australia, 3029" };
+  const ph = {
+    phone: phoneNo || "+61 421 702 706",
+    location: location || "10 Leo Ave, Melbourne, Australia, 3029",
+  };
 
   const handleCountryChange = (value) => {
     applyCountrySettings(value);
   };
 
   useEffect(() => {
-    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    const onKey = (e) => {
+      if (e.key === "Escape") onClose();
+    };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, []);
 
   const handleDone = async () => {
@@ -88,7 +96,10 @@ export default function SettingsModal({ onClose }) {
             </h3>
             <div className="space-y-2 ">
               <Label>Country</Label>
-              <Select value={invoiceCountry} onValueChange={handleCountryChange}>
+              <Select
+                value={invoiceCountry}
+                onValueChange={handleCountryChange}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -103,7 +114,9 @@ export default function SettingsModal({ onClose }) {
               <Label>Phone Number</Label>
               <Input
                 value={phoneNo}
-                onChange={(e) => updateSettings(invoiceCountry, "phoneNo", e.target.value)}
+                onChange={(e) =>
+                  updateSettings(invoiceCountry, "phoneNo", e.target.value)
+                }
                 placeholder={ph.phone}
               />
             </div>
@@ -111,7 +124,9 @@ export default function SettingsModal({ onClose }) {
               <Label>Website</Label>
               <Input
                 value={website}
-                onChange={(e) => updateSettings(invoiceCountry, "website", e.target.value)}
+                onChange={(e) =>
+                  updateSettings(invoiceCountry, "website", e.target.value)
+                }
                 placeholder="www.devvibe.com"
               />
             </div>
@@ -119,7 +134,9 @@ export default function SettingsModal({ onClose }) {
               <Label>Location</Label>
               <Input
                 value={location}
-                onChange={(e) => updateSettings(invoiceCountry, "location", e.target.value)}
+                onChange={(e) =>
+                  updateSettings(invoiceCountry, "location", e.target.value)
+                }
                 placeholder={ph.location}
               />
             </div>
@@ -133,7 +150,13 @@ export default function SettingsModal({ onClose }) {
               <Label>Name</Label>
               <Input
                 value={signatureName}
-                onChange={(e) => updateSettings(invoiceCountry, "signatureName", e.target.value)}
+                onChange={(e) =>
+                  updateSettings(
+                    invoiceCountry,
+                    "signatureName",
+                    e.target.value,
+                  )
+                }
                 placeholder="Ajmal Jillani"
               />
             </div>
@@ -141,9 +164,21 @@ export default function SettingsModal({ onClose }) {
               <Label>Title</Label>
               <Input
                 value={signatureTitle}
-                onChange={(e) => updateSettings(invoiceCountry, "signatureTitle", e.target.value)}
+                onChange={(e) =>
+                  updateSettings(
+                    invoiceCountry,
+                    "signatureTitle",
+                    e.target.value,
+                  )
+                }
                 placeholder="COO - DevVibe"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Signature Image</Label>
+
+              <SignatureUploader />
             </div>
           </div>
 
@@ -151,7 +186,9 @@ export default function SettingsModal({ onClose }) {
             <Label>Thank You Text</Label>
             <Input
               value={thankYouText}
-              onChange={(e) => updateSettings(invoiceCountry, "thankYouText", e.target.value)}
+              onChange={(e) =>
+                updateSettings(invoiceCountry, "thankYouText", e.target.value)
+              }
               placeholder="THANK YOU FOR YOUR PAYMENT"
             />
           </div>

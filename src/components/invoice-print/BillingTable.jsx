@@ -27,7 +27,7 @@ const BillingTable = ({ items = [], invoice = {} }) => {
           <TableHeader>
             <TableRow className="border-b-0 hover:bg-transparent">
               <TableHead className="bg-[#0A4A95] py-4 text-left font-semibold bg-gradient-to-r from-blue-950 to-blue-500 text-white">
-                Title
+                Description
               </TableHead>
 
               <TableHead className="bg-[#0A4A95] py-4 text-center font-semibold text-white">
@@ -81,7 +81,7 @@ const BillingTable = ({ items = [], invoice = {} }) => {
 
                   <TableCell className="bg-slate-50 align-top py-4 text-center">
                     <span className="font-medium">
-                      {item.qty} {item.unit ? `(${item.unit})` : ""}
+                      {item.qty} {item.unit ? `${item.unit}` : ""}
                     </span>
                   </TableCell>
 

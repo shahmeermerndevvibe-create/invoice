@@ -7,12 +7,20 @@ export default function BillingFooter({ isLastPage = true, invoice = {} }) {
   const signatureName = invoice.signatureName || "";
   const signatureTitle = invoice.signatureTitle || "";
   const thankYouText = invoice.thankYouText || "";
+  const signatureUrl = invoice.signatureUrl || "";
+
+  console.log("ıilling Footer", signatureUrl);
 
   return (
     <footer className="print-footer relative">
-      <div className="px-8 pb-16 pt-4 md:px-14 relative z-10" style={{ bottom: "60px" }}>
+      <div
+        className="px-8 pb-16 pt-4 md:px-14 relative z-10"
+        style={{ bottom: "60px" }}
+      >
         {/* Contact Items — every page */}
-        <div className={`flex items-center text-xs mb-8 ${isLastPage ? "justify-between" : "justify-center"}`}>
+        <div
+          className={`flex items-center text-xs mb-8 ${isLastPage ? "justify-between" : "justify-center"}`}
+        >
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
               <div className="rounded-full bg-[#173C8C] p-1 text-white">
@@ -36,13 +44,28 @@ export default function BillingFooter({ isLastPage = true, invoice = {} }) {
             </div>
           </div>
 
-          {/* Signature — last page only */}
+           {/* Signature */}
           {isLastPage && (
             <div className="w-48 text-center">
+              {/* Signature Image */}
+              <div className="flex h-20 items-end justify-center">
+                {signatureUrl ? (
+                  <img
+                    src={signatureUrl}
+                    alt="Signature"
+                    className="h-16 w-44 object-contain"
+                  />
+                ) : (
+                  <div className="h-16" />
+                )}
+              </div>
+
+              {/* Divider */}
               <div className="border-t-[1.5px] border-slate-300 pt-2">
-                <h3 className="font-bold text-slate-900 text-sm">
+                <h3 className="text-sm font-bold text-slate-900">
                   {signatureName}
                 </h3>
+
                 <p className="text-[10px] font-semibold text-slate-600">
                   {signatureTitle}
                 </p>
@@ -61,7 +84,11 @@ export default function BillingFooter({ isLastPage = true, invoice = {} }) {
         )}
       </div>
 
-      <img src="/InvoiceFooter.svg" alt="" className="absolute bottom-0 left-1 w-full h-auto max-h-[120px] object-contain" />
+      <img
+        src="/InvoiceFooter.svg"
+        alt=""
+        className="absolute bottom-0 left-1 w-full h-auto max-h-[120px] object-contain"
+      />
     </footer>
   );
 }

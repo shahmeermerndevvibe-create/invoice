@@ -47,30 +47,18 @@ const InvoicePrintPage = ({
       </div>
 
       {isLastPage && (
-        <>
-          <div className="shrink-0">
-            <BillingSummary
-              invoice={invoice}
-              items={allItems || items}
-              subtotal={subtotal}
-              total={total}
-              balanceDue={balanceDue}
-              taxAmount={taxAmount}
-              discountAmount={discountAmount}
-              notesPosition="bottom"
-            />
-          </div>
-          <div className="min-h-0 flex-1" />
-          <div className="shrink-0 px-8 pb-4 md:px-14">
-            <h3 className="mb-2 text-sm font-bold text-[#0A4A95]">Note:</h3>
-            <div
-              className="text-slate-700 text-xs [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:mb-2"
-              dangerouslySetInnerHTML={{
-                __html: invoice.notes || "<p>No notes available.</p>",
-              }}
-            />
-          </div>
-        </>
+        <div className="shrink-0">
+          <BillingSummary
+            invoice={invoice}
+            items={allItems || items}
+            subtotal={subtotal}
+            total={total}
+            balanceDue={balanceDue}
+            taxAmount={taxAmount}
+            discountAmount={discountAmount}
+            notesPosition="inline"
+          />
+        </div>
       )}
 
       {totalPages > 1 && (
