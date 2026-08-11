@@ -26,6 +26,7 @@ export default function SettingsModal({ onClose }) {
   const phoneNo = current.phoneNo || "";
   const website = current.website || "";
   const location = current.location || "";
+  const businessNumber = current.businessNumber || "";
   const signatureName = current.signatureName || "";
   const signatureTitle = current.signatureTitle || "";
   const thankYouText = current.thankYouText || "";
@@ -58,7 +59,9 @@ export default function SettingsModal({ onClose }) {
       setSaving(true);
       await saveSettings();
       const invoiceStore = useInvoiceStore.getState();
-      if (!invoiceStore.editingInvoiceId) {
+      if (invoiceStore.editingInvoiceId) {
+        invoiceStore.syncCompanyFieldsFromSettings();
+      } else {
         invoiceStore.applyCountrySettings(invoiceStore.invoice.country);
       }
       toast.success("Settings saved successfully!");
@@ -94,7 +97,8 @@ export default function SettingsModal({ onClose }) {
             <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
               Contact Info
             </h3>
-            <div className="space-y-2 ">
+          <div className="flex gap-5">
+           <div className="space-y-2 ">
               <Label>Country</Label>
               <Select
                 value={invoiceCountry}
@@ -110,6 +114,17 @@ export default function SettingsModal({ onClose }) {
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-2 w-1/2">
+              <Label>Business Number</Label>
+              <Input
+                value={businessNumber}
+                onChange={(e) =>
+                  updateSettings(invoiceCountry, "businessNumber", e.target.value)
+                }
+                placeholder="60733547866"
+              />
+            </div>  
+          </div> 
             <div className="space-y-2">
               <Label>Phone Number</Label>
               <Input

@@ -104,7 +104,7 @@ export default function BillingSummary({
 
               {Number(itemDiscountsTotal) > 0 && (
                 <div className="flex justify-between gap-3">
-                  <span className="font-bold">Item Discounts</span>
+                  <span className="font-light">Item Discounts</span>
                   <span className="tabular-nums">
                     −
                     <span className="text-xs mr-0.5">
@@ -132,7 +132,7 @@ export default function BillingSummary({
 
               {Number(taxAmount) > 0 && (
                 <div className="flex justify-between gap-3">
-                  <span className="font-bold">Tax ({taxLabel})</span>
+                  <span className="font-light">Tax ({taxLabel})</span>
                   <span className="tabular-nums">
                     +
                     <span className="text-xs mr-0.5">
@@ -196,7 +196,7 @@ export default function BillingSummary({
               {Number(itemDiscountsTotal) > 0 && (
                 <>
                   <div className="flex justify-between text-base font-semibold">
-                    <span className="font-bold">Item Discounts:</span>
+                    <span className="font-light">Item Discounts:</span>
                     <span className="text-sm font-normal">
                       −{invoice.currency.symbol}{" "}
                       {formatCurrency(itemDiscountsTotal)}
@@ -218,7 +218,7 @@ export default function BillingSummary({
 
               {Number(discountAmount) > 0 && (
                 <div className="flex justify-between text-base font-semibold">
-                  <span className="font-bold">
+                  <span className="font-light">
                     Invoice Discount ({discountLabel}):
                   </span>
                   <span className="text-sm font-normal">
@@ -228,8 +228,8 @@ export default function BillingSummary({
               )}
 
               {Number(taxAmount) > 0 && (
-                <div className="flex justify-between text-base font-semibold">
-                  <span className="font-bold">Tax ({taxLabel}):</span>
+                <div className="flex justify-between text-base">
+                  <span className="font-light">Tax ({taxLabel}):</span>
                   <span className="text-sm font-normal">
                     +{invoice.currency.symbol} {formatCurrency(taxAmount)}
                   </span>

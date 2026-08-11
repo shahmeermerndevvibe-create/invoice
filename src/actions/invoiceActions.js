@@ -96,19 +96,35 @@ export const fetchDocumentHistory = async ({
   draftType = null,
 }) => {
   try {
-    const result = await invoiceService.getDocumentsPaginated({
-      pageSize,
-      startAfterDoc,
-      dateFrom,
-      dateTo,
-      documentType,
-    });
+    const matchesDraft = (inv) => !draftType || inv.draftType === draftType;
 
-    let { invoices } = result;
+    let invoices = [];
+    let cursor = startAfterDoc;
+    let lastDoc = null;
+    let hasMore = false;
+    const scanLimit = 200;
 
-    if (draftType) {
-      invoices = invoices.filter((inv) => inv.draftType === draftType);
+    while (invoices.filter(matchesDraft).length < pageSize) {
+      const result = await invoiceService.getDocumentsPaginated({
+        pageSize,
+        startAfterDoc: cursor,
+        dateFrom,
+        dateTo,
+        documentType,
+      });
+
+      lastDoc = result.lastDoc;
+      hasMore = result.hasMore;
+      invoices = invoices.concat(result.invoices);
+
+      if (!hasMore || result.invoices.length === 0 || invoices.length >= scanLimit) {
+        break;
+      }
+
+      cursor = lastDoc;
     }
+
+    invoices = invoices.filter(matchesDraft).slice(0, pageSize);
 
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase();
@@ -127,8 +143,8 @@ export const fetchDocumentHistory = async ({
     return {
       success: true,
       invoices,
-      lastDoc: result.lastDoc,
-      hasMore: result.hasMore,
+      lastDoc,
+      hasMore,
     };
   } catch (error) {
     console.error("Failed to fetch document history:", error);

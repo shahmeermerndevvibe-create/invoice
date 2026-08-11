@@ -14,7 +14,7 @@ import toast from "react-hot-toast";
 export default function InvoiceHistoryPanel() {
   const isOpen = useInvoiceStore((s) => s.isInvoiceHistoryOpen);
   const close = useInvoiceStore((s) => s.closeInvoiceHistory);
-  const setInvoice = useInvoiceStore((s) => s.setInvoice);
+  const loadInvoiceForEdit = useInvoiceStore((s) => s.loadInvoiceForEdit);
   const setItems = useInvoiceStore((s) => s.setItems);
   const setEditingInvoiceId = useInvoiceStore((s) => s.setEditingInvoiceId);
   const updateInvoice = useInvoiceStore((s) => s.updateInvoice);
@@ -37,6 +37,11 @@ export default function InvoiceHistoryPanel() {
   const page = useRef(0);
   const version = useRef(0);
   const printRef = useRef(null);
+  const searchRef = useRef(search);
+
+  useEffect(() => {
+    searchRef.current = search;
+  }, [search]);
 
   const handlePrintAction = useReactToPrint({
     contentRef: printRef,
@@ -54,7 +59,7 @@ export default function InvoiceHistoryPanel() {
       const result = await fetchDocumentHistory({
         startAfterDoc: cursor, pageSize: 10,
         dateFrom: range.dateFrom, dateTo: range.dateTo,
-        searchQuery: search,
+        searchQuery: searchRef.current,
         documentType: documentType || null,
         draftType: draftFilter || null,
       });
@@ -74,7 +79,7 @@ export default function InvoiceHistoryPanel() {
     } finally {
       if (id === version.current) setLoading(false);
     }
-  }, [preset, customFrom, customTo, search, documentType, draftFilter]);
+  }, [preset, customFrom, customTo, documentType, draftFilter]);
 
   const resetAndFetch = useCallback(() => {
     page.current = 0;
@@ -125,24 +130,20 @@ export default function InvoiceHistoryPanel() {
     const val = e.target.value;
     setPreset(val);
     if (val !== "custom") { setCustomFrom(""); setCustomTo(""); }
-    resetAndFetch();
   };
 
   const handleCustomDateChange = (type, value) => {
     setPreset("custom");
     if (type === "from") setCustomFrom(value);
     else setCustomTo(value);
-    resetAndFetch();
   };
 
   const handleTypeChange = (e) => {
     setDocumentType(e.target.value);
-    resetAndFetch();
   };
 
   const handleDraftFilterChange = (e) => {
     setDraftFilter(e.target.value);
-    resetAndFetch();
   };
 
   const handlePrintClick = useCallback(async (documentId) => {
@@ -171,7 +172,7 @@ export default function InvoiceHistoryPanel() {
     try {
       const result = await fetchDocumentForPrint(documentId);
       if (!result.success) throw new Error("Failed to fetch document data");
-      setInvoice(result.invoice);
+      loadInvoiceForEdit(result.invoice);
       setItems(result.items);
       setEditingInvoiceId(documentId);
       close();
@@ -179,7 +180,7 @@ export default function InvoiceHistoryPanel() {
       console.error("Edit error:", err);
       toast.error("Failed to load document for editing");
     }
-  }, [setInvoice, setItems, setEditingInvoiceId, close]);
+  }, [loadInvoiceForEdit, setItems, setEditingInvoiceId, close]);
 
   const handleCreateDraft = useCallback(async (documentId) => {
     try {
@@ -196,7 +197,7 @@ export default function InvoiceHistoryPanel() {
       delete cleanInvoice.createdAt;
       delete cleanInvoice.updatedAt;
       cleanInvoice.documentYear = new Date().getFullYear().toString().slice(-2);
-      setInvoice(cleanInvoice);
+      loadInvoiceForEdit(cleanInvoice);
 
       const cleanItems = result.items.map((item) => {
         const copy = { ...item };
@@ -219,7 +220,7 @@ export default function InvoiceHistoryPanel() {
       console.error("Create draft error:", err);
       toast.error("Failed to create draft");
     }
-  }, [setInvoice, setItems, setEditingInvoiceId, updateInvoice, close]);
+  }, [loadInvoiceForEdit, setItems, setEditingInvoiceId, updateInvoice, close]);
 
   useEffect(() => {
     if (!printData) return;

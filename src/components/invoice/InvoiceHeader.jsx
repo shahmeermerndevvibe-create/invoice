@@ -186,7 +186,7 @@ export default function InvoiceHeader() {
         </div>
 
         <div className="col-span-2 sm:w-52">
-          <Label className="mb-1 block text-xs sm:mb-2 sm:text-sm">Registeration No</Label>
+          <Label className="mb-1 block text-xs sm:mb-2 sm:text-sm">Business Number</Label>
           <Input
             placeholder="60733547866"
             value={invoice.businessNumber}

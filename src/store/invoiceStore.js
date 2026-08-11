@@ -7,18 +7,25 @@ import { useSettingsStore } from "@/store/settingsStore";
 
 const defaultCountry = "Australia";
 
-const companyFieldsFromSettings = (country) => {
-  const settings = useSettingsStore.getState();
-  const cs = settings.byCountry[country] || {};
+const countryFieldsFromSettings = (country) => {
+  const cs = useSettingsStore.getState().byCountry[country] || {};
   return {
     companyPhone: cs.phoneNo || "",
     companyWebsite: cs.website || "",
     companyLocation: cs.location || "",
+    businessNumber: cs.businessNumber || "",
     signatureName: cs.signatureName || "",
     signatureTitle: cs.signatureTitle || "",
+    thankYouText: cs.thankYouText || "",
+  };
+};
+
+const companyFieldsFromSettings = (country) => {
+  const settings = useSettingsStore.getState();
+  return {
+    ...countryFieldsFromSettings(country),
     signatureUrl: settings.signatureUrl || "",
     signaturePublicId: settings.signaturePublicId || "",
-    thankYouText: cs.thankYouText || "",
   };
 };
 
@@ -47,6 +54,11 @@ export const useInvoiceStore = create(
       processing: null,
 
       setInvoice: (invoice) => set({ invoice }),
+
+      loadInvoiceForEdit: (invoice) => {
+        set({ invoice });
+        useInvoiceStore.getState().syncCompanyFieldsFromSettings();
+      },
 
       setItems: (items) => set({ items }),
 
@@ -137,8 +149,7 @@ export const useInvoiceStore = create(
       },
 
       syncCompanyFieldsFromSettings() {
-        const { editingInvoiceId, invoice } = useInvoiceStore.getState();
-        if (editingInvoiceId || invoice.isDraft) return;
+        const { invoice } = useInvoiceStore.getState();
         const country = invoice.country || defaultCountry;
         set({
           invoice: {
@@ -153,13 +164,7 @@ export const useInvoiceStore = create(
           invoice: {
             ...state.invoice,
             country,
-            ...companyFieldsFromSettings(country),
-            ...(state.editingInvoiceId
-              ? {
-                  signatureUrl: state.invoice.signatureUrl,
-                  signaturePublicId: state.invoice.signaturePublicId,
-                }
-              : {}),
+            ...countryFieldsFromSettings(country),
           },
         }));
       },
@@ -233,6 +238,7 @@ export const useInvoiceStore = create(
             companyPhone: old.companyPhone ?? current.invoice.companyPhone,
             companyWebsite: old.companyWebsite ?? current.invoice.companyWebsite,
             companyLocation: old.companyLocation ?? current.invoice.companyLocation,
+            businessNumber: old.businessNumber ?? current.invoice.businessNumber,
             signatureName: old.signatureName ?? current.invoice.signatureName,
             signatureTitle: old.signatureTitle ?? current.invoice.signatureTitle,
             signatureUrl: old.signatureUrl ?? current.invoice.signatureUrl,

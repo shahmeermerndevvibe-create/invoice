@@ -6,6 +6,7 @@ const COUNTRY_PLACEHOLDERS = {
     phoneNo: "+61 421 702 706",
     website: "www.devvibe.com",
     location: "10 Leo Ave, Melbourne, Australia, 3029",
+    businessNumber: "60733547866",
 
     signatureName: "Ajmal Jillani",
     signatureTitle: "COO - DevVibe",
@@ -17,6 +18,7 @@ const COUNTRY_PLACEHOLDERS = {
     phoneNo: "+92 300 1234567",
     website: "www.devvibe.com",
     location: "5 Main Blvd, Karachi, Pakistan",
+    businessNumber: "123456789X",
 
     signatureName: "Ajmal Jillani",
     signatureTitle: "COO - DevVibe",
@@ -28,6 +30,7 @@ const COUNTRY_PLACEHOLDERS = {
     phoneNo: "+1 212 555 0198",
     website: "www.devvibe.com",
     location: "123 Broadway, New York, NY 10006",
+    businessNumber: "12-3456789",
 
     signatureName: "Ajmal Jillani",
     signatureTitle: "COO - DevVibe",

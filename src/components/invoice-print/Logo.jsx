@@ -4,16 +4,10 @@ const businessLabel = {
   USA: "Business #",
 };
 
-const businessDefault = {
-  Australia: "60733547866",
-  Pakistan: "123456789X",
-  USA: "12-3456789",
-};
-
 export default function Logo({ invoice }) {
   const country = invoice?.country || "Australia";
   const label = businessLabel[country] || "ABN";
-  const number = invoice?.businessNumber || businessDefault[country] || "";
+  const number = invoice?.businessNumber || "";
 
   return (
     <div className="flex flex-col">

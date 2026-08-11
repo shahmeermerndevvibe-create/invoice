@@ -133,6 +133,22 @@ export default function CustomerSection() {
                   </p>
                 )}
               </div>
+
+               <div className="w-full md:w-52">
+              <Label className="mb-2 block">
+               Business Phone Number <span className="text-red-500"></span>
+              </Label>
+
+              <Input
+                type="tel"
+                placeholder="03123456789"
+                value={invoice.phoneNo}
+                onChange={(e) => handleChange("phoneNo", e.target.value)}
+              />
+              {errors.phoneNo && (
+                <p className="mt-1 text-sm text-red-500">{errors.phoneNo}</p>
+              )}
+            </div>
             </div>
 
             <div className="flex min-w-0 flex-1 flex-col gap-4">
@@ -230,22 +246,6 @@ export default function CustomerSection() {
                 disabled={!invoice.invoiceDate}
                 onChange={(e) => handleChange("dueDate", e.target.value)}
               />
-            </div>
-
-            <div className="w-full md:w-52">
-              <Label className="mb-2 block">
-                Phone Number <span className="text-red-500"></span>
-              </Label>
-
-              <Input
-                type="tel"
-                placeholder="03123456789"
-                value={invoice.phoneNo}
-                onChange={(e) => handleChange("phoneNo", e.target.value)}
-              />
-              {errors.phoneNo && (
-                <p className="mt-1 text-sm text-red-500">{errors.phoneNo}</p>
-              )}
             </div>
 
             <div className="w-full md:w-52">
