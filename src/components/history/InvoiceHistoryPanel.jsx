@@ -5,6 +5,7 @@ import { useInvoiceStore } from "@/store/invoiceStore";
 import { fetchDocumentHistory, fetchDocumentForPrint } from "@/actions/invoiceActions";
 import { loadNextDocumentNumber } from "@/utils/InvoiceCounter";
 import { getDateRange } from "@/utils/historyUtils";
+import { getTodayDateString } from "@/utils/dateUtils";
 import InvoicePrint from "@/components/invoice-print/InvoicePrint";
 import InvoiceHistoryFilters from "./InvoiceHistoryFilters";
 import InvoiceHistoryList from "./InvoiceHistoryList";
@@ -197,6 +198,7 @@ export default function InvoiceHistoryPanel() {
       delete cleanInvoice.createdAt;
       delete cleanInvoice.updatedAt;
       cleanInvoice.documentYear = new Date().getFullYear().toString().slice(-2);
+      cleanInvoice.invoiceDate = getTodayDateString();
       loadInvoiceForEdit(cleanInvoice);
 
       const cleanItems = result.items.map((item) => {

@@ -1,3 +1,5 @@
+import { getTodayDateString } from "@/utils/dateUtils";
+
 export const invoiceModel = {
   documentNumber: "1001",
   documentCounter: 1001,
@@ -14,7 +16,7 @@ export const invoiceModel = {
   businessEmail: "",
   businessAddress: "",
 
-  invoiceDate: "",
+  invoiceDate: getTodayDateString(),
   dueDate: "",
 
   currency: {

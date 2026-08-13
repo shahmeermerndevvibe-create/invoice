@@ -1,9 +1,7 @@
-import { formatCurrency, calculateItemRow } from "@/utils/invoiceUtils";
-import { useMemo } from "react";
+import { formatCurrency } from "@/utils/invoiceUtils";
 
 export default function BillingSummary({
   invoice,
-  items = [],
   subtotal,
   total,
   // balanceDue,
@@ -12,41 +10,9 @@ export default function BillingSummary({
   itemDiscountsTotal,
   notesPosition = "inline",
 }) {
-  const {
-    totalContractValue,
-    completedMilestoneValue,
-    currentMilestoneValue,
-    pendingMilestoneValue,
-  } = useMemo(() => {
-    const total = items.reduce(
-      (sum, item) => sum + calculateItemRow(item).netTotal,
-      0,
-    );
-    const completed = items
-      .filter((item) => item.status === "Completed")
-      .reduce((sum, item) => sum + calculateItemRow(item).netTotal, 0);
-    const current = items
-      .filter((item) => item.status === "Current")
-      .reduce((sum, item) => sum + calculateItemRow(item).netTotal, 0);
-    const pending = items
-      .filter((item) => item.status === "Pending")
-      .reduce((sum, item) => sum + calculateItemRow(item).netTotal, 0);
-    return {
-      totalContractValue: total,
-      completedMilestoneValue: completed,
-      currentMilestoneValue: current,
-      pendingMilestoneValue: pending,
-    };
-  }, [items]);
-
-  const completionRatio =
-    totalContractValue > 0 ? completedMilestoneValue / totalContractValue : 0;
-
-  const contractAfterDiscount = totalContractValue - (discountAmount || 0);
-  const netContractTotal = contractAfterDiscount + (taxAmount || 0);
-
-  const dueThisInvoice = currentMilestoneValue;
-  const remaining = pendingMilestoneValue;
+  const afterItemDiscounts = (subtotal || 0) - (itemDiscountsTotal || 0);
+  const netContractTotal =
+    afterItemDiscounts - (discountAmount || 0) + (taxAmount || 0);
 
   const discountLabel =
     invoice.discountType === "percent"
@@ -167,96 +133,88 @@ export default function BillingSummary({
                 </div>
               </div>
             ) : (
-            <div className="ml-auto max-w-[280px] space-y-2 pb-4 text-sm">
-              <div className="flex justify-between gap-3">
-                <span className="font-bold">Total Contract Value</span>
-                <span className="tabular-nums font-medium">
-                  <span className="text-xs mr-0.5">
-                    {invoice.currency.symbol}
-                  </span>
-                  {formatCurrency(totalContractValue)}
-                </span>
-              </div>
-
-              {Number(itemDiscountsTotal) > 0 && (
+              <div className="ml-auto max-w-[280px] space-y-2 pb-4 text-sm">
                 <div className="flex justify-between gap-3">
-                  <span className="font-light">Item Discounts</span>
-                  <span className="tabular-nums">
-                    −
+                  <span className="font-bold">Total Contract Value</span>
+                  <span className="tabular-nums font-medium">
                     <span className="text-xs mr-0.5">
                       {invoice.currency.symbol}
                     </span>
-                    {formatCurrency(itemDiscountsTotal)}
+                    {formatCurrency(subtotal)}
                   </span>
                 </div>
-              )}
 
-              {Number(discountAmount) > 0 && (
+                {Number(itemDiscountsTotal) > 0 && (
+                  <div className="flex justify-between gap-3">
+                    <span className="font-light">Item Discounts</span>
+                    <span className="tabular-nums">
+                      −
+                      <span className="text-xs mr-0.5">
+                        {invoice.currency.symbol}
+                      </span>
+                      {formatCurrency(itemDiscountsTotal)}
+                    </span>
+                  </div>
+                )}
+
                 <div className="flex justify-between gap-3">
                   <span className="font-bold">
-                    Invoice Discount ({discountLabel})
+                    Contract Value (After Discounts)
                   </span>
-                  <span className="tabular-nums">
-                    −
+                  <span className="tabular-nums font-medium">
                     <span className="text-xs mr-0.5">
                       {invoice.currency.symbol}
                     </span>
-                    {formatCurrency(discountAmount)}
+                    {formatCurrency(afterItemDiscounts)}
                   </span>
                 </div>
-              )}
 
-              {Number(taxAmount) > 0 && (
-                <div className="flex justify-between gap-3">
-                  <span className="font-light">Tax ({taxLabel})</span>
-                  <span className="tabular-nums">
-                    +
-                    <span className="text-xs mr-0.5">
+                {Number(discountAmount) > 0 && (
+                  <div className="flex justify-between gap-3">
+                    <span className="font-bold">
+                      Invoice Discount ({discountLabel})
+                    </span>
+                    <span className="tabular-nums">
+                      −
+                      <span className="text-xs mr-0.5">
+                        {invoice.currency.symbol}
+                      </span>
+                      {formatCurrency(discountAmount)}
+                    </span>
+                  </div>
+                )}
+
+                {Number(taxAmount) > 0 && (
+                  <div className="flex justify-between gap-3">
+                    <span className="font-light">Tax ({taxLabel})</span>
+                    <span className="tabular-nums">
+                      +
+                      <span className="text-xs mr-0.5">
+                        {invoice.currency.symbol}
+                      </span>
+                      {formatCurrency(taxAmount)}
+                    </span>
+                  </div>
+                )}
+
+                {/* <div className="border-t border-black my-1" /> */}
+
+                <div className="mt-5 flex justify-between overflow-hidden rounded-md bg-gradient-to-r from-[#1C3C75] from-[5%] to-[#1E90FF] to-[100%] text-white">
+                  <div className="flex-1 py-2 pl-4 text-lg font-bold">
+                    Total
+                  </div>
+
+                  <div className="flex items-center justify-center whitespace-nowrap px-4 font-bold">
+                    <span className="mr-2 shrink-0 text-sm font-extrabold">
                       {invoice.currency.symbol}
                     </span>
-                    {formatCurrency(taxAmount)}
-                  </span>
-                </div>
-              )}
 
-              {/* <div className="border-t border-black my-1" /> */}
-
-              <div className="flex justify-between gap-3 font-bold text-gray-900">
-                <span>Net Contract Value</span>
-                <span className="tabular-nums">
-                  <span className="text-xs mr-0.5">
-                    {invoice.currency.symbol}
-                  </span>
-                  {formatCurrency(netContractTotal)}
-                </span>
-              </div>
-
-              <div className="mt-5 flex justify-between overflow-hidden rounded-md bg-gradient-to-r from-[#1C3C75] from-[5%] to-[#1E90FF] to-[100%] text-white">
-                <div className="flex-1 py-2 pl-2 text-lg font-bold">
-                  Due This Invoice:
-                </div>
-
-                <div className="flex items-center justify-center whitespace-nowrap px-4 font-bold">
-                  <span className="mr-2 shrink-0 text-sm font-extrabold">
-                    {invoice.currency.symbol}
-                  </span>
-
-                  <span className="text-lg">
-                    {formatCurrency(dueThisInvoice)}
-                  </span>
+                    <span className="min-w-0 truncate text-base sm:text-lg md:text-xl">
+                      {formatCurrency(netContractTotal)}
+                    </span>
+                  </div>
                 </div>
               </div>
-
-              <div className="flex justify-between gap-3 text-xs text-slate-500">
-                <span>Remaining to be paid</span>
-                <span className="tabular-nums">
-                  <span className="text-xs mr-0.5">
-                    {invoice.currency.symbol}
-                  </span>
-                  {formatCurrency(remaining)}
-                </span>
-              </div>
-            </div>
             )
           ) : (
             <div className="ml-auto max-w-[280px] space-y-3">

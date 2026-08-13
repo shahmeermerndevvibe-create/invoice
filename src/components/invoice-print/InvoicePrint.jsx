@@ -392,6 +392,15 @@ const InvoicePrint = ({
     { items, showBillingSummary: true, msStart: 0, msEnd: null },
   ];
 
+  // Milestone numbering continues across pages: each page's table starts at
+  // the cumulative count of items on the pages before it.
+  let running = 0;
+  const pageStarts = pages.map((p) => {
+    const start = running;
+    running += p.items.length;
+    return start;
+  });
+
   return (
     <>
       {pages.map((chunk, index) => (
@@ -402,6 +411,7 @@ const InvoicePrint = ({
           <BillingTableSection
             invoice={invoice}
             items={chunk.items}
+            startIndex={pageStarts[index]}
             showBillingSummary={chunk.showBillingSummary}
             msStart={chunk.msStart}
             msEnd={chunk.msEnd}
@@ -432,6 +442,7 @@ const InvoicePrint = ({
 const BillingTableSection = ({
   invoice,
   items,
+  startIndex = 0,
   showBillingSummary,
   msStart,
   msEnd,
@@ -476,7 +487,7 @@ const BillingTableSection = ({
 
       {items.length > 0 && (
         <div className={"shrink-0" + (isFirstPage ? "" : " pt-8")}>
-          <BillingTable items={items} invoice={invoice} />
+          <BillingTable items={items} invoice={invoice} startIndex={startIndex} />
         </div>
       )}
 

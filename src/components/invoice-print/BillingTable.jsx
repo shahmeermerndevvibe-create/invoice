@@ -8,12 +8,12 @@ import {
 } from "@/components/ui/table";
 import { formatCurrency, calculateItemRow } from "@/utils/invoiceUtils";
 
-const BillingTable = ({ items = [], invoice = {} }) => {
+const BillingTable = ({ items = [], invoice = {}, startIndex = 0 }) => {
   const minRows = 1;
   const emptyRows = Math.max(0, minRows - items.length);
 
-  const showStatus =
-    invoice.contractType === "Milestones" && invoice.documentType !== "Invoice";
+  // const showStatus =
+  //   invoice.contractType === "Milestones" && invoice.documentType === "Invoice";
 
   const statusColors = {
     Pending: "bg-amber-100 text-amber-700 border-amber-200",
@@ -29,11 +29,11 @@ const BillingTable = ({ items = [], invoice = {} }) => {
         <Table>
           <TableHeader>
             <TableRow className="border-b-0 hover:bg-transparent">
-              {/* {invoice.contractType === "Milestones" && (
+              {invoice.contractType === "Milestones" && (
                 <TableHead className="bg-[#0A4A95] py-4 text-center font-semibold text-white">
-                  Milestone
+                  #
                 </TableHead>
-              )} */}
+              )}
               <TableHead className="bg-[#0A4A95] py-4 text-left font-semibold bg-gradient-to-r from-blue-950 to-blue-500 text-white">
                 Description
               </TableHead>
@@ -50,11 +50,11 @@ const BillingTable = ({ items = [], invoice = {} }) => {
                 Discount
               </TableHead>
 
-              {showStatus && (
+              {/* {showStatus && (
                 <TableHead className="bg-[#1E90FF] py-4 text-center font-semibold text-white">
                   Status
                 </TableHead>
-              )}
+              )} */}
 
               <TableHead
                 className={`${invoice.contractType === "Milestones" ? "bg-[#0A4A95]" : "bg-[#1E90FF]"} py-4 text-center font-semibold text-white`}
@@ -76,13 +76,13 @@ const BillingTable = ({ items = [], invoice = {} }) => {
                   key={item.id || index}
                   className={`hover:bg-transparent`}
                 >
-                  {/* {invoice.contractType === "Milestones" && (
+                  {invoice.contractType === "Milestones" && (
                     <TableCell className="bg-slate-50 py-4 text-center align-top">
                       <span className="font-bold text-[#0A4A95]">
-                        M{index + 1}
+                        M{startIndex + index + 1}
                       </span>
                     </TableCell>
-                  )} */}
+                  )}
                   <TableCell className="py-3 align-top">
                     <p className="text-lg font-bold break-words text-[#0A4A95]">
                       {item.product}
@@ -110,7 +110,7 @@ const BillingTable = ({ items = [], invoice = {} }) => {
                       : "-"}
                   </TableCell>
 
-                  {showStatus && (
+                  {/* {showStatus && (
                     <TableCell className="align-top py-4 text-center">
                       {isCompletedMilestone ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700 border border-green-200">
@@ -138,7 +138,7 @@ const BillingTable = ({ items = [], invoice = {} }) => {
                         </span>
                       )}
                     </TableCell>
-                  )}
+                  )} */}
 
                   <TableCell className="bg-slate-50 align-top text-center py-4 font-bold text-[#0A4A95]">
                     {formatCurrency(netTotal)}
@@ -149,6 +149,9 @@ const BillingTable = ({ items = [], invoice = {} }) => {
 
             {Array.from({ length: emptyRows }).map((_, index) => (
               <TableRow key={`empty-${index}`} className="hover:bg-transparent">
+                {invoice.contractType === "Milestones" && (
+                  <TableCell className="bg-slate-50"></TableCell>
+                )}
                 <TableCell className="h-16"></TableCell>
                 <TableCell className="bg-slate-50"></TableCell>
                 <TableCell></TableCell>
