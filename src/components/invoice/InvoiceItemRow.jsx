@@ -44,7 +44,14 @@ export default function InvoiceItemRow({ index, item, dragIndex, onDragStart, on
       bg: "bg-green-100",
       border: "border-green-300",
     },
+    // Paid: {
+    //   color: "text-purple-700",
+    //   bg: "bg-purple-100",
+    //   border: "border-purple-300",
+    // },
   };
+
+  const statusStyle = statuses[item.status] || statuses.Pending;
 
   return (
     <tr
@@ -205,11 +212,11 @@ export default function InvoiceItemRow({ index, item, dragIndex, onDragStart, on
             <DropdownMenuTrigger asChild>
               <button
                 className={`flex h-10 w-full items-center justify-between rounded-lg border px-3 transition hover:shadow-sm
-                  ${statuses[item.status].bg}
-                  ${statuses[item.status].border}`}
+                  ${statusStyle.bg}
+                  ${statusStyle.border}`}
               >
                 <div className="flex items-center gap-2">
-                  <Circle className={`h-3 w-3 fill-current ${statuses[item.status].color}`} />
+                  <Circle className={`h-3 w-3 fill-current ${statusStyle.color}`} />
                   <span className="font-medium">{item.status}</span>
                 </div>
                 <ChevronDown className="h-4 w-4 opacity-60" />

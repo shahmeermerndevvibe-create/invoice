@@ -111,35 +111,34 @@ export const calculateInvoiceTotals = (
 };
 
 export const calculateMilestoneBreakdown = (items = [], invoice = {}) => {
-  const totals = calculateInvoiceTotals(items, invoice);
-  const sumPrice = items.reduce(
-    (sum, item) => sum + calculateItemRow(item).netTotal,
-    0,
-  );
-  const ratio = sumPrice > 0 ? 1 / sumPrice : 0;
-
   const rows = items.map((item, index) => {
-    const { netTotal } = calculateItemRow(item);
-    const discountShare = totals.discountAmount * netTotal * ratio;
-    const tax = totals.taxAmount * netTotal * ratio;
+    const { lineTotal, discountAmount } = calculateItemRow(item);
+    const price = lineTotal;
+    const afterDiscount = price - discountAmount;
+    const tax = calculateTax(afterDiscount, invoice);
+    const total = afterDiscount + tax;
 
     return {
       index,
       label: `M${index + 1}`,
       status: item.status || "Pending",
-      price: netTotal,
-      discountShare,
+      price,
+      discountAmount,
+      afterDiscount,
       tax,
-      total: netTotal - discountShare + tax,
+      total,
     };
   });
 
   const dueThisInvoice = rows
     .filter((row) => row.status === "Current")
     .reduce((sum, row) => sum + row.total, 0);
+
   const remaining = rows
     .filter((row) => row.status === "Pending")
     .reduce((sum, row) => sum + row.total, 0);
+
+  const totals = calculateInvoiceTotals(items, invoice);
 
   return {
     rows,

@@ -30,6 +30,12 @@ export default function MilestoneSummary({
   const to = endIndex == null ? totalRows : Math.min(endIndex, totalRows);
   const visibleRows = rows.slice(from, to);
 
+
+  const taxLabel =
+  invoice.taxType === "percent"
+    ? `Tax (${invoice.tax || 0}%)`
+    : `Tax (${symbol} ${formatCurrency(invoice.tax || 0)})`;
+
   return (
     <section className="px-8 py-3 md:px-14">
       <div className="my-4 border-t-[1.5px] border-slate-300" />
@@ -42,7 +48,10 @@ export default function MilestoneSummary({
                 Milestone
               </th>
               <th className="py-3 text-right text-sm font-semibold">Price</th>
-              <th className="py-3 text-right text-sm font-semibold">Tax</th>
+              <th className="py-3 text-right text-sm font-semibold">
+                Item Discount
+              </th>
+              <th className="py-3 text-right text-sm font-semibold">{taxLabel}</th>
               <th className="py-3 text-right text-sm font-semibold">Total</th>
               <th className="py-3 pr-4 text-center text-sm font-semibold">
                 Status
@@ -61,6 +70,11 @@ export default function MilestoneSummary({
                 <td className="bg-slate-50 py-3 text-right align-top text-sm tabular-nums">
                   <span className="text-xs mr-0.5">{symbol}</span>
                   {formatCurrency(row.price)}
+                </td>
+                <td className="bg-slate-50 py-3 text-right align-top text-sm tabular-nums">
+                  −
+                  <span className="text-xs mr-0.5">{symbol}</span>
+                  {formatCurrency(row.discountAmount)}
                 </td>
                 <td className="bg-slate-50 py-3 text-right align-top text-sm tabular-nums">
                   <span className="text-xs mr-0.5">{symbol}</span>
@@ -85,7 +99,7 @@ export default function MilestoneSummary({
             {visibleRows.length === 0 && (
               <tr className="border-t border-slate-200">
                 <td
-                  colSpan={5}
+                  colSpan={6}
                   className="py-3 text-center text-sm text-slate-500"
                 >
                   No milestones available.

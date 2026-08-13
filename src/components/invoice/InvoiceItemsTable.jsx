@@ -21,6 +21,7 @@ const statuses = {
   Pending: { color: "text-amber-600", bg: "bg-amber-100", border: "border-amber-300" },
   Current: { color: "text-blue-600", bg: "bg-blue-100", border: "border-blue-300" },
   Completed: { color: "text-green-700", bg: "bg-green-100", border: "border-green-300" },
+  //  Paid: { color: "text-purple-700",bg: "bg-purple-100",border: "border-purple-300" },
 };
 
 function MobileItemCard({ index, item, invoice }) {
@@ -35,6 +36,8 @@ function MobileItemCard({ index, item, invoice }) {
     updateItem(index, field, value);
     if (itemErrors[field]) clearItemError(index, field);
   };
+
+  const statusStyle = statuses[item.status] || statuses.Pending;
 
   return (
     <div className="space-y-2 rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
@@ -151,10 +154,10 @@ function MobileItemCard({ index, item, invoice }) {
           <DropdownMenuTrigger asChild>
             <button
               className={`flex h-9 w-full items-center justify-between rounded-lg border px-3 transition hover:shadow-sm
-                ${statuses[item.status].bg} ${statuses[item.status].border}`}
+                ${statusStyle.bg} ${statusStyle.border}`}
             >
               <div className="flex items-center gap-2">
-                <Circle className={`h-3 w-3 fill-current ${statuses[item.status].color}`} />
+                <Circle className={`h-3 w-3 fill-current ${statusStyle.color}`} />
                 <span className="text-sm font-medium">{item.status}</span>
               </div>
               <ChevronDown className="h-4 w-4 opacity-60" />
