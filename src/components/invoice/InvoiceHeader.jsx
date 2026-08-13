@@ -185,6 +185,22 @@ export default function InvoiceHeader() {
           </Select>
         </div>
 
+        <div className="sm:w-44">
+          <Label className="mb-1 block text-xs sm:mb-2 sm:text-sm">Tax</Label>
+          <Select
+            value={invoice.taxInclusive ? "inclusive" : "exclusive"}
+            onValueChange={(value) => updateInvoice("taxInclusive", value === "inclusive")}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="inclusive">Inclusive</SelectItem>
+              <SelectItem value="exclusive">Exclusive</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="col-span-2 sm:w-52">
           <Label className="mb-1 block text-xs sm:mb-2 sm:text-sm">Business Number</Label>
           <Input

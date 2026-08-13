@@ -245,6 +245,43 @@ export default function ReviewModal({ data, onClose }) {
               </>
             )}
           </div>
+
+          {invoice.payment && (
+            <div className="mt-4 rounded-lg border border-gray-200 p-4">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">
+                Payment Details
+              </h3>
+              {invoice.payment.startsWith("http://") ||
+              invoice.payment.startsWith("https://") ? (
+                <a
+                  href={invoice.payment}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 inline-block text-sm font-medium text-blue-600 underline hover:text-blue-800"
+                >
+                  {invoice.payment}
+                </a>
+              ) : (
+                <div
+                  className="
+                  mt-2 text-sm text-slate-700
+                  [&_p]:m-0
+                  [&_p]:mb-1
+                  [&_p]:break-words
+                  [&_strong]:font-semibold
+                  [&_a]:text-blue-600
+                  [&_a]:underline
+                  [&_ul]:list-disc
+                  [&_ul]:pl-5
+                  [&_ol]:list-decimal
+                  [&_ol]:pl-5
+                  [&_li]:mb-1
+                "
+                  dangerouslySetInnerHTML={{ __html: invoice.payment }}
+                />
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

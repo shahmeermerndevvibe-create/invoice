@@ -31,6 +31,7 @@ export const invoiceModel = {
   discount: "",
   discountAmount: 0,
   taxType: "percent",
+  taxInclusive: true,
   tax: "",
   total: 0,
   balanceDue: 0,

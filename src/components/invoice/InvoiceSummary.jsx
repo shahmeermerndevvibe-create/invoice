@@ -350,6 +350,7 @@ export default function InvoiceSummary({ onPrint }) {
           <div className="flex gap-2">
             <Input
               type="number"
+              disabled={!invoice.taxInclusive}
               placeholder="0"
               min={0}
               max={

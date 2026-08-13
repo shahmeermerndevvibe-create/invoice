@@ -5,19 +5,32 @@ import TopBanner from "./TopBanner";
 import BillingInfo from "./BillingInfo";
 import BillingTable from "./BillingTable";
 import BillingSummary from "./BillingSummary";
+import MilestoneSummary from "./MilestoneSummary";
 import BillingFooter from "./BillingFooter";
+
+const showMilestoneSummary = (invoice) =>
+  invoice?.contractType === "Milestones" &&
+  invoice?.documentType === "Invoice";
 
 const MM_PX = 96 / 25.4;
 const PAGE_H = Math.round(297 * MM_PX);
 const FOOTER_H = Math.round(60 * MM_PX);
 const SAFE_PX = 8;
 
-function buildPagesFromMeasurements(items, contentHeight, headerHeight, billingInfoHeight, rowHeights, tableOverhead, summaryHeight, notesHeight) {
-  if (items.length === 0) return [[]];
+function buildPagesFromMeasurements(items, contentHeight, headerHeight, billingInfoHeight, rowHeights, tableOverhead, bsHeight, msOverhead, msRowHeights, msFooterHeight, notesHeight) {
+  const msRowsTotal = msRowHeights.reduce((a, b) => a + b, 0);
+  const summaryBlockH = bsHeight + msOverhead + msRowsTotal + msFooterHeight;
+  const hasMs = msRowHeights.length > 0;
+
+  if (items.length === 0) {
+    return [{ items: [], showBillingSummary: true, msStart: 0, msEnd: msRowHeights.length }];
+  }
 
   const totalItemHeight = rowHeights.reduce((a, b) => a + b, 0);
-  const allOnOne = headerHeight + billingInfoHeight + totalItemHeight + tableOverhead + summaryHeight + notesHeight;
-  if (allOnOne <= contentHeight) return [items];
+  const allOnOne = headerHeight + billingInfoHeight + totalItemHeight + tableOverhead + summaryBlockH + notesHeight;
+  if (allOnOne <= contentHeight) {
+    return [{ items, showBillingSummary: true, msStart: 0, msEnd: msRowHeights.length }];
+  }
 
   // For interior/last pages, the table has `pt-8` (32px) which is not in the first page measurement
   const interiorTableOverhead = tableOverhead + 32;
@@ -25,72 +38,167 @@ function buildPagesFromMeasurements(items, contentHeight, headerHeight, billingI
   const firstBudget = contentHeight - headerHeight - billingInfoHeight - tableOverhead;
   const interiorBudget = contentHeight - headerHeight - interiorTableOverhead;
 
-  const firstLastBudget = firstBudget - summaryHeight - notesHeight;
-  const interiorLastBudget = interiorBudget - summaryHeight - notesHeight;
-
+  // Items pages: greedy forward fill. The summary flows on its own pages after
+  // the items, so pages only need to fit their items.
   const pages = [];
   let start = 0;
 
   while (start < items.length) {
     const isFirstPage = pages.length === 0;
     const currentBudget = isFirstPage ? firstBudget : interiorBudget;
-    const currentLastBudget = isFirstPage ? firstLastBudget : interiorLastBudget;
 
-    const remainingItems = items.slice(start);
     const remainingH = rowHeights.slice(start).reduce((a, b) => a + b, 0);
 
-    // 1. Can ALL remaining items fit on this page ALONG with summary and notes?
-    if (remainingH <= currentLastBudget) {
-      pages.push(remainingItems);
+    if (remainingH <= currentBudget) {
+      pages.push(items.slice(start));
       break;
     }
 
-    // 2. We cannot fit all items + summary + notes on this page.
-    // So this page CANNOT be the last page. We fill it up to `currentBudget`.
     const page = [];
     let used = 0;
 
     while (start < items.length) {
       const h = rowHeights[start];
-      
-      // Check if adding this item exceeds the page budget
+
       if (used + h > currentBudget && page.length > 0) {
         break;
       }
-      
+
       page.push(items[start]);
       used += h;
       start++;
     }
-    
-    // Fallback if a single item is larger than the entire page
+
     if (page.length === 0) {
       page.push(items[start]);
       start++;
     }
-    
+
     pages.push(page);
   }
 
-  // If the loop finished but the last page cannot actually fit summary/notes,
-  // we must append an empty page specifically for them.
-  const lastPage = pages[pages.length - 1];
-  const lastPageIsFirst = pages.length === 1;
-  const actualLastBudget = lastPageIsFirst ? firstLastBudget : interiorLastBudget;
-  const lastPageH = rowHeights.slice(items.length - lastPage.length).reduce((a, b) => a + b, 0);
+  // The summary intro (totals + milestone header + first milestone row) must be
+  // able to start right below the last table. If the last items page is too
+  // full for it, peel the trailing items onto a new final page so the summary
+  // can begin underneath the table on that page.
+  const introReserve = bsHeight + msOverhead + (hasMs ? msRowHeights[0] : 0);
+  let lastItems = pages[pages.length - 1];
+  const lastIsFirst = pages.length === 1;
+  const lastBudget = lastIsFirst ? firstBudget : interiorBudget;
+  const sumRows = (list) =>
+    list.reduce((acc, item) => acc + rowHeights[item], 0);
+  let lastItemsH = sumRows(lastItems);
 
-  if (lastPageH > actualLastBudget) {
-    pages.push([]);
+  if (lastItemsH > lastBudget - introReserve && lastItems.length > 1) {
+    const peeled = [];
+    while (lastItemsH > lastBudget - introReserve && lastItems.length > 1) {
+      peeled.unshift(lastItems.pop());
+      lastItemsH = sumRows(lastItems);
+    }
+    pages.push(peeled);
+    lastItemsH = sumRows(peeled);
   }
 
-  return pages;
+  // Build the summary flow from the last items page onward.
+  const chunks = pages.map((p) => ({
+    items: p,
+    showBillingSummary: false,
+    msStart: null,
+    msEnd: null,
+  }));
+  const lastChunk = chunks[chunks.length - 1];
+  const lastFree = lastBudget - lastItemsH;
+
+  let msFrom = 0;
+
+  const canStartMs = hasMs && lastFree >= bsHeight + msOverhead + msRowHeights[0];
+  const canFitBs = lastFree >= bsHeight;
+
+  if (canStartMs) {
+    let rowsH = 0;
+    let rows = 0;
+    const room = lastFree - bsHeight - msOverhead;
+
+    while (
+      rows < msRowHeights.length &&
+      rowsH + msRowHeights[rows] + (rows + 1 === msRowHeights.length ? msFooterHeight : 0) <= room
+    ) {
+      rowsH += msRowHeights[rows];
+      rows++;
+    }
+
+    if (rows > 0) {
+      lastChunk.showBillingSummary = true;
+      lastChunk.msStart = 0;
+      lastChunk.msEnd = rows;
+      msFrom = rows;
+    } else if (canFitBs) {
+      lastChunk.showBillingSummary = true;
+    }
+  } else if (canFitBs) {
+    lastChunk.showBillingSummary = true;
+  }
+
+  // Flow the remaining milestone rows forward. The last milestone page also
+  // carries the footer (due box). Reserve that final tail first so a page that
+  // turns out to be the last never ends up over-full with the footer.
+  let firstFresh = !lastChunk.showBillingSummary;
+  while (msFrom < msRowHeights.length) {
+    const baseCap = Math.max(
+      0,
+      interiorBudget - (firstFresh ? bsHeight : 0) - msOverhead,
+    );
+
+    // Earliest index `s` such that the tail rows from s..end plus the footer
+    // still fit on a single page. That tail becomes the last milestone page.
+    let s = msRowHeights.length;
+    let tailH = 0;
+    for (let i = msRowHeights.length - 1; i >= msFrom; i--) {
+      if (tailH + msRowHeights[i] + msFooterHeight <= baseCap) {
+        tailH += msRowHeights[i];
+        s = i;
+      } else {
+        break;
+      }
+    }
+
+    const isLastMsPage = s === msFrom;
+    const cap = Math.max(0, isLastMsPage ? baseCap - msFooterHeight : baseCap);
+    // Non-final pages may fill up to the last row (the final page then holds
+    // the last row plus footer); any tail that starts at or after `s` still
+    // fits with the footer, so packing past `s` stays safe.
+    const limit = isLastMsPage
+      ? msRowHeights.length
+      : Math.max(msFrom + 1, msRowHeights.length - 1);
+
+    let rowsH = 0;
+    let rows = 0;
+    while (
+      msFrom + rows < limit &&
+      rowsH + msRowHeights[msFrom + rows] <= cap
+    ) {
+      rowsH += msRowHeights[msFrom + rows];
+      rows++;
+    }
+    if (rows === 0) rows = 1;
+
+    chunks.push({
+      items: [],
+      showBillingSummary: firstFresh,
+      msStart: msFrom,
+      msEnd: msFrom + rows,
+    });
+    firstFresh = false;
+    msFrom += rows;
+  }
+
+  return chunks;
 }
 
 function measureHeights(container) {
   const header = container.querySelector("[data-meas-header]");
   const billingInfo = container.querySelector("[data-meas-billing]");
   const itemsSection = container.querySelector("[data-meas-items]");
-  const summary = container.querySelector("[data-meas-summary]");
   const notes = container.querySelector("[data-meas-notes]");
 
   const headerHeight = header?.offsetHeight || 0;
@@ -102,10 +210,38 @@ function measureHeights(container) {
   const rowHeights = Array.from(rowElements).map((el) => el.offsetHeight);
   const rowSum = rowHeights.reduce((a, b) => a + b, 0);
   const tableOverheadH = totalItemsHeight - rowSum;
-  const summaryHeight = summary?.offsetHeight || 0;
   const notesHeight = notes?.offsetHeight || 0;
 
-  return { headerHeight, billingInfoHeight, rowHeights, tableOverheadH: Math.max(0, tableOverheadH), summaryHeight, notesHeight };
+  const bsNode = container.querySelector("[data-meas-bs]");
+  const msNode = container.querySelector("[data-meas-ms]");
+  const bsHeight = bsNode?.offsetHeight || 0;
+
+  let msOverheadH = 0;
+  let msRowHeights = [];
+  let msFooterH = 0;
+  if (msNode) {
+    const msSectionH = msNode.offsetHeight;
+    const msTable = msNode.querySelector("table");
+    const msTbody = msTable?.querySelector("tbody") || msTable?.querySelector("[role='rowgroup']");
+    const msRowEls = msTbody?.querySelectorAll(":scope > tr, :scope > [role='row']") || [];
+    msRowHeights = Array.from(msRowEls).map((el) => el.offsetHeight);
+    const msFooter = msNode.querySelector("[data-ms-footer]");
+    msFooterH = msFooter?.offsetHeight || 0;
+    const msRowsSum = msRowHeights.reduce((a, b) => a + b, 0);
+    msOverheadH = Math.max(0, msSectionH - msRowsSum - msFooterH);
+  }
+
+  return {
+    headerHeight,
+    billingInfoHeight,
+    rowHeights,
+    tableOverheadH: Math.max(0, tableOverheadH),
+    bsHeight,
+    msOverheadH,
+    msRowHeights,
+    msFooterH,
+    notesHeight,
+  };
 }
 
 function renderMeasureNodes(invoice, items, allItems, subtotal, total, balanceDue, taxAmount, discountAmount, itemDiscountsTotal) {
@@ -127,7 +263,14 @@ function renderMeasureNodes(invoice, items, allItems, subtotal, total, balanceDu
         <BillingTable items={items} invoice={invoice} />
       </div>
       <div data-meas-summary>
-        <BillingSummary invoice={invoice} items={allItems || items} subtotal={subtotal} total={total} balanceDue={balanceDue} taxAmount={taxAmount} discountAmount={discountAmount} itemDiscountsTotal={itemDiscountsTotal} notesPosition="inline" />
+        <div data-meas-bs>
+          <BillingSummary invoice={invoice} items={allItems || items} subtotal={subtotal} total={total} balanceDue={balanceDue} taxAmount={taxAmount} discountAmount={discountAmount} itemDiscountsTotal={itemDiscountsTotal} notesPosition="inline" />
+        </div>
+        {showMilestoneSummary(invoice) && (
+          <div data-meas-ms>
+            <MilestoneSummary invoice={invoice} items={allItems || items} />
+          </div>
+        )}
       </div>
     </>
   );
@@ -159,20 +302,69 @@ const InvoicePrint = ({
   useLayoutEffect(() => {
     if (!measRef.current) return;
 
-    const root = measRef.current;
-    const m = measureHeights(root);
-    const contentHeight = PAGE_H - FOOTER_H - SAFE_PX;
+    let cancelled = false;
+    let imagesLoading = 0;
+    let fontsReady = false;
 
-    const chunks = buildPagesFromMeasurements(
-      items, contentHeight,
-      m.headerHeight, m.billingInfoHeight,
-      m.rowHeights, m.tableOverheadH,
-      m.summaryHeight, m.notesHeight,
-    );
-    setPageChunks(chunks);
-  }, [items]);
+    const measure = () => {
+      if (cancelled || !measRef.current) return;
+      const root = measRef.current;
+      const m = measureHeights(root);
+      const contentHeight = PAGE_H - FOOTER_H - SAFE_PX;
 
-  const pages = pageChunks || [items];
+      const chunks = buildPagesFromMeasurements(
+        items, contentHeight,
+        m.headerHeight, m.billingInfoHeight,
+        m.rowHeights, m.tableOverheadH,
+        m.bsHeight, m.msOverheadH, m.msRowHeights, m.msFooterH,
+        m.notesHeight,
+      );
+      setPageChunks(chunks);
+    };
+
+    const onAssetReady = () => {
+      imagesLoading -= 1;
+      if (imagesLoading <= 0 && fontsReady) measure();
+    };
+
+    // Track image loading
+    measRef.current.querySelectorAll("img").forEach((img) => {
+      if (img.complete) return;
+      imagesLoading += 1;
+      img.addEventListener("load", onAssetReady, { once: true });
+      img.addEventListener("error", onAssetReady, { once: true });
+    });
+
+    // Track font loading
+    if (document.fonts?.ready) {
+      document.fonts.ready.then(() => {
+        fontsReady = true;
+        if (!cancelled && imagesLoading <= 0) measure();
+      });
+    } else {
+      fontsReady = true;
+    }
+
+    // Do initial measurement once assets are ready (or immediately if already ready)
+    if (fontsReady && imagesLoading <= 0) {
+      measure();
+    }
+
+    // Observe for any subsequent layout changes (font swap, dynamic content, etc.)
+    const observer = new ResizeObserver(() => {
+      if (!cancelled) measure();
+    });
+    observer.observe(measRef.current);
+
+    return () => {
+      cancelled = true;
+      observer.disconnect();
+    };
+  }, [items, invoice]);
+
+  const pages = pageChunks || [
+    { items, showBillingSummary: true, msStart: 0, msEnd: null },
+  ];
 
   return (
     <>
@@ -183,7 +375,10 @@ const InvoicePrint = ({
         >
           <BillingTableSection
             invoice={invoice}
-            items={chunk}
+            items={chunk.items}
+            showBillingSummary={chunk.showBillingSummary}
+            msStart={chunk.msStart}
+            msEnd={chunk.msEnd}
             allItems={allItems || items}
             isFirstPage={index === 0}
             isLastPage={index === pages.length - 1}
@@ -211,6 +406,9 @@ const InvoicePrint = ({
 const BillingTableSection = ({
   invoice,
   items,
+  showBillingSummary,
+  msStart,
+  msEnd,
   allItems,
   isFirstPage,
   isLastPage,
@@ -256,7 +454,7 @@ const BillingTableSection = ({
         </div>
       )}
 
-      {isLastPage && (
+      {showBillingSummary && (
         <div className={"shrink-0" + (items.length === 0 ? " pt-16" : "")}>
           <BillingSummary
             invoice={invoice}
@@ -268,6 +466,18 @@ const BillingTableSection = ({
             discountAmount={discountAmount}
             itemDiscountsTotal={itemDiscountsTotal}
             notesPosition="inline"
+          />
+        </div>
+      )}
+
+      {msStart !== null && msEnd !== null && (
+        <div className="shrink-0">
+          <MilestoneSummary
+            invoice={invoice}
+            items={allItems || items}
+            startIndex={msStart}
+            endIndex={msEnd}
+            showFooter={isLastPage}
           />
         </div>
       )}

@@ -51,7 +51,12 @@ export default function BillingInfo({ invoice = {} }) {
     const knobs = [];
     for (const cfg of TUNING_KNOBS) {
       left.querySelectorAll(`[${cfg.attr}]`).forEach((el) => {
-        knobs.push({ el, prop: cfg.prop, weight: cfg.weight, maxAdd: cfg.maxAdd });
+        knobs.push({
+          el,
+          prop: cfg.prop,
+          weight: cfg.weight,
+          maxAdd: cfg.maxAdd,
+        });
       });
     }
 
@@ -107,7 +112,11 @@ export default function BillingInfo({ invoice = {} }) {
       for (const k of eligible) {
         if (budget <= 0) break;
         const room = k.maxAdd - currentAdd.get(k);
-        const share = Math.min((k.weight / totalWeight) * MAX_STEP, room, budget);
+        const share = Math.min(
+          (k.weight / totalWeight) * MAX_STEP,
+          room,
+          budget,
+        );
 
         k.el.style[k.prop] = `${k.base + currentAdd.get(k) + share}px`;
         mark(k.el, k.prop);
@@ -116,9 +125,9 @@ export default function BillingInfo({ invoice = {} }) {
       }
     }
 
-// Record everything we touched so styles can be reset on cleanup
+    // Record everything we touched so styles can be reset on cleanup
     appliedRef.current = [...touched.entries()].flatMap(([el, props]) =>
-      [...props].map((prop) => ({ el, prop }))
+      [...props].map((prop) => ({ el, prop })),
     );
 
     // Cleanup function
@@ -137,28 +146,27 @@ export default function BillingInfo({ invoice = {} }) {
       {/* Date sits above both columns */}
       <h3 className="text-sm font-bold uppercase tracking-widest text-slate-800">
         Date:
-        <span className="ml-2 font-bold pb-15 text-sm normal-case">
-          {formatFirestoreDate(invoice.createdAt)}
+        <span className="ml-2 font-bold text-sm normal-case">
+          {formatFirestoreDate(invoice.invoiceDate)}
         </span>
       </h3>
 
       <div className="mt-4 flex items-start justify-between gap-8">
-        <div
-          ref={leftRef}
-          className="flex min-w-0 flex-1 flex-col"
-        >
+        <div ref={leftRef} className="flex min-w-0 flex-1 flex-col">
           <div>
-            <h4
-              className="text-sm font-bold uppercase tracking-[1px] text-black"
-            >
+            <h4 className="text-sm font-bold uppercase tracking-[1px] text-black">
               Invoice To:
             </h4>
 
-            <h2 data-mb-gap data-lh className="mb-0.5 text-3xl font-bold text-slate-900">
+            <h2
+              data-mb-gap
+              data-lh
+              className="mb-0.5 text-3xl font-bold text-slate-900"
+            >
               {invoice.businessName || ""}
             </h2>
 
-            <p data-mb-gap data-lh className="mb-0.5 text-xs text-black font-medium">
+            <p data-mb-gap data-lh className="mb-0.5 text-xs text-black">
               <span className="font-bold">Phone No:</span> {invoice.phoneNo}
             </p>
 
@@ -167,9 +175,8 @@ export default function BillingInfo({ invoice = {} }) {
               {invoice.businessAddress}
             </p>
 
-             <p data-mb-gap data-lh className="mb-0.5 text-xs text-black">
-               <span className="font-bold">Email:</span>{" "}
-              {invoice.businessEmail}
+            <p data-mb-gap data-lh className="mb-0.5 text-xs text-black">
+              <span className="font-bold">Email:</span> {invoice.businessEmail}
             </p>
           </div>
 
@@ -181,18 +188,22 @@ export default function BillingInfo({ invoice = {} }) {
               Contact Person:
             </h4> */}
 
-            <h2 data-mb-gap data-lh className="mb-0.5 mt-5 text-xs text-slate-900">
-               <span className="font-bold">Contact Person:</span>{" "}
+            <h2
+              data-mb-gap
+              data-lh
+              className="mb-0.5 mt-5 text-xs text-slate-900"
+            >
+              <span className="font-bold">Contact Person:</span>{" "}
               {invoice.customer || ""}
             </h2>
 
-              <p data-mb-gap data-lh className="mb-0.5 text-xs text-black font-medium">
-              <span className="font-bold">Phone No:</span> {invoice.contactPersonPhone}
+            <p data-mb-gap data-lh className="mb-0.5 text-xs text-black">
+              <span className="font-bold">Phone No:</span>{" "}
+              {invoice.contactPersonPhone}
             </p>
 
             <p data-mb-gap data-lh className="mb-0.5 text-xs text-black">
-               <span className="font-bold">Email:</span>{" "}
-               {invoice.customerEmail}
+              <span className="font-bold">Email:</span> {invoice.customerEmail}
             </p>
 
             {/* <p className="text-black font-medium">
@@ -204,10 +215,7 @@ export default function BillingInfo({ invoice = {} }) {
 
         {/* Right — Payment Information (DO NOT MODIFY) */}
         {invoice.payment && (
-          <div
-            ref={rightRef}
-            className="shrink-0 text-right"
-          >
+          <div ref={rightRef} className="shrink-0 text-right">
             <div className="max-w-[380px]">
               <h4 className="mb-.5 text-sm font-bold uppercase tracking-widest text-black">
                 Payment Method
@@ -215,7 +223,7 @@ export default function BillingInfo({ invoice = {} }) {
               {invoice.payment.startsWith("http://") ||
               invoice.payment.startsWith("https://") ? (
                 <a
-                  href={invoice.payment} 
+                  href={invoice.payment}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm font-medium text-blue-600 underline hover:text-blue-800"

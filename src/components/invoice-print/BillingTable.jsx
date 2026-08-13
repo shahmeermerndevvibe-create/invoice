@@ -12,6 +12,9 @@ const BillingTable = ({ items = [], invoice = {} }) => {
   const minRows = 1;
   const emptyRows = Math.max(0, minRows - items.length);
 
+  const showStatus =
+    invoice.contractType === "Milestones" && invoice.documentType !== "Invoice";
+
   const statusColors = {
     Pending: "bg-amber-100 text-amber-700 border-amber-200",
     Current: "bg-blue-100 text-blue-700 border-blue-200",
@@ -26,6 +29,11 @@ const BillingTable = ({ items = [], invoice = {} }) => {
         <Table>
           <TableHeader>
             <TableRow className="border-b-0 hover:bg-transparent">
+              {invoice.contractType === "Milestones" && (
+                <TableHead className="bg-[#0A4A95] py-4 text-center font-semibold text-white">
+                  Milestone
+                </TableHead>
+              )}
               <TableHead className="bg-[#0A4A95] py-4 text-left font-semibold bg-gradient-to-r from-blue-950 to-blue-500 text-white">
                 Description
               </TableHead>
@@ -42,7 +50,7 @@ const BillingTable = ({ items = [], invoice = {} }) => {
                 Discount
               </TableHead>
 
-              {invoice.contractType === "Milestones" && (
+              {showStatus && (
                 <TableHead className="bg-[#1E90FF] py-4 text-center font-semibold text-white">
                   Status
                 </TableHead>
@@ -68,6 +76,13 @@ const BillingTable = ({ items = [], invoice = {} }) => {
                   key={item.id || index}
                   className={`hover:bg-transparent`}
                 >
+                  {invoice.contractType === "Milestones" && (
+                    <TableCell className="bg-slate-50 py-4 text-center align-top">
+                      <span className="font-bold text-[#0A4A95]">
+                        M{index + 1}
+                      </span>
+                    </TableCell>
+                  )}
                   <TableCell className="py-3 align-top">
                     <p className="text-lg font-bold break-words text-[#0A4A95]">
                       {item.product}
@@ -95,7 +110,7 @@ const BillingTable = ({ items = [], invoice = {} }) => {
                       : "-"}
                   </TableCell>
 
-                  {invoice.contractType === "Milestones" && (
+                  {showStatus && (
                     <TableCell className="align-top py-4 text-center">
                       {isCompletedMilestone ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700 border border-green-200">
@@ -139,9 +154,7 @@ const BillingTable = ({ items = [], invoice = {} }) => {
                 <TableCell></TableCell>
                 <TableCell className="bg-slate-50"></TableCell>
                 <TableCell></TableCell>
-                {invoice.contractType === "Milestones" && (
-                  <TableCell className="bg-slate-50"></TableCell>
-                )}
+                {showStatus && <TableCell className="bg-slate-50"></TableCell>}
                 <TableCell className="bg-slate-50"></TableCell>
               </TableRow>
             ))}

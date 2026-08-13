@@ -109,3 +109,46 @@ export const calculateInvoiceTotals = (
     balanceDue,
   };
 };
+
+export const calculateMilestoneBreakdown = (items = [], invoice = {}) => {
+  const totals = calculateInvoiceTotals(items, invoice);
+  const sumPrice = items.reduce(
+    (sum, item) => sum + calculateItemRow(item).netTotal,
+    0,
+  );
+  const ratio = sumPrice > 0 ? 1 / sumPrice : 0;
+
+  const rows = items.map((item, index) => {
+    const { netTotal } = calculateItemRow(item);
+    const discountShare = totals.discountAmount * netTotal * ratio;
+    const tax = totals.taxAmount * netTotal * ratio;
+
+    return {
+      index,
+      label: `M${index + 1}`,
+      status: item.status || "Pending",
+      price: netTotal,
+      discountShare,
+      tax,
+      total: netTotal - discountShare + tax,
+    };
+  });
+
+  const dueThisInvoice = rows
+    .filter((row) => row.status === "Current")
+    .reduce((sum, row) => sum + row.total, 0);
+  const remaining = rows
+    .filter((row) => row.status === "Pending")
+    .reduce((sum, row) => sum + row.total, 0);
+
+  return {
+    rows,
+    subtotal: totals.subtotal,
+    itemDiscountsTotal: totals.itemDiscountsTotal,
+    discountAmount: totals.discountAmount,
+    taxAmount: totals.taxAmount,
+    netContractValue: totals.total,
+    dueThisInvoice,
+    remaining,
+  };
+};

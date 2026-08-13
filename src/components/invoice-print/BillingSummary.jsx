@@ -91,6 +91,82 @@ export default function BillingSummary({
           }`}
         >
           {invoice.contractType === "Milestones" ? (
+            invoice.documentType === "Invoice" ? (
+              <div className="ml-auto max-w-[280px] space-y-2 pb-4 text-sm">
+                <div className="flex justify-between gap-3">
+                  <span className="font-bold">Contract Value</span>
+                  <span className="tabular-nums font-medium">
+                    <span className="text-xs mr-0.5">
+                      {invoice.currency.symbol}
+                    </span>
+                    {formatCurrency(subtotal)}
+                  </span>
+                </div>
+
+                {Number(itemDiscountsTotal) > 0 && (
+                  <div className="flex justify-between gap-3">
+                    <span className="font-light">Item Discounts</span>
+                    <span className="tabular-nums">
+                      −
+                      <span className="text-xs mr-0.5">
+                        {invoice.currency.symbol}
+                      </span>
+                      {formatCurrency(itemDiscountsTotal)}
+                    </span>
+                  </div>
+                )}
+
+                <div className="flex justify-between gap-3">
+                  <span className="font-bold">
+                    Contract Value (After Discounts)
+                  </span>
+                  <span className="tabular-nums font-medium">
+                    <span className="text-xs mr-0.5">
+                      {invoice.currency.symbol}
+                    </span>
+                    {formatCurrency(subtotal - itemDiscountsTotal)}
+                  </span>
+                </div>
+
+                {Number(discountAmount) > 0 && (
+                  <div className="flex justify-between gap-3">
+                    <span className="font-bold">
+                      Invoice Discount ({discountLabel})
+                    </span>
+                    <span className="tabular-nums">
+                      −
+                      <span className="text-xs mr-0.5">
+                        {invoice.currency.symbol}
+                      </span>
+                      {formatCurrency(discountAmount)}
+                    </span>
+                  </div>
+                )}
+
+                {Number(taxAmount) > 0 && (
+                  <div className="flex justify-between gap-3">
+                    <span className="font-light">Tax ({taxLabel})</span>
+                    <span className="tabular-nums">
+                      +
+                      <span className="text-xs mr-0.5">
+                        {invoice.currency.symbol}
+                      </span>
+                      {formatCurrency(taxAmount)}
+                    </span>
+                  </div>
+                )}
+
+                <div className="flex justify-between gap-3 font-bold text-gray-900">
+                  <span>Total Contract Value</span>
+                  <span className="tabular-nums">
+                    <span className="text-xs mr-0.5">
+                      {invoice.currency.symbol}
+                    </span>
+                    {formatCurrency(total)}
+                  </span>
+                </div>
+              </div>
+            ) : (
             <div className="ml-auto max-w-[280px] space-y-2 pb-4 text-sm">
               <div className="flex justify-between gap-3">
                 <span className="font-bold">Total Contract Value</span>
@@ -181,6 +257,7 @@ export default function BillingSummary({
                 </span>
               </div>
             </div>
+            )
           ) : (
             <div className="ml-auto max-w-[280px] space-y-3">
               <div className="flex justify-between text-base font-semibold">

@@ -14,7 +14,7 @@ export const validateInvoice = (invoice = {}, items = [], subtotal = 0) => {
       errors.customerEmail = "Invalid email address.";
     }
   }
-
+ 
   // =====================
   // Business Information
   // =====================
