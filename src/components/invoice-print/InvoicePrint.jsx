@@ -12,12 +12,15 @@ const showMilestoneSummary = (invoice) =>
   invoice?.contractType === "Milestones" &&
   invoice?.documentType === "Invoice";
 
+const isMilestoneContract = (invoice) =>
+  invoice?.contractType === "Milestones";
+
 const MM_PX = 96 / 25.4;
 const PAGE_H = Math.round(297 * MM_PX);
 const FOOTER_H = Math.round(60 * MM_PX);
 const SAFE_PX = 8;
 
-function buildPagesFromMeasurements(items, contentHeight, headerHeight, billingInfoHeight, rowHeights, tableOverhead, bsHeight, msOverhead, msRowHeights, msFooterHeight, notesHeight) {
+function buildPagesFromMeasurements(items, contentHeight, headerHeight, billingInfoHeight, rowHeights, tableOverhead, bsHeight, msOverhead, msRowHeights, msFooterHeight, notesHeight, isMilestone) {
   const msRowsTotal = msRowHeights.reduce((a, b) => a + b, 0);
   const summaryBlockH = bsHeight + msOverhead + msRowsTotal + msFooterHeight;
   const hasMs = msRowHeights.length > 0;
@@ -81,15 +84,26 @@ function buildPagesFromMeasurements(items, contentHeight, headerHeight, billingI
   // able to start right below the last table. If the last items page is too
   // full for it, peel the trailing items onto a new final page so the summary
   // can begin underneath the table on that page.
+  //
+  // Only peel the single-page case: when the items already span multiple pages
+  // the summary can simply continue onto its own following page, so trailing
+  // items are never disturbed. Milestone contracts never peel either — their
+  // totals block flows forward onto its own pages.
   const introReserve = bsHeight + msOverhead + (hasMs ? msRowHeights[0] : 0);
   let lastItems = pages[pages.length - 1];
   const lastIsFirst = pages.length === 1;
-  const lastBudget = lastIsFirst ? firstBudget : interiorBudget;
+  let lastBudget = lastIsFirst ? firstBudget : interiorBudget;
+  // `pages` hold item objects; row heights are keyed by position in `items`.
   const sumRows = (list) =>
-    list.reduce((acc, item) => acc + rowHeights[item], 0);
+    list.reduce((acc, item) => acc + rowHeights[items.indexOf(item)], 0);
   let lastItemsH = sumRows(lastItems);
 
-  if (lastItemsH > lastBudget - introReserve && lastItems.length > 1) {
+  if (
+    !isMilestone &&
+    lastIsFirst &&
+    lastItemsH > lastBudget - introReserve &&
+    lastItems.length > 1
+  ) {
     const peeled = [];
     while (lastItemsH > lastBudget - introReserve && lastItems.length > 1) {
       peeled.unshift(lastItems.pop());
@@ -97,6 +111,11 @@ function buildPagesFromMeasurements(items, contentHeight, headerHeight, billingI
     }
     pages.push(peeled);
     lastItemsH = sumRows(peeled);
+    // The fresh final page is no longer the first page, so it budgets like an
+    // interior page (header + table only, no billing info). Without this,
+    // `lastFree` is understated and the summaries are wrongly classified as
+    // unable to fit below the table.
+    lastBudget = interiorBudget;
   }
 
   // Build the summary flow from the last items page onward.
@@ -137,6 +156,13 @@ function buildPagesFromMeasurements(items, contentHeight, headerHeight, billingI
     }
   } else if (canFitBs) {
     lastChunk.showBillingSummary = true;
+  }
+
+  // If there is no milestone summary to carry the totals block (fixed
+  // contracts) and the table fills the final page with no room for it, emit
+  // the billing summary on its own dedicated page so it is never dropped.
+  if (!lastChunk.showBillingSummary && !hasMs) {
+    chunks.push({ items: [], showBillingSummary: true, msStart: 0, msEnd: 0 });
   }
 
   // Flow the remaining milestone rows forward. The last milestone page also
@@ -317,7 +343,7 @@ const InvoicePrint = ({
         m.headerHeight, m.billingInfoHeight,
         m.rowHeights, m.tableOverheadH,
         m.bsHeight, m.msOverheadH, m.msRowHeights, m.msFooterH,
-        m.notesHeight,
+        m.notesHeight, isMilestoneContract(invoice),
       );
       setPageChunks(chunks);
     };
@@ -470,7 +496,10 @@ const BillingTableSection = ({
         </div>
       )}
 
-      {msStart !== null && msEnd !== null && (
+      {showMilestoneSummary(invoice) &&
+        msStart !== null &&
+        msEnd !== null &&
+        msEnd > msStart && (
         <div className="shrink-0">
           <MilestoneSummary
             invoice={invoice}

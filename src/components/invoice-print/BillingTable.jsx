@@ -29,11 +29,11 @@ const BillingTable = ({ items = [], invoice = {} }) => {
         <Table>
           <TableHeader>
             <TableRow className="border-b-0 hover:bg-transparent">
-              {invoice.contractType === "Milestones" && (
+              {/* {invoice.contractType === "Milestones" && (
                 <TableHead className="bg-[#0A4A95] py-4 text-center font-semibold text-white">
                   Milestone
                 </TableHead>
-              )}
+              )} */}
               <TableHead className="bg-[#0A4A95] py-4 text-left font-semibold bg-gradient-to-r from-blue-950 to-blue-500 text-white">
                 Description
               </TableHead>
@@ -76,13 +76,13 @@ const BillingTable = ({ items = [], invoice = {} }) => {
                   key={item.id || index}
                   className={`hover:bg-transparent`}
                 >
-                  {invoice.contractType === "Milestones" && (
+                  {/* {invoice.contractType === "Milestones" && (
                     <TableCell className="bg-slate-50 py-4 text-center align-top">
                       <span className="font-bold text-[#0A4A95]">
                         M{index + 1}
                       </span>
                     </TableCell>
-                  )}
+                  )} */}
                   <TableCell className="py-3 align-top">
                     <p className="text-lg font-bold break-words text-[#0A4A95]">
                       {item.product}
