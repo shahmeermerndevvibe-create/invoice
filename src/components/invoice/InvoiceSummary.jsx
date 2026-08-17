@@ -181,10 +181,7 @@ export default function InvoiceSummary({ onPrint }) {
       }
 
       toast.success("Draft saved!");
-
-      if (newDraft || editingInvoiceId) {
-        handleDraftSaved(draftInvoice);
-      }
+      handleDraftSaved(draftInvoice);
     } catch (error) {
       console.error(error);
       toast.error("An error occurred while saving the draft.");

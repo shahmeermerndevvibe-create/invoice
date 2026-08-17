@@ -217,7 +217,7 @@ export default function BillingSummary({
               </div>
             )
           ) : (
-            <div className="ml-auto max-w-[280px] space-y-3">
+            <div className="ml-auto max-w-[280px] space-y-3 pb-3">
               <div className="flex justify-between text-base font-semibold">
                 <span className="font-bold">Subtotal:</span>
                 <span>
@@ -289,6 +289,10 @@ export default function BillingSummary({
           )}
         </div>
       </div>
+
+      <p className="text-xs text-slate-500 text-right pr-50">
+        {invoice.taxInclusive ? "(Tax Inclusive)" : "(Tax Exclusive)"}
+      </p>
     </section>
   );
 }

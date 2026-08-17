@@ -51,6 +51,9 @@ export default function MilestoneSummary({
               <th className="py-3 text-right text-sm font-semibold">
                 Item Discount
               </th>
+              <th className="py-3 text-right text-sm font-semibold">
+                Invoice Discount
+              </th>
               <th className="py-3 text-right text-sm font-semibold">{taxLabel}</th>
               <th className="py-3 text-right text-sm font-semibold">Total</th>
               <th className="py-3 pr-4 text-center text-sm font-semibold">
@@ -77,6 +80,11 @@ export default function MilestoneSummary({
                   {formatCurrency(row.discountAmount)}
                 </td>
                 <td className="bg-slate-50 py-3 text-right align-top text-sm tabular-nums">
+                  −
+                  <span className="text-xs mr-0.5">{symbol}</span>
+                  {formatCurrency(row.invoiceDiscount)}
+                </td>
+                <td className="bg-slate-50 py-3 text-right align-top text-sm tabular-nums">
                   <span className="text-xs mr-0.5">{symbol}</span>
                   {formatCurrency(row.tax)}
                 </td>
@@ -99,7 +107,7 @@ export default function MilestoneSummary({
             {visibleRows.length === 0 && (
               <tr className="border-t border-slate-200">
                 <td
-                  colSpan={6}
+                  colSpan={7}
                   className="py-3 text-center text-sm text-slate-500"
                 >
                   No milestones available.
