@@ -250,6 +250,7 @@ export default function BillingInfo({ invoice = {} }) {
     [&_ol]:list-decimal
     [&_ol]:pl-5
     [&_li]:mb-1
+    [&_*]:!font-[inherit]
   "
                   dangerouslySetInnerHTML={{
                     __html: invoice.payment,

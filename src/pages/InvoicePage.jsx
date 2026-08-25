@@ -10,6 +10,7 @@ import ProcessingDialog from "@/components/common/ProcessingDialog";
 import { useInvoiceStore } from "@/store/invoiceStore";
 import { useInvoiceTotals } from "@/hooks/useInvoiceTotals";
 import { useSettingsStore } from "@/store/settingsStore";
+import { formatDocumentId } from "@/utils/invoiceUtils";
 
 const InvoicePage = () => {
   const printRef = useRef(null);
@@ -29,7 +30,7 @@ const { subtotal, total, balanceDue, taxAmount, discountAmount, itemDiscountsTot
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
-    documentTitle: printTitle,
+    documentTitle: () => `${printTitle}-${formatDocumentId(invoice)}`,
   }); 
 
 

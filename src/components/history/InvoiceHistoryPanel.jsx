@@ -11,6 +11,7 @@ import InvoiceHistoryFilters from "./InvoiceHistoryFilters";
 import InvoiceHistoryList from "./InvoiceHistoryList";
 import ReviewModal from "./ReviewModal";
 import toast from "react-hot-toast";
+import { formatDocumentId } from "@/utils/invoiceUtils";
 
 export default function InvoiceHistoryPanel() {
   const isOpen = useInvoiceStore((s) => s.isInvoiceHistoryOpen);
@@ -46,7 +47,10 @@ export default function InvoiceHistoryPanel() {
 
   const handlePrintAction = useReactToPrint({
     contentRef: printRef,
-    documentTitle: printData?.invoice?.documentType === "Quotation" ? "Quotation" : "Invoice",
+    documentTitle: () => {
+      const docType = printData?.invoice?.documentType === "Quotation" ? "Quotation" : "Invoice";
+      return `${docType}-${formatDocumentId(printData?.invoice)}`;
+    },
   });
 
   const fetchData = useCallback(async () => {
