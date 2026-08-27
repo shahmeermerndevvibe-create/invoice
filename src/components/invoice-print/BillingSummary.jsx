@@ -23,15 +23,22 @@ export default function BillingSummary({
     invoice.taxType === "percent"
       ? `${invoice.tax}%`
       : `${invoice.currency.symbol} ${formatCurrency(invoice.tax)}`;
+
+  const isMilestoneInvoice =
+    invoice.documentType === "Invoice" && invoice.contractType === "Milestones";
   return (
     <section className="totals px-8 py-3 md:px-14">
       <div className="flex flex-row gap-10">
-        {notesPosition === "inline" && (
-          <div className="flex-1 pt-4">
-            <h3 className="mb-4 text-sm font-bold text-[#0A4A95]">Note:</h3>
+        {notesPosition === "inline" &&
+          !(
+            invoice.documentType === "Invoice" &&
+            invoice.contractType === "Milestones"
+          ) && (
+            <div className="flex-1 pt-4">
+              <h3 className="mb-4 text-sm font-bold text-[#0A4A95]">Note:</h3>
 
-            <div
-              className="
+              <div
+                className="
         text-xs text-slate-700
         [&_p]:text-xs
         [&_span]:text-xs
@@ -43,17 +50,17 @@ export default function BillingSummary({
         [&_ol]:pl-6
         [&_li]:mb-2
       "
-              dangerouslySetInnerHTML={{
-                __html: invoice.notes || "<p>No notes available.</p>",
-              }}
-            />
-          </div>
-        )}
+                dangerouslySetInnerHTML={{
+                  __html: invoice.notes || "<p>No notes available.</p>",
+                }}
+              />
+            </div>
+          )}
 
         {/* Totals */}
         <div
           className={`w-[320px] shrink-0 ${
-            notesPosition !== "inline" ? "ml-auto" : ""
+            notesPosition !== "inline" || isMilestoneInvoice ? "ml-auto" : ""
           }`}
         >
           {invoice.contractType === "Milestones" ? (

@@ -75,18 +75,28 @@ export const useInvoiceStore = create(
 
       // Invoice actions
       updateInvoice(field, value) {
-        set((state) => ({
-          invoice: {
-            ...state.invoice,
-            [field]: value,
-          },
-          ...(field === "contractType"
-            ? { items: state.items.map((item) => ({ ...item, status: "Pending" })) }
-            : {}),
-          ...(field === "discountType"
-            ? { items: state.items.map((item) => ({ ...item, discountType: value })) }
-            : {}),
-        }));
+        set((state) => {
+          // Enforce discount mutual exclusivity: reject invoice discount if items have discounts
+          if (field === "discount" && Number(value) > 0) {
+            const hasItemDiscounts = state.items.some(
+              (item) => Number(item.discount) > 0
+            );
+            if (hasItemDiscounts) return state;
+          }
+
+          return {
+            invoice: {
+              ...state.invoice,
+              [field]: value,
+            },
+            ...(field === "contractType"
+              ? { items: state.items.map((item) => ({ ...item, status: "Pending" })) }
+              : {}),
+            ...(field === "discountType"
+              ? { items: state.items.map((item) => ({ ...item, discountType: value })) }
+              : {}),
+          };
+        });
       },
 
       setErrors(errors) {
@@ -188,16 +198,24 @@ export const useInvoiceStore = create(
       },
 
       updateItem(index, field, value) {
-        set((state) => ({
-          items: state.items.map((item, i) =>
-            i === index
-              ? {
-                  ...item,
-                  [field]: value,
-                }
-              : item,
-          ),
-        }));
+        set((state) => {
+          // Enforce discount mutual exclusivity: reject item discount if invoice has discount
+          if (field === "discount" && Number(value) > 0) {
+            const hasInvoiceDiscount = Number(state.invoice.discount) > 0;
+            if (hasInvoiceDiscount) return state;
+          }
+
+          return {
+            items: state.items.map((item, i) =>
+              i === index
+                ? {
+                    ...item,
+                    [field]: value,
+                  }
+                : item,
+            ),
+          };
+        });
       },
 
 

@@ -30,6 +30,12 @@ export default function MilestoneSummary({
   const to = endIndex == null ? totalRows : Math.min(endIndex, totalRows);
   const visibleRows = rows.slice(from, to);
 
+  const hasItemDiscounts = items.some((item) => Number(item.discount) > 0);
+  const hasInvoiceDiscount = Number(invoice.discount) > 0;
+  const totalColSpan = 5 + (hasItemDiscounts ? 1 : 0) + (hasInvoiceDiscount ? 1 : 0);
+
+  const isMilestoneInvoice = invoice.documentType === "Invoice" && invoice.contractType === "Milestones";
+
 
   const taxLabel =
   invoice.taxType === "percent"
@@ -48,12 +54,16 @@ export default function MilestoneSummary({
                 Milestone
               </th>
               <th className="py-3 text-right text-sm font-semibold">Price</th>
-              <th className="py-3 text-right text-sm font-semibold">
-                Item Discount
-              </th>
-              <th className="py-3 text-right text-sm font-semibold">
-                Invoice Discount
-              </th>
+              {hasItemDiscounts && (
+                <th className="py-3 text-right text-sm font-semibold">
+                  Item Discount
+                </th>
+              )}
+              {hasInvoiceDiscount && (
+                <th className="py-3 text-right text-sm font-semibold">
+                  Invoice Discount
+                </th>
+              )}
               <th className="py-3 text-right text-sm font-semibold">{taxLabel}</th>
               <th className="py-3 text-right text-sm font-semibold">Total</th>
               <th className="py-3 pr-4 text-center text-sm font-semibold">
@@ -74,16 +84,20 @@ export default function MilestoneSummary({
                   <span className="text-xs mr-0.5">{symbol}</span>
                   {formatCurrency(row.price)}
                 </td>
-                <td className="bg-slate-50 py-3 text-right align-top text-sm tabular-nums">
-                  −
-                  <span className="text-xs mr-0.5">{symbol}</span>
-                  {formatCurrency(row.discountAmount)}
-                </td>
-                <td className="bg-slate-50 py-3 text-right align-top text-sm tabular-nums">
-                  −
-                  <span className="text-xs mr-0.5">{symbol}</span>
-                  {formatCurrency(row.invoiceDiscount)}
-                </td>
+                {hasItemDiscounts && (
+                  <td className="bg-slate-50 py-3 text-right align-top text-sm tabular-nums">
+                    −
+                    <span className="text-xs mr-0.5">{symbol}</span>
+                    {formatCurrency(row.discountAmount)}
+                  </td>
+                )}
+                {hasInvoiceDiscount && (
+                  <td className="bg-slate-50 py-3 text-right align-top text-sm tabular-nums">
+                    −
+                    <span className="text-xs mr-0.5">{symbol}</span>
+                    {formatCurrency(row.invoiceDiscount)}
+                  </td>
+                )}
                 <td className="bg-slate-50 py-3 text-right align-top text-sm tabular-nums">
                   <span className="text-xs mr-0.5">{symbol}</span>
                   {formatCurrency(row.tax)}
@@ -107,7 +121,7 @@ export default function MilestoneSummary({
             {visibleRows.length === 0 && (
               <tr className="border-t border-slate-200">
                 <td
-                  colSpan={7}
+                  colSpan={totalColSpan}
                   className="py-3 text-center text-sm text-slate-500"
                 >
                   No milestones available.
@@ -121,22 +135,46 @@ export default function MilestoneSummary({
       {showFooter && (
         <div
           data-ms-footer
-          className="ml-auto mt-5 w-[280px] space-y-2 text-sm"
+          className={`mt-5 flex items-start gap-8 ${isMilestoneInvoice ? "" : "justify-end"}`}
         >
-          <div className="mt-5 flex justify-between overflow-hidden rounded-md bg-gradient-to-r from-[#1C3C75] from-[5%] to-[#1E90FF] to-[100%] px-4 py-2 text-white">
-            <span className="font-bold">Due This Invoice</span>
+          {isMilestoneInvoice && (
+            <div className="flex-1 pt-4">
+              <h3 className="mb-4 text-sm font-bold text-[#0A4A95]">Note:</h3>
+              <div
+                className="
+                  text-xs text-slate-700
+                  [&_p]:text-xs
+                  [&_span]:text-xs
+                  [&_li]:text-xs
+                  [&_div]:text-xs
+                  [&_ul]:list-disc
+                  [&_ul]:pl-6
+                  [&_ol]:list-decimal
+                  [&_ol]:pl-6
+                  [&_li]:mb-2
+                "
+                dangerouslySetInnerHTML={{
+                  __html: invoice.notes || "<p>No notes available.</p>",
+                }}
+              />
+            </div>
+          )}
+          <div className={`space-y-2 text-sm ${isMilestoneInvoice ? "w-[280px] shrink-0" : "ml-auto w-[280px]"}`}>
+            <div className="mt-5 flex justify-between overflow-hidden rounded-md bg-gradient-to-r from-[#1C3C75] from-[5%] to-[#1E90FF] to-[100%] px-4 py-2 text-white">
+              <span className="font-bold">Due This Invoice</span>
 
-            <span className="tabular-nums font-medium">
-              <span className="mr-0.5 text-xs">{symbol}</span>
-              {formatCurrency(dueThisInvoice)}
-            </span>
-          </div>
-          <div className="flex justify-between gap-3 text-xs text-slate-500">
-            <span>Remaining to be paid</span>
-            <span className="tabular-nums">
-              <span className="text-xs mr-0.5">{symbol}</span>
-              {formatCurrency(remaining)}
-            </span>
+              <span className="tabular-nums font-medium">
+                <span className="mr-0.5 text-xs">{symbol}</span>
+                {formatCurrency(dueThisInvoice)}
+              </span>
+            </div>
+            <div className="flex justify-between gap-3 text-xs text-slate-500">
+              <span>Remaining to be paid</span>
+              <span className="tabular-nums">
+                <span className="text-xs mr-0.5">{symbol}</span>
+                {formatCurrency(remaining)}
+              </span>
+            </div>
           </div>
         </div>
       )}

@@ -16,6 +16,7 @@ import { syncInvoiceDateNote } from "@/utils/invoiceDateNotes";
 
 export default function CustomerSection() {
   const invoice = useInvoiceStore((state) => state.invoice);
+  const items = useInvoiceStore((state) => state.items);
   const errors = useInvoiceStore((state) => state.errors);
   const clearInvoiceSectionError = useInvoiceStore(
     (state) => state.clearInvoiceSectionError,
@@ -25,6 +26,8 @@ export default function CustomerSection() {
   const updateInvoice = useInvoiceStore((state) => state.updateInvoice);
 
   const { balanceDue, subtotal } = useInvoiceTotals();
+
+  const hasItemDiscounts = items.some((item) => Number(item.discount) > 0);
 
   const formattedBalance = formatCurrency(balanceDue);
 
@@ -256,6 +259,8 @@ export default function CustomerSection() {
                   placeholder="0"
                   min={0}
                   max={100}
+                  disabled={hasItemDiscounts}
+                  title={hasItemDiscounts ? "Clear item-level discounts first" : ""}
                   value={invoice.discount === 0 ? "" : invoice.discount}
                   onChange={(e) => {
                     const value = e.target.value;
@@ -277,6 +282,7 @@ export default function CustomerSection() {
                 />
                 <Select
                   value={invoice.discountType}
+                  // disabled={hasItemDiscounts}
                   onValueChange={(value) => {
                     updateInvoice("discountType", value);
                     updateInvoice("discount", 0);
@@ -291,6 +297,9 @@ export default function CustomerSection() {
                   </SelectContent>
                 </Select>
               </div>
+              {/* {hasItemDiscounts && (
+                <p className="mt-1 text-xs text-amber-600">Item-level discounts are active. Clear them to use invoice-level discount.</p>
+              )} */}
             </div>
           </div>
         </div>

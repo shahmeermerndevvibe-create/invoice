@@ -157,7 +157,7 @@ const BillingTable = ({ items = [], invoice = {}, startIndex = 0 }) => {
                 <TableCell></TableCell>
                 <TableCell className="bg-slate-50"></TableCell>
                 <TableCell></TableCell>
-                {showStatus && <TableCell className="bg-slate-50"></TableCell>}
+                {/* {showStatus && <TableCell className="bg-slate-50"></TableCell>} */}
                 <TableCell className="bg-slate-50"></TableCell>
               </TableRow>
             ))}

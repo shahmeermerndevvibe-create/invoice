@@ -89,6 +89,13 @@ export const validateInvoice = (invoice = {}, items = [], subtotal = 0) => {
     errors.discount = "Discount cannot exceed the subtotal.";
   }
 
+  // Enforce mutual exclusivity of discount types
+  const hasInvoiceDiscount = Number(invoice.discount) > 0;
+  const hasItemDiscounts = items.some((item) => Number(item.discount) > 0);
+  if (hasInvoiceDiscount && hasItemDiscounts) {
+    errors.discount = "Cannot apply both invoice-level and item-level discounts. Clear one before adding the other.";
+  }
+
   const tax = Number(invoice.tax) || 0;
 
   if (!Number.isFinite(tax)) {

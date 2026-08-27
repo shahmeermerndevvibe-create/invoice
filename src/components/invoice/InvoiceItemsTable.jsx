@@ -31,6 +31,7 @@ function MobileItemCard({ index, item, invoice }) {
   const clearItemError = useInvoiceStore((s) => s.clearItemError);
   const itemErrors = errors.itemErrors?.[index] || {};
   const { netTotal } = calculateItemRow(item);
+  const hasInvoiceDiscount = Number(invoice.discount) > 0;
 
   const handleChange = (field, value) => {
     updateItem(index, field, value);
@@ -117,6 +118,8 @@ function MobileItemCard({ index, item, invoice }) {
             type="number"
             min={0}
             placeholder="0"
+            disabled={hasInvoiceDiscount}
+            title={hasInvoiceDiscount ? "Clear invoice-level discount first" : ""}
             value={item.discount === "" ? "" : item.discount}
             onChange={(e) => {
               const value = e.target.value;
@@ -149,7 +152,7 @@ function MobileItemCard({ index, item, invoice }) {
         </div>
       </div>
 
-      {invoice.contractType === "Milestones" && (
+      {invoice.contractType === "Milestones" && invoice.documentType !== "Quotation" && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
@@ -235,7 +238,7 @@ export default function InvoiceItemsTable({ onPrint }) {
               <th className={`${thClass} w-30 text-right`}>Unit</th>
               <th className={`${thClass} w-30 text-right`}>Rate ({invoice.currency.code})</th>
               <th className={`${thClass} w-30 text-right`}>Discount</th>
-              {invoice.contractType === "Milestones" && (
+              {invoice.contractType === "Milestones" && invoice.documentType !== "Quotation" && (
                 <th className={`${thClass} w-36 text-center`}>Status</th>
               )}
               <th className={`${thClass} text-right w-45`}>Amount</th>

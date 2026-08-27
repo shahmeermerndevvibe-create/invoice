@@ -18,6 +18,7 @@ export default function InvoiceItemRow({ index, item, dragIndex, onDragStart, on
 
   const itemErrors = errors.itemErrors?.[index] || {};
   const { netTotal } = calculateItemRow(item);
+  const hasInvoiceDiscount = Number(invoice.discount) > 0;
 
   const handleChange = (field, value) => {
     updateItem(index, field, value);
@@ -175,6 +176,8 @@ export default function InvoiceItemRow({ index, item, dragIndex, onDragStart, on
           min={0}
           max={9999999}
           placeholder="0"
+          disabled={hasInvoiceDiscount}
+          title={hasInvoiceDiscount ? "Clear invoice-level discount first" : ""}
           value={item.discount === "" ? "" : item.discount}
           onChange={(e) => {
             const value = e.target.value;
@@ -205,8 +208,8 @@ export default function InvoiceItemRow({ index, item, dragIndex, onDragStart, on
         )}
       </td>
 
-      {/* Status — only for Milestones */}
-      {invoice.contractType === "Milestones" && (
+      {/* Status — only for Milestones (hidden for Quotation) */}
+      {invoice.contractType === "Milestones" && invoice.documentType !== "Quotation" && (
         <td className={`${tdClass} min-w-[180px]`}>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
