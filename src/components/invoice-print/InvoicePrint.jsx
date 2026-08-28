@@ -321,9 +321,11 @@ const InvoicePrint = ({
   taxAmount,
   discountAmount,
   itemDiscountsTotal,
+  onReady,
 }) => {
   const [pageChunks, setPageChunks] = useState(null);
   const measRef = useRef(null);
+  const fontsLoaded = useRef(false);
 
   useLayoutEffect(() => {
     if (!measRef.current) return;
@@ -331,9 +333,11 @@ const InvoicePrint = ({
     let cancelled = false;
     let imagesLoading = 0;
     let fontsReady = false;
+    fontsLoaded.current = false;
 
     const measure = () => {
       if (cancelled || !measRef.current) return;
+      if (!(fontsLoaded.current && imagesLoading <= 0)) return;
       const root = measRef.current;
       const m = measureHeights(root);
       const contentHeight = PAGE_H - FOOTER_H - SAFE_PX;
@@ -365,15 +369,12 @@ const InvoicePrint = ({
     if (document.fonts?.ready) {
       document.fonts.ready.then(() => {
         fontsReady = true;
+        fontsLoaded.current = true;
         if (!cancelled && imagesLoading <= 0) measure();
       });
     } else {
       fontsReady = true;
-    }
-
-    // Do initial measurement once assets are ready (or immediately if already ready)
-    if (fontsReady && imagesLoading <= 0) {
-      measure();
+      fontsLoaded.current = true;
     }
 
     // Observe for any subsequent layout changes (font swap, dynamic content, etc.)
@@ -386,7 +387,14 @@ const InvoicePrint = ({
       cancelled = true;
       observer.disconnect();
     };
-  }, [items, invoice]);
+  }, [items, invoice, onReady]);
+
+  // Signal readiness only after the paginated DOM has been committed by React.
+  // `useLayoutEffect` runs after DOM mutation, so `onReady` can never fire while
+  // the print node still shows the single-chunk fallback.
+  useLayoutEffect(() => {
+    if (pageChunks !== null) onReady?.();
+  }, [pageChunks, onReady]);
 
   const pages = pageChunks || [
     { items, showBillingSummary: true, msStart: 0, msEnd: null },

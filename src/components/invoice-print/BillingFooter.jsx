@@ -9,8 +9,6 @@ export default function BillingFooter({ isLastPage = true, invoice = {} }) {
   const thankYouText = invoice.thankYouText || "";
   const signatureUrl = invoice.signatureUrl || "";
 
-  console.log("ıilling Footer", signatureUrl);
-
   return (
     <footer className="print-footer relative">
       <div

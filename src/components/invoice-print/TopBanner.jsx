@@ -24,7 +24,7 @@ export default function TopBanner({invoice}) {
       >
           {title}
         </h1>
-        <p className={`mt-2 text-sm font-bold tracking-widest pr-20`}>
+        <p className={`mt-2 text-sm font-bold tracking-widest pr-22`}>
           # {formatDocumentId(invoice)}
         </p>
       </div>

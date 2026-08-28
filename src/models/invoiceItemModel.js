@@ -15,4 +15,5 @@ export const invoiceItemModel = {
   discountAmount: 0,
 
   status: "Pending",
+  sortOrder: 0,
 };

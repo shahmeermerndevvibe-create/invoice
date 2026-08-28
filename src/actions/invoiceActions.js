@@ -54,10 +54,28 @@ export const saveDocument = async (document, items) => {
 
     const preservedCompletedData = completedItems.map(stripItemMeta);
 
+    // Sort combined array by the store's visual order before assigning sortOrder
+    const storeOrderLookup = new Map();
+    itemData.forEach((item, idx) => {
+      storeOrderLookup.set(itemSignature(item), idx);
+    });
+
+    const combinedItems = [...preservedCompletedData, ...incomingEditableItems.map(stripItemMeta)];
+    combinedItems.sort((a, b) => {
+      const aOrder = storeOrderLookup.get(itemSignature(a)) ?? 0;
+      const bOrder = storeOrderLookup.get(itemSignature(b)) ?? 0;
+      return aOrder - bOrder;
+    });
+
+    const orderedItems = combinedItems.map((item, idx) => ({
+      ...item,
+      sortOrder: idx,
+    }));
+
     await documentItemService.replaceItems(
       editingInvoiceId,
       itemsToDelete,
-      [...preservedCompletedData, ...incomingEditableItems.map(stripItemMeta)],
+      orderedItems,
     );
 
     return { success: true, documentId: editingInvoiceId };
@@ -65,7 +83,12 @@ export const saveDocument = async (document, items) => {
 
   const documentId = await invoiceService.createDocument(documentData);
 
-  await documentItemService.createItems(documentId, itemData.map(stripItemMeta));
+  const orderedItemData = itemData.map((item, idx) => ({
+    ...item,
+    sortOrder: idx,
+  }));
+
+  await documentItemService.createItems(documentId, orderedItemData.map(stripItemMeta));
 
   if (documentData.isDraft) {
     useInvoiceStore.getState().setEditingInvoiceId(documentId);

@@ -232,10 +232,12 @@ export const documentItemService = {
 
     const snapshot = await getDocs(q);
 
-    return snapshot.docs.map((doc) => ({
-      ...doc.data(),
-      id: doc.id,
-    }));
+    return snapshot.docs
+      .map((doc) => ({
+        ...doc.data(),
+        id: doc.id,
+      }))
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
   },
 
   async updateItem(id, data) {

@@ -40,6 +40,9 @@ export default function InvoiceHistoryPanel() {
   const version = useRef(0);
   const printRef = useRef(null);
   const searchRef = useRef(search);
+  const printReady = useRef(false);
+  const printing = useRef(false);
+  const safetyTimer = useRef(null);
 
   useEffect(() => {
     searchRef.current = search;
@@ -119,6 +122,12 @@ export default function InvoiceHistoryPanel() {
       setDraftFilter("");
     });
     cursors.current = [null]; page.current = 0;
+    printing.current = false;
+    printReady.current = false;
+    if (safetyTimer.current) {
+      clearTimeout(safetyTimer.current);
+      safetyTimer.current = null;
+    }
   }, [isOpen]);
 
   const handleSearchChange = (e) => {
@@ -152,13 +161,17 @@ export default function InvoiceHistoryPanel() {
   };
 
   const handlePrintClick = useCallback(async (documentId) => {
+    if (printing.current) return;
     try {
+      printing.current = true;
+      printReady.current = false;
       const result = await fetchDocumentForPrint(documentId);
       if (!result.success) throw new Error("Failed to fetch document data");
       setPrintData(result);
     } catch (err) {
       console.error("Print error:", err);
       toast.error("Failed to print document");
+      printing.current = false;
     }
   }, []);
 
@@ -228,10 +241,51 @@ export default function InvoiceHistoryPanel() {
     }
   }, [loadInvoiceForEdit, setItems, setEditingInvoiceId, updateInvoice, close]);
 
+  const handlePrintReady = useCallback(() => {
+    printReady.current = true;
+    if (safetyTimer.current) {
+      clearTimeout(safetyTimer.current);
+      safetyTimer.current = null;
+    }
+  }, []);
+
   useEffect(() => {
     if (!printData) return;
-    const timer = setTimeout(() => { handlePrintAction(); setPrintData(null); }, 50);
-    return () => clearTimeout(timer);
+
+    safetyTimer.current = setTimeout(() => {
+      if (printReady.current && printRef.current) {
+        handlePrintAction();
+      } else {
+        toast.error("Print timed out. Please try again.");
+      }
+      setPrintData(null);
+      printing.current = false;
+      safetyTimer.current = null;
+    }, 15000);
+
+    let rafId;
+    const poll = () => {
+      if (printReady.current && printRef.current) {
+        handlePrintAction();
+        setPrintData(null);
+        printing.current = false;
+        if (safetyTimer.current) {
+          clearTimeout(safetyTimer.current);
+          safetyTimer.current = null;
+        }
+        return;
+      }
+      rafId = requestAnimationFrame(poll);
+    };
+    rafId = requestAnimationFrame(poll);
+
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      if (safetyTimer.current) {
+        clearTimeout(safetyTimer.current);
+        safetyTimer.current = null;
+      }
+    };
   }, [printData, handlePrintAction]);
 
   if (!isOpen) return null;
@@ -316,6 +370,7 @@ export default function InvoiceHistoryPanel() {
               taxAmount={printData.totals.taxAmount}
               discountAmount={printData.totals.discountAmount}
               itemDiscountsTotal={printData.totals.itemDiscountsTotal}
+              onReady={handlePrintReady}
             />
           </div>
         </div>
