@@ -32,15 +32,25 @@ export default function MilestoneSummary({
 
   const hasItemDiscounts = items.some((item) => Number(item.discount) > 0);
   const hasInvoiceDiscount = Number(invoice.discount) > 0;
-  const totalColSpan = 5 + (hasItemDiscounts ? 1 : 0) + (hasInvoiceDiscount ? 1 : 0);
+  const totalColSpan =
+    5 + (hasItemDiscounts ? 1 : 0) + (hasInvoiceDiscount ? 1 : 0);
 
-  const isMilestoneInvoice = invoice.documentType === "Invoice" && invoice.contractType === "Milestones";
-
+  const isMilestoneInvoice =
+    invoice.documentType === "Invoice" && invoice.contractType === "Milestones";
 
   const taxLabel =
-  invoice.taxType === "percent"
-    ? `Tax (${invoice.tax || 0}%)`
-    : `Tax (${symbol} ${formatCurrency(invoice.tax || 0)})`;
+    invoice.taxType === "percent"
+      ? `Tax (${invoice.tax || 0}%)`
+      : `Tax (${symbol} ${formatCurrency(invoice.tax || 0)})`;
+
+const notesHtml = useMemo(
+  () =>
+    (invoice.notes || "<p>No notes available.</p>").replace(
+      /\b(Milestone\s+\d+)\s+/gi,
+      "$1<br />",
+    ),
+  [invoice.notes],
+);
 
   return (
     <section className="px-8 py-3 md:px-14">
@@ -64,7 +74,9 @@ export default function MilestoneSummary({
                   Invoice Discount
                 </th>
               )}
-              <th className="py-3 text-right text-sm font-semibold">{taxLabel}</th>
+              <th className="py-3 text-right text-sm font-semibold">
+                {taxLabel}
+              </th>
               <th className="py-3 text-right text-sm font-semibold">Total</th>
               <th className="py-3 pr-4 text-center text-sm font-semibold">
                 Status
@@ -86,15 +98,13 @@ export default function MilestoneSummary({
                 </td>
                 {hasItemDiscounts && (
                   <td className="bg-slate-50 py-3 text-right align-top text-sm tabular-nums">
-                    −
-                    <span className="text-xs mr-0.5">{symbol}</span>
+                    −<span className="text-xs mr-0.5">{symbol}</span>
                     {formatCurrency(row.discountAmount)}
                   </td>
                 )}
                 {hasInvoiceDiscount && (
                   <td className="bg-slate-50 py-3 text-right align-top text-sm tabular-nums">
-                    −
-                    <span className="text-xs mr-0.5">{symbol}</span>
+                    −<span className="text-xs mr-0.5">{symbol}</span>
                     {formatCurrency(row.invoiceDiscount)}
                   </td>
                 )}
@@ -135,31 +145,43 @@ export default function MilestoneSummary({
       {showFooter && (
         <div
           data-ms-footer
-          className={`mt-5 flex items-start gap-8 ${isMilestoneInvoice ? "" : "justify-end"}`}
+          className={`mt-5 flex items-start ${
+            isMilestoneInvoice ? "gap-12" : "justify-end"
+          }`}
         >
           {isMilestoneInvoice && (
-            <div className="flex-1 pt-4">
+            <div className="min-w-0 flex-1 pt-4 pr-4">
               <h3 className="mb-4 text-sm font-bold text-[#0A4A95]">Note:</h3>
-              <div
-                className="
-                  text-xs text-slate-700
-                  [&_p]:text-xs
-                  [&_span]:text-xs
-                  [&_li]:text-xs
-                  [&_div]:text-xs
-                  [&_ul]:list-disc
-                  [&_ul]:pl-6
-                  [&_ol]:list-decimal
-                  [&_ol]:pl-6
-                  [&_li]:mb-2
-                "
-                dangerouslySetInnerHTML={{
-                  __html: invoice.notes || "<p>No notes available.</p>",
-                }}
-              />
+
+             <div
+  className="
+    max-w-[23.60rem]
+    min-w-0
+    break-words
+    text-xs leading-5 text-slate-700
+    [&_p]:text-xs
+    [&_p]:leading-5
+    [&_span]:text-xs
+    [&_li]:text-xs
+    [&_div]:text-xs
+    [&_ul]:list-disc
+    [&_ul]:pl-6
+    [&_ol]:list-decimal
+    [&_ol]:pl-6
+    [&_li]:mb-2
+  "
+  dangerouslySetInnerHTML={{
+    __html: notesHtml,
+  }}
+/>
             </div>
           )}
-          <div className={`space-y-2 text-sm ${isMilestoneInvoice ? "w-[280px] shrink-0" : "ml-auto w-[280px]"}`}>
+
+          <div
+            className={`space-y-2 text-sm ${
+              isMilestoneInvoice ? "w-[280px] shrink-0" : "ml-auto w-[280px]"
+            }`}
+          >
             <div className="mt-5 flex justify-between overflow-hidden rounded-md bg-gradient-to-r from-[#1C3C75] from-[5%] to-[#1E90FF] to-[100%] px-4 py-2 text-white">
               <span className="font-bold">Due This Invoice</span>
 
@@ -168,10 +190,11 @@ export default function MilestoneSummary({
                 {formatCurrency(dueThisInvoice)}
               </span>
             </div>
+
             <div className="flex justify-between gap-3 text-xs text-slate-500">
               <span>Remaining to be paid</span>
               <span className="tabular-nums">
-                <span className="text-xs mr-0.5">{symbol}</span>
+                <span className="mr-0.5 text-xs">{symbol}</span>
                 {formatCurrency(remaining)}
               </span>
             </div>
