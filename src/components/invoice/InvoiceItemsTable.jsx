@@ -18,10 +18,9 @@ import {
 import { ChevronDown, Circle } from "lucide-react";
 
 const statuses = {
-  Pending: { color: "text-amber-600", bg: "bg-amber-100", border: "border-amber-300" },
-  Current: { color: "text-blue-600", bg: "bg-blue-100", border: "border-blue-300" },
-  Completed: { color: "text-green-700", bg: "bg-green-100", border: "border-green-300" },
-  //  Paid: { color: "text-purple-700",bg: "bg-purple-100",border: "border-purple-300" },
+  "Next Payable": { color: "text-amber-600", bg: "bg-amber-100", border: "border-amber-300" },
+  Due: { color: "text-blue-600", bg: "bg-blue-100", border: "border-blue-300" },
+  Paid: { color: "text-green-700", bg: "bg-green-100", border: "border-green-300" },
 };
 
 function MobileItemCard({ index, item, invoice }) {
@@ -38,7 +37,7 @@ function MobileItemCard({ index, item, invoice }) {
     if (itemErrors[field]) clearItemError(index, field);
   };
 
-  const statusStyle = statuses[item.status] || statuses.Pending;
+  const statusStyle = statuses[item.status] || statuses["Next Payable"];
 
   return (
     <div className="space-y-2 rounded-lg border border-gray-200 bg-white p-3 shadow-sm">

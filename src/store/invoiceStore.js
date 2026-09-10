@@ -90,7 +90,7 @@ export const useInvoiceStore = create(
               [field]: value,
             },
             ...(field === "contractType"
-              ? { items: state.items.map((item) => ({ ...item, status: "Pending" })) }
+              ? { items: state.items.map((item) => ({ ...item, status: "Next Payable" })) }
               : {}),
             ...(field === "discountType"
               ? { items: state.items.map((item) => ({ ...item, discountType: value })) }

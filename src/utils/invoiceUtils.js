@@ -182,7 +182,7 @@ export const calculateMilestoneBreakdown = (items = [], invoice = {}) => {
     return {
       index,
       label: `M${index + 1}`,
-      status: item.status || "Pending",
+      status: item.status || "Next Payable",
       price,
       discountAmount,
       invoiceDiscount,
@@ -213,11 +213,11 @@ export const calculateMilestoneBreakdown = (items = [], invoice = {}) => {
   }
 
   const dueThisInvoice = rows
-    .filter((row) => row.status === "Current")
+    .filter((row) => row.status === "Due")
     .reduce((sum, row) => sum + row.total, 0);
 
   const remaining = rows
-    .filter((row) => row.status === "Pending")
+    .filter((row) => row.status === "Next Payable")
     .reduce((sum, row) => sum + row.total, 0);
 
   return {

@@ -74,13 +74,13 @@ export default function InvoiceSummary({ onPrint }) {
       0,
     );
     const completed = items
-      .filter((item) => item.status === "Completed")
+      .filter((item) => item.status === "Paid")
       .reduce((sum, item) => sum + calculateItemRow(item).netTotal, 0);
     const current = items
-      .filter((item) => item.status === "Current")
+      .filter((item) => item.status === "Due")
       .reduce((sum, item) => sum + calculateItemRow(item).netTotal, 0);
     const pending = items
-      .filter((item) => item.status === "Pending")
+      .filter((item) => item.status === "Next Payable")
       .reduce((sum, item) => sum + calculateItemRow(item).netTotal, 0);
     return {
       totalContractValue: total,

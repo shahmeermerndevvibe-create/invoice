@@ -42,7 +42,7 @@ export const saveDocument = async (document, items) => {
 
     const existingItems = await documentItemService.getItems(editingInvoiceId);
     const completedItems = deduplicateItems(
-      existingItems.filter((item) => item.status === "Completed"),
+      existingItems.filter((item) => item.status === "Paid"),
     );
     const completedItemIds = new Set(completedItems.map((item) => item.id));
 

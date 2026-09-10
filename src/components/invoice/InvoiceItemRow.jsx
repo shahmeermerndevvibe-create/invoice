@@ -30,29 +30,24 @@ export default function InvoiceItemRow({ index, item, dragIndex, onDragStart, on
   const tdClass = "border border-gray-200 p-2 align-top";
 
   const statuses = {
-    Pending: {
+    "Next Payable": {
       color: "text-amber-600",
       bg: "bg-amber-100",
       border: "border-amber-300",
     },
-    Current: {
+    Due: {
       color: "text-blue-600",
       bg: "bg-blue-100",
       border: "border-blue-300",
     },
-    Completed: {
+    Paid: {
       color: "text-green-700",
       bg: "bg-green-100",
       border: "border-green-300",
     },
-    // Paid: {
-    //   color: "text-purple-700",
-    //   bg: "bg-purple-100",
-    //   border: "border-purple-300",
-    // },
   };
 
-  const statusStyle = statuses[item.status] || statuses.Pending;
+  const statusStyle = statuses[item.status] || statuses["Next Payable"];
 
   return (
     <tr
@@ -210,7 +205,7 @@ export default function InvoiceItemRow({ index, item, dragIndex, onDragStart, on
 
       {/* Status — only for Milestones (hidden for Quotation) */}
       {invoice.contractType === "Milestones" && invoice.documentType !== "Quotation" && (
-        <td className={`${tdClass} min-w-[180px]`}>
+        <td className={`${tdClass} min-w-[210px]`}>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
@@ -225,7 +220,7 @@ export default function InvoiceItemRow({ index, item, dragIndex, onDragStart, on
                 <ChevronDown className="h-4 w-4 opacity-60" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-[180px]">
+            <DropdownMenuContent className="w-[210px]">
               {Object.keys(statuses).map((status) => (
                 <DropdownMenuItem key={status} onClick={() => handleChange("status", status)}>
                   <Circle className={`mr-2 h-3 w-3 fill-current ${statuses[status].color}`} />

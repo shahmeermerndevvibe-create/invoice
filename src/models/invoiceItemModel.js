@@ -14,6 +14,6 @@ export const invoiceItemModel = {
   discountType: "percent",
   discountAmount: 0,
 
-  status: "Pending",
+  status: "Next Payable",
   sortOrder: 0,
 };

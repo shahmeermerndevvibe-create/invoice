@@ -27,13 +27,13 @@ export default function ReviewModal({ data, onClose }) {
       0,
     );
     const completed = items
-      .filter((item) => item.status === "Completed")
+      .filter((item) => item.status === "Paid")
       .reduce((sum, item) => sum + calculateItemRow(item).netTotal, 0);
     const current = items
-      .filter((item) => item.status === "Current")
+      .filter((item) => item.status === "Due")
       .reduce((sum, item) => sum + calculateItemRow(item).netTotal, 0);
     const pending = items
-      .filter((item) => item.status === "Pending")
+      .filter((item) => item.status === "Next Payable")
       .reduce((sum, item) => sum + calculateItemRow(item).netTotal, 0);
     return {
       totalContractValue: total,
@@ -121,7 +121,7 @@ export default function ReviewModal({ data, onClose }) {
                       </TableCell>
                       {invoice.contractType === "Milestones" && (
                         <TableCell className="text-center">
-                          {item.status || "Pending"}
+                          {item.status || "Next Payable"}
                         </TableCell>
                       )}
                       <TableCell className="text-right font-medium">
