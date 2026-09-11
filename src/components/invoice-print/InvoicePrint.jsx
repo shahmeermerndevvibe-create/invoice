@@ -98,25 +98,24 @@ function buildPagesFromMeasurements(items, contentHeight, headerHeight, billingI
     list.reduce((acc, item) => acc + rowHeights[items.indexOf(item)], 0);
   let lastItemsH = sumRows(lastItems);
 
-  if (
-    !isMilestone &&
-    lastIsFirst &&
-    lastItemsH > lastBudget - introReserve &&
-    lastItems.length > 1
-  ) {
-    const peeled = [];
-    while (lastItemsH > lastBudget - introReserve && lastItems.length > 1) {
-      peeled.unshift(lastItems.pop());
-      lastItemsH = sumRows(lastItems);
-    }
-    pages.push(peeled);
-    lastItemsH = sumRows(peeled);
-    // The fresh final page is no longer the first page, so it budgets like an
-    // interior page (header + table only, no billing info). Without this,
-    // `lastFree` is understated and the summaries are wrongly classified as
-    // unable to fit below the table.
-    lastBudget = interiorBudget;
-  }
+  // NOTE: Peel logic commented out — items now fill greedily and the billing
+  // summary gets its own dedicated page if it doesn't fit on the last items
+  // page (handled by the fallback at the end of this function).
+  // if (
+  //   !isMilestone &&
+  //   lastIsFirst &&
+  //   lastItemsH > lastBudget - introReserve &&
+  //   lastItems.length > 1
+  // ) {
+  //   const peeled = [];
+  //   while (lastItemsH > lastBudget - introReserve && lastItems.length > 1) {
+  //     peeled.unshift(lastItems.pop());
+  //     lastItemsH = sumRows(lastItems);
+  //   }
+  //   pages.push(peeled);
+  //   lastItemsH = sumRows(peeled);
+  //   lastBudget = interiorBudget;
+  // }
 
   // Build the summary flow from the last items page onward.
   const chunks = pages.map((p) => ({

@@ -82,7 +82,7 @@ const BillingTable = ({ items = [], invoice = {}, startIndex = 0 }) => {
                       </span>
                     </TableCell>
                   )}
-                  <TableCell className="py-3 align-top">
+                  <TableCell className="py-3 align-top max-w-0">
                     <p className="text-lg font-bold break-words text-[#0A4A95]">
                       {item.product}
                     </p>
