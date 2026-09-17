@@ -25,7 +25,14 @@ const BillingTable = ({ items = [], invoice = {}, startIndex = 0 }) => {
   return (
     <section className="px-8 md:px-14">
       <div className="border border-slate-200">
-        <Table>
+        <Table className="w-full table-fixed">
+          <colgroup>
+            <col className="w-[40%]" />
+            <col className="w-[13%]" />
+            <col className="w-[13%]" />
+            <col className="w-[13%]" />
+            <col className="w-[15%]" />
+          </colgroup>
           <TableHeader>
             <TableRow className="border-b-0 hover:bg-transparent">
               {invoice.contractType === "Milestones" && (
@@ -99,7 +106,7 @@ const BillingTable = ({ items = [], invoice = {}, startIndex = 0 }) => {
                     </span>
                   </TableCell>
 
-                  <TableCell className="bg-slate-50 align-top text-center py-4">
+                  <TableCell className="bg-white align-top text-center py-4">
                     {formatCurrency(item.rate)}
                   </TableCell>
 
@@ -139,7 +146,7 @@ const BillingTable = ({ items = [], invoice = {}, startIndex = 0 }) => {
                     </TableCell>
                   )} */}
 
-                  <TableCell className="bg-slate-50 align-top text-center py-4 font-bold text-[#0A4A95]">
+                  <TableCell className="bg-white align-top text-center py-4 font-bold text-[#0A4A95]">
                     {formatCurrency(netTotal)}
                   </TableCell>
                 </TableRow>
