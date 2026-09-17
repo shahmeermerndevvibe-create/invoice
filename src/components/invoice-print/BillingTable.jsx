@@ -27,11 +27,12 @@ const BillingTable = ({ items = [], invoice = {}, startIndex = 0 }) => {
       <div className="border border-slate-200">
         <Table className="w-full table-fixed">
           <colgroup>
-            <col className="w-[40%]" />
+            {invoice.contractType === "Milestones" && <col className="w-[5%]" />}
+            <col className={invoice.contractType === "Milestones" ? "w-[35%]" : "w-[40%]"} />
             <col className="w-[13%]" />
-            <col className="w-[13%]" />
-            <col className="w-[13%]" />
-            <col className="w-[15%]" />
+            <col className={invoice.contractType === "Milestones" ? "w-[12%]" : "w-[13%]"} />
+            <col className={invoice.contractType === "Milestones" ? "w-[12%]" : "w-[13%]"} />
+            <col className={invoice.contractType === "Milestones" ? "w-[13%]" : "w-[15%]"} />
           </colgroup>
           <TableHeader>
             <TableRow className="border-b-0 hover:bg-transparent">
@@ -89,12 +90,12 @@ const BillingTable = ({ items = [], invoice = {}, startIndex = 0 }) => {
                       </span>
                     </TableCell>
                   )}
-                  <TableCell className="py-3 align-top max-w-0">
-                    <p className="text-lg font-bold break-words text-[#0A4A95]">
+                  <TableCell className="min-w-0 py-3 align-top">
+                    <p className="text-lg font-bold whitespace-normal break-words [overflow-wrap:anywhere] text-[#0A4A95]">
                       {item.product}
                     </p>
                     {item.description && (
-                      <p className="mt-1 whitespace-pre-wrap break-words leading-6 text-black text-sm">
+                      <p className="mt-1 whitespace-pre-wrap break-words [overflow-wrap:anywhere] leading-6 text-black text-sm">
                         {item.description}
                       </p>
                     )}
